@@ -1,0 +1,401 @@
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+import { useImportNegocios, Negocio } from '@/hooks/useNegocios';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+
+// Mapeamento das colunas do CSV para o banco
+const columnMapping: Record<string, keyof Negocio> = {
+  'nome': 'nome',
+  'título': 'nome',
+  'titulo': 'nome',
+  'pipeline de negócio': 'pipeline',
+  'pipeline de negocio': 'pipeline',
+  'pipeline': 'pipeline',
+  'data de início': 'data_inicio',
+  'data de inicio': 'data_inicio',
+  'data_inicio': 'data_inicio',
+  'vendedor': 'vendedor',
+  'quem fez o agendamento?': 'sdr',
+  'quem fez o agendamento': 'sdr',
+  'sdr': 'sdr',
+  'mql': 'mql',
+  'sql': 'sql_qualificado',
+  'reunião agendada?': 'reuniao_agendada',
+  'reunião agendada': 'reuniao_agendada',
+  'reuniao agendada': 'reuniao_agendada',
+  'reuniao_agendada': 'reuniao_agendada',
+  'reunião realizada?': 'reuniao_realizada',
+  'reunião realizada': 'reuniao_realizada',
+  'reuniao realizada': 'reuniao_realizada',
+  'reuniao_realizada': 'reuniao_realizada',
+  'no show?': 'no_show',
+  'no show': 'no_show',
+  'no_show': 'no_show',
+  'venda aprovada': 'venda_aprovada',
+  'venda_aprovada': 'venda_aprovada',
+  'total': 'total',
+  'tipo de venda': 'tipo_venda',
+  'tipo_venda': 'tipo_venda',
+  'motivo de perda': 'motivo_perda',
+  'motivo_perda': 'motivo_perda',
+  'lead: utm_source': 'utm_source',
+  'utm_source': 'utm_source',
+  'lead: utm_medium': 'utm_medium',
+  'utm_medium': 'utm_medium',
+  'lead: utm_campaign': 'utm_campaign',
+  'utm_campaign': 'utm_campaign',
+  'lead: fonte': 'lead_fonte',
+  'lead_fonte': 'lead_fonte',
+  'contato: fonte': 'contato_fonte',
+  'contato_fonte': 'contato_fonte',
+};
+
+function parseBoolean(value: string | undefined | null): boolean {
+  if (!value) return false;
+  const lower = value.toString().toLowerCase().trim();
+  return ['sim', 'yes', 'true', '1', 'x'].includes(lower);
+}
+
+function parseNumber(value: string | undefined | null): number {
+  if (!value) return 0;
+  // Handle Brazilian currency format: R$ 1.234,56
+  const cleaned = value
+    .toString()
+    .replace(/[R$\s]/g, '')
+    .replace(/\./g, '')
+    .replace(',', '.');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
+function parseDate(value: string | undefined | null): string | null {
+  if (!value) return null;
+  
+  // Try different date formats
+  const dateStr = value.toString().trim();
+  
+  // DD/MM/YYYY
+  const brMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brMatch) {
+    const [, day, month, year] = brMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  
+  // YYYY-MM-DD
+  const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return dateStr.substring(0, 10);
+  }
+  
+  return null;
+}
+
+function mapRowToNegocio(row: Record<string, string>, userId: string): Partial<Negocio> {
+  const mapped: Partial<Negocio> = {
+    imported_by: userId,
+  };
+
+  for (const [csvColumn, value] of Object.entries(row)) {
+    const normalizedColumn = csvColumn.toLowerCase().trim();
+    const dbColumn = columnMapping[normalizedColumn];
+    
+    if (dbColumn) {
+      switch (dbColumn) {
+        case 'mql':
+        case 'sql_qualificado':
+        case 'reuniao_agendada':
+        case 'reuniao_realizada':
+        case 'no_show':
+        case 'venda_aprovada':
+          (mapped as any)[dbColumn] = parseBoolean(value);
+          break;
+        case 'total':
+          mapped.total = parseNumber(value);
+          break;
+        case 'data_inicio':
+          mapped.data_inicio = parseDate(value);
+          break;
+        default:
+          (mapped as any)[dbColumn] = value?.trim() || null;
+      }
+    }
+  }
+
+  return mapped;
+}
+
+export function DataImport() {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<Record<string, string>[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<'idle' | 'parsing' | 'importing' | 'success' | 'error'>('idle');
+  
+  const { user } = useAuth();
+  const importMutation = useImportNegocios();
+  const { toast } = useToast();
+
+  const processFile = useCallback(async (file: File) => {
+    setFile(file);
+    setStatus('parsing');
+    setProgress(10);
+
+    try {
+      let data: Record<string, string>[] = [];
+
+      if (file.name.endsWith('.csv')) {
+        // Parse CSV
+        const text = await file.text();
+        const result = Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        data = result.data as Record<string, string>[];
+      } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        // Parse Excel
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        data = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { defval: '' });
+      } else {
+        throw new Error('Formato de arquivo não suportado. Use CSV ou Excel.');
+      }
+
+      setProgress(50);
+      setPreview(data.slice(0, 5));
+      setStatus('idle');
+      setProgress(100);
+
+      toast({
+        title: 'Arquivo processado',
+        description: `${data.length} registros encontrados. Clique em "Importar" para continuar.`,
+      });
+    } catch (error) {
+      setStatus('error');
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao processar arquivo',
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
+  }, [toast]);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      processFile(acceptedFiles[0]);
+    }
+  }, [processFile]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'text/csv': ['.csv'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls'],
+    },
+    maxFiles: 1,
+  });
+
+  const handleImport = async () => {
+    if (!file || !user) return;
+
+    setStatus('importing');
+    setProgress(0);
+
+    try {
+      let data: Record<string, string>[] = [];
+
+      if (file.name.endsWith('.csv')) {
+        const text = await file.text();
+        const result = Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        data = result.data as Record<string, string>[];
+      } else {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        data = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { defval: '' });
+      }
+
+      setProgress(30);
+
+      const negocios = data.map(row => mapRowToNegocio(row, user.id));
+      
+      setProgress(60);
+
+      await importMutation.mutateAsync(negocios);
+      
+      setProgress(100);
+      setStatus('success');
+    } catch (error) {
+      setStatus('error');
+    }
+  };
+
+  const resetImport = () => {
+    setFile(null);
+    setPreview([]);
+    setProgress(0);
+    setStatus('idle');
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5 text-primary" />
+            Importar Dados
+          </CardTitle>
+          <CardDescription>
+            Faça upload de um arquivo CSV ou Excel com os dados do CRM. 
+            Os dados existentes serão substituídos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {status === 'success' ? (
+            <div className="text-center py-8">
+              <CheckCircle2 className="h-16 w-16 text-success mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Importação concluída!
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Os dados foram importados com sucesso.
+              </p>
+              <Button onClick={resetImport} variant="outline">
+                Importar outro arquivo
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div
+                {...getRootProps()}
+                className={`
+                  border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+                  transition-colors duration-200
+                  ${isDragActive 
+                    ? 'border-accent bg-accent/10' 
+                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                  }
+                `}
+              >
+                <input {...getInputProps()} />
+                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                {isDragActive ? (
+                  <p className="text-primary font-medium">Solte o arquivo aqui...</p>
+                ) : (
+                  <>
+                    <p className="text-foreground font-medium mb-1">
+                      Arraste um arquivo ou clique para selecionar
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Formatos aceitos: CSV, Excel (.xlsx, .xls)
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {file && (
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileSpreadsheet className="h-8 w-8 text-primary" />
+                      <div>
+                        <p className="font-medium text-foreground">{file.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(file.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetImport}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      Remover
+                    </Button>
+                  </div>
+
+                  {preview.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Preview (primeiros 5 registros):
+                      </p>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border">
+                            {Object.keys(preview[0]).slice(0, 6).map((key) => (
+                              <th key={key} className="text-left p-2 font-medium text-muted-foreground">
+                                {key}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {preview.map((row, i) => (
+                            <tr key={i} className="border-b border-border/50">
+                              {Object.values(row).slice(0, 6).map((val, j) => (
+                                <td key={j} className="p-2 text-foreground truncate max-w-[150px]">
+                                  {val}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {(status === 'parsing' || status === 'importing') && (
+                    <div className="space-y-2">
+                      <Progress value={progress} className="h-2" />
+                      <p className="text-sm text-muted-foreground text-center">
+                        {status === 'parsing' ? 'Processando arquivo...' : 'Importando dados...'}
+                      </p>
+                    </div>
+                  )}
+
+                  {status === 'error' && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg text-destructive">
+                      <AlertCircle className="h-5 w-5" />
+                      <p className="text-sm">Erro na importação. Verifique o arquivo e tente novamente.</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleImport}
+                      disabled={status === 'importing' || status === 'parsing'}
+                      className="flex-1"
+                    >
+                      {status === 'importing' ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Importando...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Importar dados
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

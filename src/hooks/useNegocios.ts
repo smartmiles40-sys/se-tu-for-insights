@@ -1,0 +1,196 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+export interface Negocio {
+  id: string;
+  nome: string | null;
+  pipeline: string | null;
+  data_inicio: string | null;
+  vendedor: string | null;
+  sdr: string | null;
+  mql: boolean;
+  sql_qualificado: boolean;
+  reuniao_agendada: boolean;
+  reuniao_realizada: boolean;
+  no_show: boolean;
+  venda_aprovada: boolean;
+  total: number;
+  tipo_venda: string | null;
+  motivo_perda: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  lead_fonte: string | null;
+  contato_fonte: string | null;
+  created_at: string;
+  updated_at: string;
+  imported_by: string | null;
+}
+
+export interface NegocioFilters {
+  dataInicio?: string;
+  dataFim?: string;
+  sdr?: string;
+  vendedor?: string;
+  pipeline?: string;
+  utmSource?: string;
+  leadFonte?: string;
+  tipoVenda?: string;
+}
+
+export function useNegocios(filters?: NegocioFilters) {
+  return useQuery({
+    queryKey: ['negocios', filters],
+    queryFn: async () => {
+      let query = supabase
+        .from('negocios')
+        .select('*')
+        .order('data_inicio', { ascending: false });
+
+      if (filters?.dataInicio) {
+        query = query.gte('data_inicio', filters.dataInicio);
+      }
+      if (filters?.dataFim) {
+        query = query.lte('data_inicio', filters.dataFim);
+      }
+      if (filters?.sdr) {
+        query = query.eq('sdr', filters.sdr);
+      }
+      if (filters?.vendedor) {
+        query = query.eq('vendedor', filters.vendedor);
+      }
+      if (filters?.pipeline) {
+        query = query.eq('pipeline', filters.pipeline);
+      }
+      if (filters?.utmSource) {
+        query = query.eq('utm_source', filters.utmSource);
+      }
+      if (filters?.leadFonte) {
+        query = query.eq('lead_fonte', filters.leadFonte);
+      }
+      if (filters?.tipoVenda) {
+        query = query.eq('tipo_venda', filters.tipoVenda);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data as Negocio[];
+    },
+  });
+}
+
+export function useImportNegocios() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (negocios: Partial<Negocio>[]) => {
+      // First, delete all existing negocios
+      const { error: deleteError } = await supabase
+        .from('negocios')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (deleteError) throw deleteError;
+
+      // Then insert new data in batches
+      const batchSize = 500;
+      for (let i = 0; i < negocios.length; i += batchSize) {
+        const batch = negocios.slice(i, i + batchSize);
+        const { error: insertError } = await supabase
+          .from('negocios')
+          .insert(batch);
+
+        if (insertError) throw insertError;
+      }
+
+      return negocios.length;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['negocios'] });
+      toast({
+        title: 'Importação concluída!',
+        description: `${count} negócios importados com sucesso.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Erro na importação',
+        description: error.message,
+      });
+    },
+  });
+}
+
+export function useNegociosStats(negocios: Negocio[] | undefined) {
+  if (!negocios || negocios.length === 0) {
+    return {
+      totalNegocios: 0,
+      reunioesAgendadas: 0,
+      reunioesRealizadas: 0,
+      taxaNoShow: 0,
+      vendasRealizadas: 0,
+      receitaTotal: 0,
+      ticketMedio: 0,
+      taxaConversao: 0,
+      mql: 0,
+      sql: 0,
+    };
+  }
+
+  const totalNegocios = negocios.length;
+  const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada).length;
+  const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
+  const noShows = negocios.filter(n => n.no_show).length;
+  const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
+  
+  const vendas = negocios.filter(n => n.venda_aprovada);
+  const vendasRealizadas = vendas.length;
+  const receitaTotal = vendas.reduce((sum, n) => sum + (n.total || 0), 0);
+  const ticketMedio = vendasRealizadas > 0 ? receitaTotal / vendasRealizadas : 0;
+  const taxaConversao = reunioesRealizadas > 0 ? (vendasRealizadas / reunioesRealizadas) * 100 : 0;
+  
+  const mql = negocios.filter(n => n.mql).length;
+  const sql = negocios.filter(n => n.sql_qualificado).length;
+
+  return {
+    totalNegocios,
+    reunioesAgendadas,
+    reunioesRealizadas,
+    taxaNoShow,
+    vendasRealizadas,
+    receitaTotal,
+    ticketMedio,
+    taxaConversao,
+    mql,
+    sql,
+  };
+}
+
+export function useFilterOptions(negocios: Negocio[] | undefined) {
+  if (!negocios) {
+    return {
+      sdrs: [],
+      vendedores: [],
+      pipelines: [],
+      utmSources: [],
+      leadFontes: [],
+      tiposVenda: [],
+    };
+  }
+
+  const unique = (arr: (string | null)[]) => 
+    [...new Set(arr.filter((v): v is string => v !== null && v !== ''))].sort();
+
+  return {
+    sdrs: unique(negocios.map(n => n.sdr)),
+    vendedores: unique(negocios.map(n => n.vendedor)),
+    pipelines: unique(negocios.map(n => n.pipeline)),
+    utmSources: unique(negocios.map(n => n.utm_source)),
+    leadFontes: unique(negocios.map(n => n.lead_fonte)),
+    tiposVenda: unique(negocios.map(n => n.tipo_venda)),
+  };
+}
