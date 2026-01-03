@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import logoStfev from '@/assets/logo-stfev.png';
 import {
   LayoutDashboard,
   Upload,
@@ -12,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Settings,
   Menu,
 } from 'lucide-react';
 
@@ -59,14 +59,20 @@ export function AppSidebar() {
         )}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+        <div className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border">
           {!collapsed && (
-            <div>
-              <h1 className="font-display font-bold text-xl text-sidebar-foreground">
-                STFEV
-              </h1>
-              <p className="text-xs text-sidebar-foreground/60">Business Intelligence</p>
-            </div>
+            <img 
+              src={logoStfev} 
+              alt="Se Tu For, Eu Vou!" 
+              className="h-14 w-auto brightness-0 invert"
+            />
+          )}
+          {collapsed && (
+            <img 
+              src={logoStfev} 
+              alt="STFEV" 
+              className="h-8 w-auto brightness-0 invert mx-auto"
+            />
           )}
           <Button
             variant="ghost"
