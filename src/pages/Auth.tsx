@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 import { z } from 'zod';
+import logoStfev from '@/assets/logo-stfev.png';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter no mínimo 6 caracteres');
@@ -111,8 +112,12 @@ export default function Auth() {
         
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-primary-foreground">
           <div className="mb-8">
-            <h1 className="text-5xl font-display font-bold tracking-tight mb-2">STFEV</h1>
-            <p className="text-xl font-body text-primary-foreground/80">Business Intelligence</p>
+            <img 
+              src={logoStfev} 
+              alt="Se Tu For, Eu Vou!" 
+              className="h-32 w-auto brightness-0 invert mb-4"
+            />
+            <p className="text-lg font-body text-primary-foreground/80 text-center">Business Intelligence</p>
           </div>
           
           <div className="space-y-6 max-w-md text-center">
@@ -128,7 +133,7 @@ export default function Auth() {
           </div>
 
           <div className="absolute bottom-8 text-sm text-primary-foreground/50">
-            © 2024 STFEV. Todos os direitos reservados.
+            © 2024 Se Tu For, Eu Vou! Viagens. Todos os direitos reservados.
           </div>
         </div>
       </div>
@@ -138,7 +143,11 @@ export default function Auth() {
         <div className="w-full max-w-md animate-fade-in">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
-            <h1 className="text-3xl font-display font-bold text-primary">STFEV</h1>
+            <img 
+              src={logoStfev} 
+              alt="Se Tu For, Eu Vou!" 
+              className="h-20 w-auto mx-auto mb-2"
+            />
             <p className="text-muted-foreground">Business Intelligence</p>
           </div>
 

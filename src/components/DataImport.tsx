@@ -10,49 +10,75 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
-// Mapeamento das colunas do CSV para o banco
+// Mapeamento das colunas do CSV para o banco (mais flexível)
 const columnMapping: Record<string, keyof Negocio> = {
+  // Nome
   'nome': 'nome',
   'título': 'nome',
   'titulo': 'nome',
+  'id': 'nome',
+  // Pipeline
   'pipeline de negócio': 'pipeline',
   'pipeline de negocio': 'pipeline',
   'pipeline': 'pipeline',
+  // Data
   'data de início': 'data_inicio',
   'data de inicio': 'data_inicio',
   'data_inicio': 'data_inicio',
+  'data criação': 'data_inicio',
+  'data criacao': 'data_inicio',
+  // Vendedor
   'vendedor': 'vendedor',
+  'responsável': 'vendedor',
+  'responsavel': 'vendedor',
+  // SDR
   'quem fez o agendamento?': 'sdr',
   'quem fez o agendamento': 'sdr',
   'sdr': 'sdr',
+  // MQL/SQL
   'mql': 'mql',
   'sql': 'sql_qualificado',
+  // Reuniões
   'reunião agendada?': 'reuniao_agendada',
   'reunião agendada': 'reuniao_agendada',
+  'reuniao agendada?': 'reuniao_agendada',
   'reuniao agendada': 'reuniao_agendada',
   'reuniao_agendada': 'reuniao_agendada',
   'reunião realizada?': 'reuniao_realizada',
   'reunião realizada': 'reuniao_realizada',
+  'reuniao realizada?': 'reuniao_realizada',
   'reuniao realizada': 'reuniao_realizada',
   'reuniao_realizada': 'reuniao_realizada',
+  // No show
   'no show?': 'no_show',
   'no show': 'no_show',
   'no_show': 'no_show',
+  // Vendas - Fase: Fechados = venda aprovada
   'venda aprovada': 'venda_aprovada',
   'venda_aprovada': 'venda_aprovada',
+  'fase: fechados': 'venda_aprovada',
+  'fechados': 'venda_aprovada',
+  // Total
   'total': 'total',
+  'valor': 'total',
+  'valor total': 'total',
+  // Tipo de venda
   'tipo de venda': 'tipo_venda',
   'tipo_venda': 'tipo_venda',
+  // Motivo de perda - Fase: Perdidos pode indicar perda
   'motivo de perda': 'motivo_perda',
   'motivo_perda': 'motivo_perda',
+  // UTM
   'lead: utm_source': 'utm_source',
   'utm_source': 'utm_source',
   'lead: utm_medium': 'utm_medium',
   'utm_medium': 'utm_medium',
   'lead: utm_campaign': 'utm_campaign',
   'utm_campaign': 'utm_campaign',
+  // Fontes
   'lead: fonte': 'lead_fonte',
   'lead_fonte': 'lead_fonte',
+  'fonte': 'lead_fonte',
   'contato: fonte': 'contato_fonte',
   'contato_fonte': 'contato_fonte',
 };
@@ -227,7 +253,12 @@ export function DataImport() {
 
       setProgress(30);
 
+      console.log('Parsed data sample:', data.slice(0, 2));
+      console.log('Column names:', Object.keys(data[0] || {}));
+      
       const negocios = data.map(row => mapRowToNegocio(row, user.id));
+      
+      console.log('Mapped negocios sample:', negocios.slice(0, 2));
       
       setProgress(60);
 
@@ -236,7 +267,13 @@ export function DataImport() {
       setProgress(100);
       setStatus('success');
     } catch (error) {
+      console.error('Import error:', error);
       setStatus('error');
+      toast({
+        variant: 'destructive',
+        title: 'Erro na importação',
+        description: error instanceof Error ? error.message : 'Verifique o arquivo e tente novamente.',
+      });
     }
   };
 

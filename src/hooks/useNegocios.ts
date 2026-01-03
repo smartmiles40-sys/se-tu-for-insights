@@ -87,23 +87,41 @@ export function useImportNegocios() {
 
   return useMutation({
     mutationFn: async (negocios: Partial<Negocio>[]) => {
+      console.log('Starting import of', negocios.length, 'negocios');
+      
       // First, delete all existing negocios
       const { error: deleteError } = await supabase
         .from('negocios')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000');
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw new Error(`Erro ao limpar dados: ${deleteError.message}`);
+      }
+      
+      console.log('Deleted existing negocios');
 
       // Then insert new data in batches
       const batchSize = 500;
+      let insertedCount = 0;
+      
       for (let i = 0; i < negocios.length; i += batchSize) {
         const batch = negocios.slice(i, i + batchSize);
-        const { error: insertError } = await supabase
+        console.log(`Inserting batch ${i / batchSize + 1}, records ${i} to ${i + batch.length}`);
+        
+        const { error: insertError, data } = await supabase
           .from('negocios')
-          .insert(batch);
+          .insert(batch)
+          .select();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw new Error(`Erro ao inserir dados (lote ${i / batchSize + 1}): ${insertError.message}`);
+        }
+        
+        insertedCount += batch.length;
+        console.log(`Batch inserted successfully, total: ${insertedCount}`);
       }
 
       return negocios.length;
