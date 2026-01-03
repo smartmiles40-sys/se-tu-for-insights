@@ -1,0 +1,143 @@
+import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  LayoutDashboard,
+  Upload,
+  Users,
+  UserCheck,
+  Megaphone,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Settings,
+  Menu,
+} from 'lucide-react';
+
+const navItems = [
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/import', label: 'Importar Dados', icon: Upload, roles: ['admin', 'gestor'] },
+  { path: '/sdr', label: 'SDRs', icon: Users },
+  { path: '/especialistas', label: 'Especialistas', icon: UserCheck },
+  { path: '/marketing', label: 'Marketing', icon: Megaphone },
+];
+
+export function AppSidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const { user, role, signOut } = useAuth();
+  const location = useLocation();
+
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.roles) return true;
+    return item.roles.includes(role || '');
+  });
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-sidebar border-b border-sidebar-border z-50 flex items-center px-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-sidebar-foreground"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <span className="ml-3 font-display font-bold text-sidebar-foreground">STFEV</span>
+      </div>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'fixed lg:sticky top-0 left-0 z-40 h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300',
+          collapsed ? 'w-16' : 'w-64',
+          'lg:translate-x-0',
+          collapsed ? '-translate-x-full lg:translate-x-0' : 'translate-x-0'
+        )}
+      >
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+          {!collapsed && (
+            <div>
+              <h1 className="font-display font-bold text-xl text-sidebar-foreground">
+                STFEV
+              </h1>
+              <p className="text-xs text-sidebar-foreground/60">Business Intelligence</p>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className="hidden lg:flex text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2">
+          {filteredNavItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                )}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span className="font-medium">{item.label}</span>}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        {/* User Section */}
+        <div className="p-4 border-t border-sidebar-border">
+          {!collapsed && user && (
+            <div className="mb-3 px-3">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {user.email}
+              </p>
+              <p className="text-xs text-sidebar-foreground/60 capitalize">
+                {role || 'Carregando...'}
+              </p>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size={collapsed ? 'icon' : 'default'}
+            onClick={signOut}
+            className={cn(
+              'text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive',
+              !collapsed && 'w-full justify-start'
+            )}
+          >
+            <LogOut className="h-5 w-5" />
+            {!collapsed && <span className="ml-2">Sair</span>}
+          </Button>
+        </div>
+      </aside>
+
+      {/* Mobile Overlay */}
+      {!collapsed && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setCollapsed(true)}
+        />
+      )}
+    </>
+  );
+}
