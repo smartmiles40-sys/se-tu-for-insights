@@ -231,31 +231,31 @@ export default function Dashboard() {
 
 
               {/* Main Grid - Funnel Left, Indicators Right */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
                 {/* Funnel - 2 columns */}
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-2 h-full">
                   <FunnelHorizontal negocios={negocios} />
                 </div>
 
                 {/* Indicadores - 1 column, stacked */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 h-full">
                   {/* Indicadores de Custo */}
-                  <div className="bi-card py-2 px-3">
+                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
                     <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                    <div className="space-y-2 flex-1 flex flex-col justify-around">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">CPL</div>
                         </div>
                         <div className="text-base font-bold text-cyan-400">{formatCurrency(0)}</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
                         </div>
                         <div className="text-base font-bold text-purple-400">{formatCurrency(0)}</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
                         </div>
@@ -265,22 +265,22 @@ export default function Dashboard() {
                   </div>
 
                   {/* Indicadores de Performance */}
-                  <div className="bi-card py-2 px-3">
+                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
                     <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                    <div className="space-y-2 flex-1 flex flex-col justify-around">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">CAC</div>
                         </div>
                         <div className="text-base font-bold text-orange-400">{formatCurrency(0)}</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">ROAS</div>
                         </div>
                         <div className="text-base font-bold text-yellow-400">0x</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
                         </div>

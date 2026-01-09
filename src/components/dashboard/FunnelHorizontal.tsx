@@ -41,12 +41,12 @@ export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
 
   return (
-    <div className="bi-card">
-      <h3 className="bi-card-title mb-6">Funil Comercial</h3>
+    <div className="bi-card h-full flex flex-col">
+      <h3 className="bi-card-title mb-4">Funil Comercial</h3>
       
-      <div className="flex gap-8">
+      <div className="flex gap-8 flex-1">
         {/* Funnel Visual */}
-        <div className="flex-1 flex flex-col items-center gap-1">
+        <div className="flex-1 flex flex-col items-center justify-center gap-1">
           {funnelData.map((stage, index) => {
             const colors = FUNNEL_COLORS[index];
             
