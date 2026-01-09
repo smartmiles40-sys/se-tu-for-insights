@@ -229,7 +229,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Main Grid - Charts and Tables */}
+              {/* Main Grid - Charts and Indicators */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Revenue Trend Chart */}
                 <div className="bi-card lg:col-span-2">
@@ -277,6 +277,54 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* Indicadores Column - Right Side */}
+                <div className="flex flex-col gap-4">
+                  {/* Indicadores de Custo - Card 1 */}
+                  <div className="bi-card">
+                    <h3 className="bi-card-title mb-3">Indicadores de Custo</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">CPL</div>
+                        <div className="text-lg font-bold text-cyan-400">{formatCurrency(0)}</div>
+                        <div className="text-xs text-slate-500">Custo por Lead</div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Custo MQL</div>
+                        <div className="text-lg font-bold text-purple-400">{formatCurrency(0)}</div>
+                        <div className="text-xs text-slate-500">Custo por MQL</div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Custo Reunião</div>
+                        <div className="text-lg font-bold text-blue-400">{formatCurrency(0)}</div>
+                        <div className="text-xs text-slate-500">Custo por Reunião</div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 text-center">* Requer investimento em mídia</p>
+                  </div>
+
+                  {/* Indicadores de Performance - Card 2 */}
+                  <div className="bi-card">
+                    <h3 className="bi-card-title mb-3">Indicadores de Performance</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">CAC</div>
+                        <div className="text-lg font-bold text-orange-400">{formatCurrency(0)}</div>
+                        <div className="text-xs text-slate-500">Custo Aquisição</div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">ROAS</div>
+                        <div className="text-lg font-bold text-yellow-400">0x</div>
+                        <div className="text-xs text-slate-500">Retorno investimento</div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Tempo Médio</div>
+                        <div className="text-lg font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30 dias' : '0 dias'}</div>
+                        <div className="text-xs text-slate-500">Fechamento</div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 text-center">* CAC e ROAS requerem investimento</p>
+                  </div>
+                </div>
               </div>
 
               {/* Second Row */}
@@ -295,78 +343,6 @@ export default function Dashboard() {
 
                 {/* Ranking SDRs */}
                 <RankingTable negocios={negocios} type="sdr" limit={4} />
-              </div>
-
-              {/* Indicadores de Custo - Card 1 */}
-              <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Indicadores de Custo</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {/* CPL - Custo por Lead */}
-                  <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CPL</div>
-                    <div className="text-xl font-bold text-cyan-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por Lead</div>
-                  </div>
-
-                  {/* Custo MQL */}
-                  <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo MQL</div>
-                    <div className="text-xl font-bold text-purple-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por MQL</div>
-                  </div>
-
-                  {/* Custo por Reunião */}
-                  <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo Reunião</div>
-                    <div className="text-xl font-bold text-blue-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por Reunião</div>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-4 text-center">
-                  * Requer dados de investimento em mídia
-                </p>
-              </div>
-
-              {/* Indicadores de Performance - Card 2 */}
-              <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Indicadores de Performance</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {/* CAC - Custo de Aquisição */}
-                  <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CAC</div>
-                    <div className="text-xl font-bold text-orange-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo de Aquisição</div>
-                  </div>
-
-                  {/* ROAS */}
-                  <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">ROAS</div>
-                    <div className="text-xl font-bold text-yellow-400">
-                      0x
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Retorno sobre investimento</div>
-                  </div>
-
-                  {/* Tempo Médio de Fechamento */}
-                  <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Tempo Médio</div>
-                    <div className="text-xl font-bold text-pink-400">
-                      {executiveStats.vendasRealizadas > 0 ? '30 dias' : '0 dias'}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Fechamento</div>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-4 text-center">
-                  * CAC e ROAS requerem dados de investimento
-                </p>
               </div>
             </TabsContent>
 
