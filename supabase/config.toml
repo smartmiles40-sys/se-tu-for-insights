@@ -1,1 +1,4 @@
 project_id = "xmmwylpdydynteocuxmx"
+
+[functions.receive-negocios]
+verify_jwt = false

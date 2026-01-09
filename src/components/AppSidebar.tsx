@@ -15,7 +15,10 @@ import {
   ChevronRight,
   LogOut,
   Menu,
+  FileSpreadsheet,
 } from 'lucide-react';
+import { useStagingPendingCount } from '@/hooks/useStagingNegocios';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -25,6 +28,7 @@ const navItems = [
 ];
 
 const dataItems = [
+  { path: '/staging', label: 'Dados Recebidos', icon: FileSpreadsheet, roles: ['admin', 'gestor'], showBadge: true },
   { path: '/import', label: 'Importar Dados', icon: Upload, roles: ['admin', 'gestor'] },
 ];
 
@@ -32,6 +36,7 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, role, signOut } = useAuth();
   const location = useLocation();
+  const { data: pendingCount } = useStagingPendingCount();
 
   const filteredDataItems = dataItems.filter(item => {
     if (!item.roles) return true;
@@ -121,6 +126,7 @@ export function AppSidebar() {
           {/* Data Items - Below Theme Toggle */}
           {filteredDataItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const showBadge = 'showBadge' in item && item.showBadge && pendingCount && pendingCount > 0;
             return (
               <NavLink
                 key={item.path}
@@ -133,7 +139,20 @@ export function AppSidebar() {
                 )}
               >
                 <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="font-medium">{item.label}</span>}
+                {!collapsed && (
+                  <span className="font-medium flex-1">{item.label}</span>
+                )}
+                {showBadge && (
+                  <Badge 
+                    variant="destructive" 
+                    className={cn(
+                      "h-5 min-w-[20px] px-1.5 text-xs",
+                      collapsed && "absolute -top-1 -right-1"
+                    )}
+                  >
+                    {pendingCount}
+                  </Badge>
+                )}
               </NavLink>
             );
           })}
