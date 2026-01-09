@@ -160,11 +160,11 @@ export default function Dashboard() {
                   sparklineData={sparklineVendas}
                 />
                 <KPICardWithSparkline
-                  title="Ticket Médio"
-                  value={formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)}
-                  icon={TrendingUp}
-                  color="green"
-                  sparklineData={sparklineVendas}
+                  title="Total Leads"
+                  value={formatNumber(executiveStats.totalLeads)}
+                  icon={Users}
+                  color="orange"
+                  sparklineData={sparklineReuniao}
                 />
                 <KPICardWithSparkline
                   title="Reuniões"
@@ -174,11 +174,11 @@ export default function Dashboard() {
                   sparklineData={sparklineReuniao}
                 />
                 <KPICardWithSparkline
-                  title="Total Leads"
-                  value={formatNumber(executiveStats.totalLeads)}
-                  icon={Users}
-                  color="orange"
-                  sparklineData={sparklineReuniao}
+                  title="Ticket Médio"
+                  value={formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)}
+                  icon={TrendingUp}
+                  color="green"
+                  sparklineData={sparklineVendas}
                 />
               </div>
 
