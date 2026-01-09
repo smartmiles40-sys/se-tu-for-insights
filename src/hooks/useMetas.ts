@@ -76,14 +76,21 @@ export function useUpsertMeta() {
   return useMutation({
     mutationFn: async (meta: MetaInput) => {
       // Try to find existing meta
-      const { data: existing } = await supabase
+      let query = supabase
         .from('metas')
         .select('id')
         .eq('tipo', meta.tipo)
         .eq('mes', meta.mes)
-        .eq('ano', meta.ano)
-        .eq('responsavel', meta.responsavel || '')
-        .maybeSingle();
+        .eq('ano', meta.ano);
+
+      // Handle null responsavel correctly
+      if (meta.responsavel) {
+        query = query.eq('responsavel', meta.responsavel);
+      } else {
+        query = query.is('responsavel', null);
+      }
+
+      const { data: existing } = await query.maybeSingle();
 
       if (existing) {
         // Update
