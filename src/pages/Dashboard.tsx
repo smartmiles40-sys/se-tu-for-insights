@@ -40,6 +40,7 @@ export default function Dashboard() {
         taxaAgendamento: 0,
         taxaNoShow: 0,
         taxaShowUp: 0,
+        taxaConversaoGeral: 0,
         totalLeads: 0,
         monthlyData: [],
       };
@@ -56,6 +57,7 @@ export default function Dashboard() {
     const taxaAgendamento = totalLeads > 0 ? (reunioesAgendadas / totalLeads) * 100 : 0;
     const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
     const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
+    const taxaConversaoGeral = reunioesRealizadas > 0 ? (vendasRealizadas / reunioesRealizadas) * 100 : 0;
 
     // Monthly data for sparklines
     const monthlyMap: Record<string, { receita: number; vendas: number; leads: number }> = {};
@@ -91,6 +93,7 @@ export default function Dashboard() {
       taxaAgendamento, 
       taxaNoShow, 
       taxaShowUp, 
+      taxaConversaoGeral,
       totalLeads,
       monthlyData,
     };
@@ -175,7 +178,7 @@ export default function Dashboard() {
               </div>
 
               {/* KPIs Row 2 - Rates */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bi-card">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-slate-400 uppercase tracking-wider">% Agendamento</span>
@@ -207,6 +210,17 @@ export default function Dashboard() {
                     {executiveStats.taxaShowUp.toFixed(1)}%
                   </div>
                   <div className="text-xs text-slate-500 mt-1">Meta: ≥80%</div>
+                </div>
+
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Conversão Vendas</span>
+                    <Target className="h-4 w-4 text-slate-500" />
+                  </div>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {executiveStats.taxaConversaoGeral.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≥25%</div>
                 </div>
               </div>
 
