@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import logoStfev from '@/assets/logo-stfev.png';
 import {
   LayoutDashboard,
@@ -111,7 +112,7 @@ export function AppSidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-2">
           {!collapsed && user && (
             <div className="mb-3 px-3">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
@@ -122,6 +123,7 @@ export function AppSidebar() {
               </p>
             </div>
           )}
+          <ThemeToggle collapsed={collapsed} />
           <Button
             variant="ghost"
             size={collapsed ? 'icon' : 'default'}
