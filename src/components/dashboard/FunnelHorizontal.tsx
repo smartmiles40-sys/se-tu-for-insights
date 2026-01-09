@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface FunnelHorizontalProps {
   negocios: Negocio[];
@@ -25,10 +25,34 @@ export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
     const sqlToVendasRate = sql > 0 ? (vendas / sql) * 100 : 0;
 
     return [
-      { name: 'Leads', value: leads, rate: null, ideal: null },
-      { name: 'MQL', value: mql, rate: leadsToMqlRate, ideal: IDEAL_RATES.leadsToMql },
-      { name: 'SQL', value: sql, rate: mqlToSqlRate, ideal: IDEAL_RATES.mqlToSql },
-      { name: 'Vendas', value: vendas, rate: sqlToVendasRate, ideal: IDEAL_RATES.sqlToVendas },
+      { 
+        name: 'LEADS', 
+        value: leads, 
+        rate: null, 
+        ideal: null,
+        color: 'text-slate-100'
+      },
+      { 
+        name: 'MQL', 
+        value: mql, 
+        rate: leadsToMqlRate, 
+        ideal: IDEAL_RATES.leadsToMql,
+        color: 'text-slate-100'
+      },
+      { 
+        name: 'SQL', 
+        value: sql, 
+        rate: mqlToSqlRate, 
+        ideal: IDEAL_RATES.mqlToSql,
+        color: 'text-slate-100'
+      },
+      { 
+        name: 'VENDAS', 
+        value: vendas, 
+        rate: sqlToVendasRate, 
+        ideal: IDEAL_RATES.sqlToVendas,
+        color: 'text-slate-100'
+      },
     ];
   }, [negocios]);
 
@@ -36,37 +60,82 @@ export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
 
   return (
     <div className="bi-card">
-      <h3 className="bi-card-title mb-4">Funil Comercial</h3>
+      <h3 className="bi-card-title mb-6">Funil Comercial</h3>
       
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-start justify-between">
         {funnelData.map((stage, index) => {
           const isAboveIdeal = stage.ideal ? stage.rate! >= stage.ideal : true;
           
           return (
-            <div key={stage.name} className="flex items-center flex-1">
+            <div key={stage.name} className="flex items-start flex-1">
+              {/* Stage Content */}
               <div className="flex-1 text-center">
-                <div className="text-2xl font-bold text-slate-100">
+                {/* Big Number */}
+                <div className="text-4xl font-bold text-slate-100 mb-1">
                   {formatNumber(stage.value)}
                 </div>
-                <div className="text-xs text-slate-400 uppercase tracking-wider mt-1">
+                
+                {/* Label */}
+                <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
                   {stage.name}
                 </div>
+                
+                {/* Conversion Rate */}
                 {stage.rate !== null && (
-                  <div className={cn(
-                    'text-xs font-semibold mt-1',
-                    isAboveIdeal ? 'text-emerald-400' : 'text-red-400'
-                  )}>
-                    {stage.rate.toFixed(1)}%
-                    <span className="text-slate-500 font-normal ml-1">
+                  <div className="space-y-0.5">
+                    <div className={cn(
+                      'text-lg font-bold',
+                      isAboveIdeal ? 'text-emerald-400' : 'text-red-400'
+                    )}>
+                      {stage.rate.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-slate-500">
                       (meta: {stage.ideal}%)
-                    </span>
+                    </div>
                   </div>
                 )}
               </div>
               
+              {/* Arrow Connector */}
               {index < funnelData.length - 1 && (
-                <ArrowRight className="h-4 w-4 text-slate-600 mx-2 flex-shrink-0" />
+                <div className="flex items-center justify-center px-2 pt-4">
+                  <ChevronRight className="h-5 w-5 text-slate-600" />
+                </div>
               )}
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Visual Funnel Bar */}
+      <div className="mt-6 flex items-end gap-1 h-16">
+        {funnelData.map((stage, index) => {
+          const maxValue = funnelData[0].value || 1;
+          const heightPercent = (stage.value / maxValue) * 100;
+          const isAboveIdeal = stage.ideal ? stage.rate! >= stage.ideal : true;
+          
+          const bgColor = stage.rate === null 
+            ? 'bg-cyan-500' 
+            : isAboveIdeal 
+              ? 'bg-emerald-500' 
+              : 'bg-red-500';
+          
+          return (
+            <div 
+              key={stage.name}
+              className="flex-1 relative group"
+            >
+              <div 
+                className={cn(
+                  'w-full rounded-t transition-all duration-500',
+                  bgColor,
+                  'opacity-80 group-hover:opacity-100'
+                )}
+                style={{ 
+                  height: `${Math.max(heightPercent, 8)}%`,
+                  minHeight: '8px'
+                }}
+              />
             </div>
           );
         })}
