@@ -59,7 +59,7 @@ export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
                 {/* Trapezoid shape using clip-path */}
                 <div 
                   className={cn(
-                    'h-14 flex items-center justify-center relative',
+                    'h-[72px] flex items-center justify-center relative',
                     colors.bg
                   )}
                   style={{
