@@ -35,8 +35,10 @@ export type Database = {
           total: number | null
           updated_at: string
           utm_campaign: string | null
+          utm_content: string | null
           utm_medium: string | null
           utm_source: string | null
+          utm_term: string | null
           venda_aprovada: boolean | null
           vendedor: string | null
         }
@@ -60,8 +62,10 @@ export type Database = {
           total?: number | null
           updated_at?: string
           utm_campaign?: string | null
+          utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          utm_term?: string | null
           venda_aprovada?: boolean | null
           vendedor?: string | null
         }
@@ -85,8 +89,10 @@ export type Database = {
           total?: number | null
           updated_at?: string
           utm_campaign?: string | null
+          utm_content?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          utm_term?: string | null
           venda_aprovada?: boolean | null
           vendedor?: string | null
         }
@@ -116,6 +122,102 @@ export type Database = {
           nome?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      staging_negocios: {
+        Row: {
+          batch_id: string
+          contato_fonte: string | null
+          created_at: string
+          data_inicio: string | null
+          id: string
+          imported_at: string
+          lead_fonte: string | null
+          motivo_perda: string | null
+          mql: boolean | null
+          no_show: boolean | null
+          nome: string | null
+          notes: string | null
+          pipeline: string | null
+          reuniao_agendada: boolean | null
+          reuniao_realizada: boolean | null
+          sdr: string | null
+          source: string
+          sql_qualificado: boolean | null
+          status: Database["public"]["Enums"]["staging_status"]
+          tipo_venda: string | null
+          total: number | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          venda_aprovada: boolean | null
+          vendedor: string | null
+        }
+        Insert: {
+          batch_id?: string
+          contato_fonte?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          id?: string
+          imported_at?: string
+          lead_fonte?: string | null
+          motivo_perda?: string | null
+          mql?: boolean | null
+          no_show?: boolean | null
+          nome?: string | null
+          notes?: string | null
+          pipeline?: string | null
+          reuniao_agendada?: boolean | null
+          reuniao_realizada?: boolean | null
+          sdr?: string | null
+          source?: string
+          sql_qualificado?: boolean | null
+          status?: Database["public"]["Enums"]["staging_status"]
+          tipo_venda?: string | null
+          total?: number | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          venda_aprovada?: boolean | null
+          vendedor?: string | null
+        }
+        Update: {
+          batch_id?: string
+          contato_fonte?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          id?: string
+          imported_at?: string
+          lead_fonte?: string | null
+          motivo_perda?: string | null
+          mql?: boolean | null
+          no_show?: boolean | null
+          nome?: string | null
+          notes?: string | null
+          pipeline?: string | null
+          reuniao_agendada?: boolean | null
+          reuniao_realizada?: boolean | null
+          sdr?: string | null
+          source?: string
+          sql_qualificado?: boolean | null
+          status?: Database["public"]["Enums"]["staging_status"]
+          tipo_venda?: string | null
+          total?: number | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          venda_aprovada?: boolean | null
+          vendedor?: string | null
         }
         Relationships: []
       }
@@ -156,6 +258,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "vendedor"
+      staging_status: "pendente" | "aprovado" | "rejeitado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -284,6 +387,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "vendedor"],
+      staging_status: ["pendente", "aprovado", "rejeitado"],
     },
   },
 } as const
