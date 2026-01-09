@@ -230,52 +230,11 @@ export default function Dashboard() {
               </div>
 
 
-              {/* Main Grid - Chart Left, Indicators Right */}
+              {/* Main Grid - Funnel Left, Indicators Right */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Revenue Trend Chart - 2 columns */}
-                <div className="bi-card lg:col-span-2">
-                  <h3 className="bi-card-title mb-3">Tendência de Faturamento</h3>
-                  <div className="h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={executiveStats.monthlyData}>
-                        <defs>
-                          <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                        <XAxis 
-                          dataKey="month" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 11 }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 11 }}
-                          tickFormatter={formatCompactCurrency}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1e293b',
-                            border: '1px solid #334155',
-                            borderRadius: '8px',
-                          }}
-                          labelStyle={{ color: '#f1f5f9' }}
-                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="receita"
-                          stroke="#22d3ee"
-                          strokeWidth={2}
-                          fill="url(#revGradient)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                {/* Funnel - 2 columns */}
+                <div className="lg:col-span-2">
+                  <FunnelHorizontal negocios={negocios} />
                 </div>
 
                 {/* Indicadores - 1 column, stacked */}
@@ -332,10 +291,53 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Second Row - Funnel and Origem */}
+              {/* Second Row - Chart and Origem */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Funnel */}
-                <FunnelHorizontal negocios={negocios} />
+                {/* Revenue Trend Chart */}
+                <div className="bi-card">
+                  <h3 className="bi-card-title mb-3">Tendência de Faturamento</h3>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={executiveStats.monthlyData}>
+                        <defs>
+                          <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                        <XAxis 
+                          dataKey="month" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 11 }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 11 }}
+                          tickFormatter={formatCompactCurrency}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                          }}
+                          labelStyle={{ color: '#f1f5f9' }}
+                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="receita"
+                          stroke="#22d3ee"
+                          strokeWidth={2}
+                          fill="url(#revGradient)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
                 
                 {/* Origem Performance */}
                 <OrigemPerformance negocios={negocios} />
