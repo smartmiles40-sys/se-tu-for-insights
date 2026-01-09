@@ -8,7 +8,6 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { ConversionTrendChart } from '@/components/dashboard/ConversionTrendChart';
 import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
 import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
-import { MarketingAnalytics } from '@/components/dashboard/MarketingAnalytics';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -83,22 +82,54 @@ export default function Dashboard() {
           </div>
         ) : (
           <Tabs defaultValue="home" className="w-full">
-            <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-6">
-              <TabsTrigger value="home" className="font-display uppercase text-xs tracking-wider">Home</TabsTrigger>
-              <TabsTrigger value="sdr" className="font-display uppercase text-xs tracking-wider">SDRs</TabsTrigger>
-              <TabsTrigger value="especialistas" className="font-display uppercase text-xs tracking-wider">Especialistas</TabsTrigger>
-              <TabsTrigger value="marketing" className="font-display uppercase text-xs tracking-wider">Marketing</TabsTrigger>
+            <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6 bg-muted/50 p-1 rounded-xl">
+              <TabsTrigger value="home" className="rounded-lg font-semibold text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm">HOME</TabsTrigger>
+              <TabsTrigger value="sdr" className="rounded-lg font-semibold text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm">SDRS</TabsTrigger>
+              <TabsTrigger value="especialistas" className="rounded-lg font-semibold text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm">ESPECIALISTAS</TabsTrigger>
             </TabsList>
 
             <TabsContent value="home" className="space-y-6">
-              {/* KPIs Grandes */}
+              {/* KPIs Grandes - Clean Card Design */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <NOCKPICard title="Faturamento" value={formatCurrency(executiveStats.receitaTotal)} icon={DollarSign} status="good" />
-                <NOCKPICard title="Vendas" value={formatNumber(executiveStats.vendasRealizadas)} icon={Target} status="neutral" />
-                <NOCKPICard title="Reuniões" value={formatNumber(executiveStats.reunioesRealizadas)} icon={Calendar} status="neutral" />
-                <NOCKPICard title="% Agendamento" value={`${executiveStats.taxaAgendamento.toFixed(1)}%`} icon={TrendingUp} status={executiveStats.taxaAgendamento >= 50 ? 'good' : executiveStats.taxaAgendamento >= 30 ? 'warning' : 'critical'} idealValue="≥50%" />
-                <NOCKPICard title="% No-Show" value={`${executiveStats.taxaNoShow.toFixed(1)}%`} icon={XCircle} status={executiveStats.taxaNoShow <= 15 ? 'good' : executiveStats.taxaNoShow <= 25 ? 'warning' : 'critical'} idealValue="≤20%" />
-                <NOCKPICard title="% Show-Up" value={`${executiveStats.taxaShowUp.toFixed(1)}%`} icon={Users} status={executiveStats.taxaShowUp >= 80 ? 'good' : executiveStats.taxaShowUp >= 60 ? 'warning' : 'critical'} idealValue="≥80%" />
+                <NOCKPICard 
+                  title="Faturamento" 
+                  value={formatCurrency(executiveStats.receitaTotal)} 
+                  icon={DollarSign} 
+                  status="good" 
+                />
+                <NOCKPICard 
+                  title="Vendas" 
+                  value={formatNumber(executiveStats.vendasRealizadas)} 
+                  icon={Target} 
+                  status="neutral" 
+                />
+                <NOCKPICard 
+                  title="Reuniões" 
+                  value={formatNumber(executiveStats.reunioesRealizadas)} 
+                  icon={Calendar} 
+                  status="neutral" 
+                />
+                <NOCKPICard 
+                  title="% Agendamento" 
+                  value={`${executiveStats.taxaAgendamento.toFixed(1)}%`} 
+                  icon={TrendingUp} 
+                  status={executiveStats.taxaAgendamento >= 50 ? 'good' : executiveStats.taxaAgendamento >= 30 ? 'warning' : 'critical'} 
+                  idealValue="≥50%" 
+                />
+                <NOCKPICard 
+                  title="% No-Show" 
+                  value={`${executiveStats.taxaNoShow.toFixed(1)}%`} 
+                  icon={XCircle} 
+                  status={executiveStats.taxaNoShow <= 15 ? 'good' : executiveStats.taxaNoShow <= 25 ? 'warning' : 'critical'} 
+                  idealValue="≤20%" 
+                />
+                <NOCKPICard 
+                  title="% Show-Up" 
+                  value={`${executiveStats.taxaShowUp.toFixed(1)}%`} 
+                  icon={Users} 
+                  status={executiveStats.taxaShowUp >= 80 ? 'good' : executiveStats.taxaShowUp >= 60 ? 'warning' : 'critical'} 
+                  idealValue="≥80%" 
+                />
               </div>
 
               {/* Taxas Críticas */}
@@ -119,10 +150,6 @@ export default function Dashboard() {
 
             <TabsContent value="especialistas">
               <EspecialistasAnalytics negocios={negocios} />
-            </TabsContent>
-
-            <TabsContent value="marketing">
-              <MarketingAnalytics negocios={negocios} />
             </TabsContent>
           </Tabs>
         )}
