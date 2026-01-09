@@ -261,7 +261,7 @@ export default function MetasPage() {
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-green-400" />
-                      Meta Vendas
+                      Meta Conversão de Vendas (%)
                     </Label>
                     <Input
                       type="number"
@@ -402,7 +402,7 @@ export default function MetasPage() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Meta Vendas</Label>
+                          <Label className="text-xs text-muted-foreground">Meta Conversão (%)</Label>
                           <Input
                             type="number"
                             value={especialistaMetas[especialista.nome]?.meta_vendas || 0}
