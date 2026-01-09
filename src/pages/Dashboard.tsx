@@ -229,95 +229,112 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Indicadores de Custo - Full Width */}
-              <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Indicadores de Custo</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CPL</div>
-                    <div className="text-xl font-bold text-cyan-400">{formatCurrency(0)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por Lead</div>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo MQL</div>
-                    <div className="text-xl font-bold text-purple-400">{formatCurrency(0)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por MQL</div>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo Reunião</div>
-                    <div className="text-xl font-bold text-blue-400">{formatCurrency(0)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por Reunião</div>
+
+              {/* Main Grid - Chart Left, Indicators Right */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Revenue Trend Chart - 2 columns */}
+                <div className="bi-card lg:col-span-2">
+                  <h3 className="bi-card-title mb-4">Tendência de Faturamento</h3>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={executiveStats.monthlyData}>
+                        <defs>
+                          <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                        <XAxis 
+                          dataKey="month" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 11 }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 11 }}
+                          tickFormatter={formatCompactCurrency}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                          }}
+                          labelStyle={{ color: '#f1f5f9' }}
+                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="receita"
+                          stroke="#22d3ee"
+                          strokeWidth={2}
+                          fill="url(#revGradient)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 mt-4 text-center">* Requer dados de investimento em mídia</p>
-              </div>
 
-              {/* Indicadores de Performance - Full Width */}
-              <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Indicadores de Performance</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CAC</div>
-                    <div className="text-xl font-bold text-orange-400">{formatCurrency(0)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Custo de Aquisição</div>
+                {/* Indicadores - 1 column, stacked */}
+                <div className="space-y-4">
+                  {/* Indicadores de Custo */}
+                  <div className="bi-card">
+                    <h3 className="bi-card-title mb-3">Indicadores de Custo</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">CPL</div>
+                          <div className="text-xs text-slate-500">Custo por Lead</div>
+                        </div>
+                        <div className="text-lg font-bold text-cyan-400">{formatCurrency(0)}</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
+                          <div className="text-xs text-slate-500">Custo por MQL</div>
+                        </div>
+                        <div className="text-lg font-bold text-purple-400">{formatCurrency(0)}</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
+                          <div className="text-xs text-slate-500">Custo por Reunião</div>
+                        </div>
+                        <div className="text-lg font-bold text-blue-400">{formatCurrency(0)}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">ROAS</div>
-                    <div className="text-xl font-bold text-yellow-400">0x</div>
-                    <div className="text-xs text-slate-500 mt-1">Retorno sobre investimento</div>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Tempo Médio</div>
-                    <div className="text-xl font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30 dias' : '0 dias'}</div>
-                    <div className="text-xs text-slate-500 mt-1">Fechamento</div>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-4 text-center">* CAC e ROAS requerem dados de investimento</p>
-              </div>
 
-              {/* Revenue Trend Chart - Full Width */}
-              <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Tendência de Faturamento</h3>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={executiveStats.monthlyData}>
-                      <defs>
-                        <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
-                          <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                      <XAxis 
-                        dataKey="month" 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 11 }}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 11 }}
-                        tickFormatter={formatCompactCurrency}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1e293b',
-                          border: '1px solid #334155',
-                          borderRadius: '8px',
-                        }}
-                        labelStyle={{ color: '#f1f5f9' }}
-                        formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="receita"
-                        stroke="#22d3ee"
-                        strokeWidth={2}
-                        fill="url(#revGradient)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {/* Indicadores de Performance */}
+                  <div className="bi-card">
+                    <h3 className="bi-card-title mb-3">Indicadores de Performance</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">CAC</div>
+                          <div className="text-xs text-slate-500">Custo de Aquisição</div>
+                        </div>
+                        <div className="text-lg font-bold text-orange-400">{formatCurrency(0)}</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">ROAS</div>
+                          <div className="text-xs text-slate-500">Retorno investimento</div>
+                        </div>
+                        <div className="text-lg font-bold text-yellow-400">0x</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
+                          <div className="text-xs text-slate-500">Fechamento</div>
+                        </div>
+                        <div className="text-lg font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30 dias' : '0 dias'}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
