@@ -2,117 +2,115 @@
 @tailwind components;
 @tailwind utilities;
 
-/* STFEV BI Enterprise Design System */
+/* STFEV BI Enterprise - Torre de Controle Design System */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* STFEV Brand Colors */
-    --background: 60 11% 97%; /* Off White #F8F6F7 */
-    --foreground: 177 63% 10%; /* Dark Teal #09282B */
+    /* Light mode - Clean Enterprise */
+    --background: 220 14% 96%;
+    --foreground: 220 13% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 177 63% 10%;
+    --card-foreground: 220 13% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 177 63% 10%;
+    --popover-foreground: 220 13% 15%;
 
-    --primary: 177 63% 10%; /* Dark Teal #09282B */
-    --primary-foreground: 60 11% 97%;
+    --primary: 201 96% 32%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 120 16% 82%; /* Light Green #CBD8CE */
-    --secondary-foreground: 177 63% 10%;
+    --secondary: 220 14% 90%;
+    --secondary-foreground: 220 13% 15%;
 
-    --muted: 120 16% 82%;
-    --muted-foreground: 177 30% 30%;
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 8% 46%;
 
-    --accent: 76 76% 65%; /* Lime Green #CCED60 */
-    --accent-foreground: 177 63% 10%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 220 13% 15%;
 
-    --success: 76 76% 65%; /* Lime Green for positive indicators */
-    --success-foreground: 177 63% 10%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 60 11% 97%;
+    --destructive-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 177 63% 10%;
+    --warning-foreground: 220 13% 15%;
 
-    --border: 120 16% 75%;
-    --input: 120 16% 82%;
-    --ring: 177 63% 10%;
+    --border: 220 13% 85%;
+    --input: 220 13% 85%;
+    --ring: 201 96% 32%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Chart colors for BI */
-    --chart-1: 177 63% 10%; /* Dark Teal */
-    --chart-2: 76 76% 65%; /* Lime Green */
-    --chart-3: 120 16% 70%; /* Light Green variant */
-    --chart-4: 177 45% 25%; /* Teal medium */
-    --chart-5: 76 60% 50%; /* Lime darker */
+    /* Chart colors */
+    --chart-1: 201 96% 32%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 280 65% 60%;
 
     /* Sidebar */
-    --sidebar-background: 177 63% 10%;
-    --sidebar-foreground: 60 11% 97%;
-    --sidebar-primary: 76 76% 65%;
-    --sidebar-primary-foreground: 177 63% 10%;
-    --sidebar-accent: 177 50% 15%;
-    --sidebar-accent-foreground: 60 11% 97%;
-    --sidebar-border: 177 45% 20%;
-    --sidebar-ring: 76 76% 65%;
+    --sidebar-background: 220 13% 12%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 201 96% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 18%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 201 96% 50%;
 
     /* Typography */
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'Source Sans 3', system-ui, sans-serif;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(177 63% 10% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(177 63% 10% / 0.1), 0 2px 4px -2px hsl(177 63% 10% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(177 63% 10% / 0.1), 0 4px 6px -4px hsl(177 63% 10% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(177 63% 10% / 0.1), 0 8px 10px -6px hsl(177 63% 10% / 0.1);
+    --font-display: 'Orbitron', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
   }
 
   .dark {
-    --background: 177 63% 8%;
-    --foreground: 60 11% 97%;
+    /* Dark mode - Torre de Controle / NOC style */
+    --background: 220 13% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 177 63% 10%;
-    --card-foreground: 60 11% 97%;
+    --card: 220 13% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 177 63% 10%;
-    --popover-foreground: 60 11% 97%;
+    --popover: 220 13% 11%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 76 76% 65%;
-    --primary-foreground: 177 63% 10%;
+    --primary: 201 96% 50%;
+    --primary-foreground: 220 13% 8%;
 
-    --secondary: 177 50% 15%;
-    --secondary-foreground: 60 11% 97%;
+    --secondary: 220 13% 16%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 177 45% 20%;
-    --muted-foreground: 120 16% 75%;
+    --muted: 220 13% 16%;
+    --muted-foreground: 220 8% 60%;
 
-    --accent: 76 76% 65%;
-    --accent-foreground: 177 63% 10%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 220 13% 8%;
 
-    --success: 76 76% 65%;
-    --success-foreground: 177 63% 10%;
+    --success: 142 76% 45%;
+    --success-foreground: 220 13% 8%;
 
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 60 11% 97%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 177 45% 20%;
-    --input: 177 45% 20%;
-    --ring: 76 76% 65%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 220 13% 8%;
 
-    --sidebar-background: 177 63% 6%;
-    --sidebar-foreground: 60 11% 97%;
-    --sidebar-primary: 76 76% 65%;
-    --sidebar-primary-foreground: 177 63% 10%;
-    --sidebar-accent: 177 50% 12%;
-    --sidebar-accent-foreground: 60 11% 97%;
-    --sidebar-border: 177 45% 15%;
-    --sidebar-ring: 76 76% 65%;
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
+    --ring: 201 96% 50%;
+
+    --sidebar-background: 220 13% 6%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 201 96% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 13% 14%;
+    --sidebar-ring: 201 96% 50%;
   }
 }
 
@@ -131,52 +129,94 @@
 }
 
 @layer components {
-  .kpi-card {
-    @apply bg-card rounded-xl p-6 shadow-md border border-border/50 transition-all duration-300 hover:shadow-lg;
+  /* Torre de Controle KPI Cards */
+  .kpi-card-noc {
+    @apply relative overflow-hidden rounded-lg p-6 transition-all duration-300;
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.8) 100%);
+    border: 1px solid hsl(var(--border) / 0.5);
   }
 
-  .kpi-value {
-    @apply text-3xl font-display font-bold text-foreground;
+  .kpi-card-noc::before {
+    content: '';
+    @apply absolute inset-0 opacity-20;
+    background: linear-gradient(180deg, transparent 0%, hsl(var(--primary) / 0.1) 100%);
+  }
+
+  .kpi-value-lg {
+    @apply text-5xl font-display font-bold tracking-tight;
   }
 
   .kpi-label {
-    @apply text-sm font-medium text-muted-foreground uppercase tracking-wider;
+    @apply text-xs font-medium text-muted-foreground uppercase tracking-widest;
   }
 
-  .kpi-trend-positive {
-    @apply text-success flex items-center gap-1 text-sm font-medium;
+  /* Status indicators */
+  .status-good {
+    @apply text-success;
+    text-shadow: 0 0 20px hsl(var(--success) / 0.5);
   }
 
-  .kpi-trend-negative {
-    @apply text-destructive flex items-center gap-1 text-sm font-medium;
+  .status-warning {
+    @apply text-warning;
+    text-shadow: 0 0 20px hsl(var(--warning) / 0.5);
   }
 
+  .status-critical {
+    @apply text-destructive;
+    text-shadow: 0 0 20px hsl(var(--destructive) / 0.5);
+  }
+
+  /* NOC Panel */
+  .noc-panel {
+    @apply rounded-xl p-6 border border-border/50;
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%);
+  }
+
+  .noc-panel-header {
+    @apply flex items-center justify-between mb-6 pb-4 border-b border-border/30;
+  }
+
+  .noc-panel-title {
+    @apply text-lg font-display font-semibold text-foreground uppercase tracking-wider;
+  }
+
+  /* Gauge styles */
+  .gauge-container {
+    @apply relative flex flex-col items-center justify-center;
+  }
+
+  .gauge-value {
+    @apply absolute text-3xl font-display font-bold;
+  }
+
+  /* Grid NOC */
+  .noc-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  /* Dashboard section */
   .dashboard-section {
-    @apply bg-card rounded-xl p-6 shadow-md border border-border/50;
+    @apply bg-card rounded-xl p-6 border border-border/50;
   }
 
   .section-title {
-    @apply text-xl font-display font-semibold text-foreground mb-4;
+    @apply text-lg font-display font-semibold text-foreground mb-4 uppercase tracking-wide;
   }
 
+  /* Filter bar */
   .filter-bar {
     @apply flex flex-wrap gap-3 p-4 bg-secondary/30 rounded-lg border border-border/30;
   }
 
-  .stat-badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  /* Animated pulse for alerts */
+  .pulse-alert {
+    animation: pulseAlert 2s ease-in-out infinite;
   }
 
-  .stat-badge-success {
-    @apply stat-badge bg-success/20 text-success-foreground;
-  }
-
-  .stat-badge-warning {
-    @apply stat-badge bg-warning/20 text-warning-foreground;
-  }
-
-  .stat-badge-destructive {
-    @apply stat-badge bg-destructive/20 text-destructive-foreground;
+  @keyframes pulseAlert {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
 }
 
@@ -218,5 +258,18 @@
       opacity: 1; 
       transform: scale(1); 
     }
+  }
+
+  /* Glow effects for NOC */
+  .glow-success {
+    box-shadow: 0 0 30px hsl(var(--success) / 0.3);
+  }
+
+  .glow-warning {
+    box-shadow: 0 0 30px hsl(var(--warning) / 0.3);
+  }
+
+  .glow-critical {
+    box-shadow: 0 0 30px hsl(var(--destructive) / 0.3);
   }
 }
