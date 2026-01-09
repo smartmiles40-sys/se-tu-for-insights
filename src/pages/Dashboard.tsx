@@ -19,10 +19,17 @@ export default function Dashboard() {
   // Default filters: current month (1st day to today)
   const getDefaultFilters = (): NegocioFilters => {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const year = today.getFullYear();
+    const month = today.getMonth(); // 0-indexed
+    const day = today.getDate();
+    
+    // Use ISO format directly to avoid timezone issues
+    const firstDayOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const todayFormatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
     return {
-      dataInicio: format(firstDayOfMonth, 'yyyy-MM-dd'),
-      dataFim: format(today, 'yyyy-MM-dd'),
+      dataInicio: firstDayOfMonth,
+      dataFim: todayFormatted,
     };
   };
 
