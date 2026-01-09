@@ -35,12 +35,12 @@ export function MetaProgress({ meta, realizado, compact = false }: MetaProgressP
         color: 'cyan',
       },
       {
-        label: 'Vendas',
+        label: 'Conversão de Vendas',
         icon: TrendingUp,
         atual: realizado.vendas,
         meta: meta.meta_vendas,
         progress: calcProgress(realizado.vendas, meta.meta_vendas),
-        format: (v: number) => v.toString(),
+        format: (v: number) => `${v}%`,
         color: 'green',
       },
       {
