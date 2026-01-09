@@ -1,0 +1,159 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+};
+
+// Convert "sim" (or variations) to boolean true, anything else to false
+function parseBooleanField(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const normalized = value.toLowerCase().trim();
+  return normalized === 'sim' || normalized === 's' || normalized === 'yes' || normalized === 'true' || normalized === '1';
+}
+
+// Parse numeric value, handling Brazilian format (comma as decimal separator)
+function parseNumericField(value: string | null | undefined): number {
+  if (!value) return 0;
+  // Replace comma with dot for decimal
+  const normalized = value.replace(',', '.').replace(/[^\d.-]/g, '');
+  const parsed = parseFloat(normalized);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+// Parse date field
+function parseDateField(value: string | null | undefined): string | null {
+  if (!value) return null;
+  // Try to parse the date - accept various formats
+  try {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return null;
+    return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  } catch {
+    return null;
+  }
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Validate API Key
+    const apiKey = req.headers.get('x-api-key');
+    const expectedApiKey = Deno.env.get('N8N_WEBHOOK_API_KEY');
+
+    if (!expectedApiKey) {
+      console.error('N8N_WEBHOOK_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!apiKey || apiKey !== expectedApiKey) {
+      console.error('Invalid or missing API key');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get data from query parameters (as shown in user's n8n URL)
+    const url = new URL(req.url);
+    const params = url.searchParams;
+
+    // Also support POST body for more complex integrations
+    let bodyData: Record<string, string> = {};
+    if (req.method === 'POST') {
+      try {
+        const contentType = req.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          bodyData = await req.json();
+        }
+      } catch {
+        // Ignore body parsing errors, continue with query params
+      }
+    }
+
+    // Helper to get value from query params or body
+    const getValue = (key: string): string | null => {
+      return params.get(key) || bodyData[key] || null;
+    };
+
+    // Map incoming fields to staging_negocios table
+    const stagingRecord = {
+      // Core business fields
+      nome: getValue('criado_crm'),
+      pipeline: getValue('pipeline'),
+      vendedor: getValue('responsavel_id'),
+      contato_fonte: getValue('fonte_contato'),
+      data_inicio: parseDateField(getValue('data_inicio')),
+      total: parseNumericField(getValue('valor')),
+      
+      // Boolean fields - convert "sim" to true
+      mql: parseBooleanField(getValue('mql')),
+      sql_qualificado: parseBooleanField(getValue('sql')),
+      reuniao_agendada: parseBooleanField(getValue('reuniao_agendada')),
+      venda_aprovada: parseBooleanField(getValue('venda_aprovada')),
+      
+      // UTM fields
+      utm_source: getValue('utm_source'),
+      utm_medium: getValue('utm_medium'),
+      utm_campaign: getValue('utm_campaign'),
+      utm_content: getValue('utm_content'),
+      utm_term: getValue('utm_term'),
+      
+      // Metadata
+      source: 'n8n',
+      status: 'pendente',
+      batch_id: crypto.randomUUID(),
+    };
+
+    console.log('Received data from n8n:', JSON.stringify(stagingRecord, null, 2));
+
+    // Initialize Supabase client with service role
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Insert into staging_negocios
+    const { data, error } = await supabase
+      .from('staging_negocios')
+      .insert(stagingRecord)
+      .select('id, batch_id')
+      .single();
+
+    if (error) {
+      console.error('Error inserting into staging_negocios:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to save data', details: error.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Successfully inserted staging record:', data);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Data received and queued for review',
+        id: data.id,
+        batch_id: data.batch_id
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Unexpected error in receive-negocios:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ error: 'Internal server error', details: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
