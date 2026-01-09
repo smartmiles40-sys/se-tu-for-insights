@@ -12,15 +12,6 @@ import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegoci
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  ResponsiveContainer,
-  Tooltip,
-  CartesianGrid
-} from 'recharts';
 import { format, parseISO, startOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -267,20 +258,9 @@ export default function Dashboard() {
 
                 {/* Indicadores - 1 column, stacked */}
                 <div className="flex flex-col gap-2 h-full">
-                  {/* Meta x Realizado */}
+                  {/* Indicadores de Custo */}
                   <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                    <h3 className="bi-card-title mb-2 text-sm flex items-center gap-2">
-                      <Target className="h-4 w-4 text-primary" />
-                      Meta x Realizado
-                    </h3>
-                    <div className="flex-1">
-                      <MetaProgress meta={metaGlobal} realizado={realizadoData} />
-                    </div>
-                  </div>
-
-                  {/* Indicadores de Performance */}
-                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
+                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
                     <div className="space-y-2 flex-1 flex flex-col justify-around">
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
@@ -288,6 +268,25 @@ export default function Dashboard() {
                         </div>
                         <div className="text-base font-bold text-cyan-400">{formatCurrency(0)}</div>
                       </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
+                        </div>
+                        <div className="text-base font-bold text-purple-400">{formatCurrency(0)}</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
+                        </div>
+                        <div className="text-base font-bold text-blue-400">{formatCurrency(0)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Indicadores de Performance */}
+                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
+                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
+                    <div className="space-y-2 flex-1 flex flex-col justify-around">
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">CAC</div>
@@ -300,57 +299,26 @@ export default function Dashboard() {
                         </div>
                         <div className="text-base font-bold text-yellow-400">0x</div>
                       </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
+                        </div>
+                        <div className="text-base font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30d' : '0d'}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Second Row - Chart and Origem */}
+              {/* Second Row - Meta x Realizado and Origem */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Revenue Trend Chart */}
+                {/* Meta x Realizado */}
                 <div className="bi-card">
-                  <h3 className="bi-card-title mb-3">Tendência de Faturamento</h3>
-                  <div className="h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={executiveStats.monthlyData}>
-                        <defs>
-                          <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                        <XAxis 
-                          dataKey="month" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 11 }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#94a3b8', fontSize: 11 }}
-                          tickFormatter={formatCompactCurrency}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#1e293b',
-                            border: '1px solid #334155',
-                            borderRadius: '8px',
-                          }}
-                          labelStyle={{ color: '#f1f5f9' }}
-                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="receita"
-                          stroke="#22d3ee"
-                          strokeWidth={2}
-                          fill="url(#revGradient)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <h3 className="bi-card-title mb-3 flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    Meta x Realizado
+                  </h3>
+                  <MetaProgress meta={metaGlobal} realizado={realizadoData} />
                 </div>
                 
                 {/* Origem Performance */}
