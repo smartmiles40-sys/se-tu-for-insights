@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
@@ -66,10 +66,16 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
             <Calendar
               mode="single"
               selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
-              onSelect={(date) => 
-                updateFilter('dataInicio', date ? format(date, 'yyyy-MM-dd') : undefined)
-              }
+              onSelect={(date) => {
+                if (date) {
+                  const firstDay = startOfMonth(date);
+                  updateFilter('dataInicio', format(firstDay, 'yyyy-MM-dd'));
+                } else {
+                  updateFilter('dataInicio', undefined);
+                }
+              }}
               locale={ptBR}
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
@@ -97,10 +103,16 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
             <Calendar
               mode="single"
               selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
-              onSelect={(date) => 
-                updateFilter('dataFim', date ? format(date, 'yyyy-MM-dd') : undefined)
-              }
+              onSelect={(date) => {
+                if (date) {
+                  const lastDay = endOfMonth(date);
+                  updateFilter('dataFim', format(lastDay, 'yyyy-MM-dd'));
+                } else {
+                  updateFilter('dataFim', undefined);
+                }
+              }}
               locale={ptBR}
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
