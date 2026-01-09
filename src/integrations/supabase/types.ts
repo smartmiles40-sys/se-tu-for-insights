@@ -18,15 +18,30 @@ export type Database = {
         Row: {
           contato_fonte: string | null
           created_at: string
+          crm_id: string | null
+          custo: number | null
+          data_agendamento: string | null
           data_inicio: string | null
+          data_movimentacao: string | null
+          data_mql: string | null
+          data_noshow: string | null
+          data_prevista: string | null
+          data_reuniao_realizada: string | null
+          data_sql: string | null
+          data_venda: string | null
+          fase: string | null
           id: string
           imported_by: string | null
+          info_etapa: string | null
           lead_fonte: string | null
           motivo_perda: string | null
           mql: boolean | null
           no_show: boolean | null
           nome: string | null
           pipeline: string | null
+          primeiro_contato: string | null
+          quem_vendeu: string | null
+          responsavel_reuniao: string | null
           reuniao_agendada: boolean | null
           reuniao_realizada: boolean | null
           sdr: string | null
@@ -45,15 +60,30 @@ export type Database = {
         Insert: {
           contato_fonte?: string | null
           created_at?: string
+          crm_id?: string | null
+          custo?: number | null
+          data_agendamento?: string | null
           data_inicio?: string | null
+          data_movimentacao?: string | null
+          data_mql?: string | null
+          data_noshow?: string | null
+          data_prevista?: string | null
+          data_reuniao_realizada?: string | null
+          data_sql?: string | null
+          data_venda?: string | null
+          fase?: string | null
           id?: string
           imported_by?: string | null
+          info_etapa?: string | null
           lead_fonte?: string | null
           motivo_perda?: string | null
           mql?: boolean | null
           no_show?: boolean | null
           nome?: string | null
           pipeline?: string | null
+          primeiro_contato?: string | null
+          quem_vendeu?: string | null
+          responsavel_reuniao?: string | null
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
@@ -72,15 +102,30 @@ export type Database = {
         Update: {
           contato_fonte?: string | null
           created_at?: string
+          crm_id?: string | null
+          custo?: number | null
+          data_agendamento?: string | null
           data_inicio?: string | null
+          data_movimentacao?: string | null
+          data_mql?: string | null
+          data_noshow?: string | null
+          data_prevista?: string | null
+          data_reuniao_realizada?: string | null
+          data_sql?: string | null
+          data_venda?: string | null
+          fase?: string | null
           id?: string
           imported_by?: string | null
+          info_etapa?: string | null
           lead_fonte?: string | null
           motivo_perda?: string | null
           mql?: boolean | null
           no_show?: boolean | null
           nome?: string | null
           pipeline?: string | null
+          primeiro_contato?: string | null
+          quem_vendeu?: string | null
+          responsavel_reuniao?: string | null
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
@@ -130,9 +175,21 @@ export type Database = {
           batch_id: string
           contato_fonte: string | null
           created_at: string
+          crm_id: string | null
+          custo: number | null
+          data_agendamento: string | null
           data_inicio: string | null
+          data_movimentacao: string | null
+          data_mql: string | null
+          data_noshow: string | null
+          data_prevista: string | null
+          data_reuniao_realizada: string | null
+          data_sql: string | null
+          data_venda: string | null
+          fase: string | null
           id: string
           imported_at: string
+          info_etapa: string | null
           lead_fonte: string | null
           motivo_perda: string | null
           mql: boolean | null
@@ -140,6 +197,9 @@ export type Database = {
           nome: string | null
           notes: string | null
           pipeline: string | null
+          primeiro_contato: string | null
+          quem_vendeu: string | null
+          responsavel_reuniao: string | null
           reuniao_agendada: boolean | null
           reuniao_realizada: boolean | null
           sdr: string | null
@@ -161,9 +221,21 @@ export type Database = {
           batch_id?: string
           contato_fonte?: string | null
           created_at?: string
+          crm_id?: string | null
+          custo?: number | null
+          data_agendamento?: string | null
           data_inicio?: string | null
+          data_movimentacao?: string | null
+          data_mql?: string | null
+          data_noshow?: string | null
+          data_prevista?: string | null
+          data_reuniao_realizada?: string | null
+          data_sql?: string | null
+          data_venda?: string | null
+          fase?: string | null
           id?: string
           imported_at?: string
+          info_etapa?: string | null
           lead_fonte?: string | null
           motivo_perda?: string | null
           mql?: boolean | null
@@ -171,6 +243,9 @@ export type Database = {
           nome?: string | null
           notes?: string | null
           pipeline?: string | null
+          primeiro_contato?: string | null
+          quem_vendeu?: string | null
+          responsavel_reuniao?: string | null
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
@@ -192,9 +267,21 @@ export type Database = {
           batch_id?: string
           contato_fonte?: string | null
           created_at?: string
+          crm_id?: string | null
+          custo?: number | null
+          data_agendamento?: string | null
           data_inicio?: string | null
+          data_movimentacao?: string | null
+          data_mql?: string | null
+          data_noshow?: string | null
+          data_prevista?: string | null
+          data_reuniao_realizada?: string | null
+          data_sql?: string | null
+          data_venda?: string | null
+          fase?: string | null
           id?: string
           imported_at?: string
+          info_etapa?: string | null
           lead_fonte?: string | null
           motivo_perda?: string | null
           mql?: boolean | null
@@ -202,6 +289,9 @@ export type Database = {
           nome?: string | null
           notes?: string | null
           pipeline?: string | null
+          primeiro_contato?: string | null
+          quem_vendeu?: string | null
+          responsavel_reuniao?: string | null
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null

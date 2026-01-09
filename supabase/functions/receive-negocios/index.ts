@@ -111,6 +111,7 @@ serve(async (req) => {
     // Map incoming fields to staging_negocios table
     const stagingRecord = {
       // Core business fields
+      crm_id: getValue('id'),
       nome: getValue('nome_negocio') || getValue('criado_crm'),
       pipeline: getValue('pipeline'),
       vendedor: getValue('responsavel_id'),
@@ -119,8 +120,13 @@ serve(async (req) => {
       lead_fonte: getValue('lead_qlf'),
       data_inicio: parseDateField(getValue('data_inicio')),
       total: parseNumericField(getValue('valor')),
+      custo: parseNumericField(getValue('custo')) || parseNumericField(getValue('custo_total')),
       tipo_venda: getValue('tipo_venda') || getValue('venda_tipo_realizada'),
       motivo_perda: getValue('motivo_perda'),
+      fase: getValue('fase'),
+      quem_vendeu: getValue('quem_vendeu'),
+      responsavel_reuniao: getValue('responsavel_reuniao'),
+      info_etapa: getValue('info_etapa'),
       
       // Boolean fields - convert "sim" to true
       mql: parseBooleanField(getValue('mql')),
@@ -129,6 +135,17 @@ serve(async (req) => {
       reuniao_realizada: parseBooleanField(getValue('reuniao_realizada_check')),
       no_show: parseBooleanField(getValue('no_show')),
       venda_aprovada: parseBooleanField(getValue('venda_aprovada')),
+      
+      // Date fields
+      data_agendamento: parseDateField(getValue('data_agendamento')),
+      data_reuniao_realizada: parseDateField(getValue('data_reuniao_realizada')),
+      data_mql: parseDateField(getValue('data_mql')),
+      data_sql: parseDateField(getValue('data_sql')),
+      data_venda: parseDateField(getValue('data_venda')),
+      data_noshow: parseDateField(getValue('data_noshow')),
+      data_prevista: parseDateField(getValue('data_prevista')),
+      primeiro_contato: parseDateField(getValue('primeiro_contato')),
+      data_movimentacao: parseDateField(getValue('data_movimentacao')),
       
       // UTM fields
       utm_source: getValue('utm_source'),

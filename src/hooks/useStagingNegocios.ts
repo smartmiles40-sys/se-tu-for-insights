@@ -34,6 +34,22 @@ export interface StagingNegocio {
   lead_fonte: string | null;
   created_at: string;
   updated_at: string;
+  // New CRM fields
+  crm_id: string | null;
+  fase: string | null;
+  custo: number;
+  quem_vendeu: string | null;
+  responsavel_reuniao: string | null;
+  info_etapa: string | null;
+  data_agendamento: string | null;
+  data_reuniao_realizada: string | null;
+  data_mql: string | null;
+  data_sql: string | null;
+  data_venda: string | null;
+  data_noshow: string | null;
+  data_prevista: string | null;
+  primeiro_contato: string | null;
+  data_movimentacao: string | null;
 }
 
 export interface StagingFilters {
@@ -151,6 +167,22 @@ export function useApproveStaging() {
         utm_content: record.utm_content,
         utm_term: record.utm_term,
         lead_fonte: record.lead_fonte,
+        // New CRM fields
+        crm_id: record.crm_id,
+        fase: record.fase,
+        custo: record.custo,
+        quem_vendeu: record.quem_vendeu,
+        responsavel_reuniao: record.responsavel_reuniao,
+        info_etapa: record.info_etapa,
+        data_agendamento: record.data_agendamento,
+        data_reuniao_realizada: record.data_reuniao_realizada,
+        data_mql: record.data_mql,
+        data_sql: record.data_sql,
+        data_venda: record.data_venda,
+        data_noshow: record.data_noshow,
+        data_prevista: record.data_prevista,
+        primeiro_contato: record.primeiro_contato,
+        data_movimentacao: record.data_movimentacao,
       }));
 
       // Insert into negocios
