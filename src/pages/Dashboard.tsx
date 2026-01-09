@@ -233,9 +233,9 @@ export default function Dashboard() {
               {/* Main Grid - Chart Left, Indicators Right */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Revenue Trend Chart - 2 columns */}
-                <div className="bi-card lg:col-span-2">
+                <div className="bi-card lg:col-span-2 flex flex-col">
                   <h3 className="bi-card-title mb-4">Tendência de Faturamento</h3>
-                  <div className="h-[300px]">
+                  <div className="flex-1 min-h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={executiveStats.monthlyData}>
                         <defs>
@@ -279,9 +279,9 @@ export default function Dashboard() {
                 </div>
 
                 {/* Indicadores - 1 column, stacked */}
-                <div className="space-y-4">
+                <div className="flex flex-col gap-4">
                   {/* Indicadores de Custo */}
-                  <div className="bi-card">
+                  <div className="bi-card flex-1">
                     <h3 className="bi-card-title mb-3">Indicadores de Custo</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
@@ -309,7 +309,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Indicadores de Performance */}
-                  <div className="bi-card">
+                  <div className="bi-card flex-1">
                     <h3 className="bi-card-title mb-3">Indicadores de Performance</h3>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
@@ -338,8 +338,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Second Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Second Row - Funnel and Origem */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Funnel */}
                 <FunnelHorizontal negocios={negocios} />
                 
