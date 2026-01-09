@@ -35,6 +35,23 @@ function parseDateField(value: string | null | undefined): string | null {
   }
 }
 
+// Extract password from Basic Auth header
+function extractBasicAuthPassword(authHeader: string | null): string | null {
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return null;
+  }
+  try {
+    const base64Credentials = authHeader.substring(6);
+    const credentials = atob(base64Credentials);
+    // Format is "username:password" - we only care about the password
+    const colonIndex = credentials.indexOf(':');
+    if (colonIndex === -1) return null;
+    return credentials.substring(colonIndex + 1);
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -42,8 +59,13 @@ serve(async (req) => {
   }
 
   try {
-    // Validate API Key
-    const apiKey = req.headers.get('x-api-key');
+    // Validate API Key - support both x-api-key header and Basic Auth
+    const apiKeyHeader = req.headers.get('x-api-key');
+    const authHeader = req.headers.get('authorization');
+    const basicAuthPassword = extractBasicAuthPassword(authHeader);
+    
+    // Use x-api-key if provided, otherwise try Basic Auth password
+    const providedKey = apiKeyHeader || basicAuthPassword;
     const expectedApiKey = Deno.env.get('N8N_WEBHOOK_API_KEY');
 
     if (!expectedApiKey) {
@@ -54,13 +76,15 @@ serve(async (req) => {
       );
     }
 
-    if (!apiKey || apiKey !== expectedApiKey) {
+    if (!providedKey || providedKey !== expectedApiKey) {
       console.error('Invalid or missing API key');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Authentication successful via', apiKeyHeader ? 'x-api-key header' : 'Basic Auth');
 
     // Get data from query parameters (as shown in user's n8n URL)
     const url = new URL(req.url);
