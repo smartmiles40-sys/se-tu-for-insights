@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X, Filter, User } from 'lucide-react';
+import { CalendarIcon, X, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -30,7 +30,6 @@ interface GlobalFiltersProps {
 export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFiltersProps) {
   const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
 
-  // Combine SDRs and Vendedores for "Responsável" filter
   const responsaveis = [...new Set([...options.sdrs, ...options.vendedores])].sort();
 
   const clearFilters = () => {
@@ -52,7 +51,6 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
         vendedor: undefined,
       });
     } else {
-      // Check if the value is an SDR or Vendedor and set appropriately
       const isSDR = options.sdrs.includes(value);
       const isVendedor = options.vendedores.includes(value);
       
@@ -67,154 +65,149 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
   const currentResponsavel = filters.sdr || filters.vendedor || 'all';
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-sm border border-border/50">
-      <div className="flex items-center gap-2 mb-4">
-        <Filter className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-          Filtros Globais
-        </span>
+    <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+      {/* Período */}
+      <div className="flex items-center gap-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'h-8 w-[110px] justify-start text-left font-normal bg-slate-800 border-slate-600 hover:bg-slate-700',
+                !filters.dataInicio && 'text-slate-400'
+              )}
+            >
+              <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+              {filters.dataInicio ? (
+                format(new Date(filters.dataInicio), 'dd/MM/yy', { locale: ptBR })
+              ) : (
+                <span>De</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-600" align="start">
+            <Calendar
+              mode="single"
+              selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
+              onSelect={(date) => 
+                updateFilter('dataInicio', date ? format(date, 'yyyy-MM-dd') : undefined)
+              }
+              locale={ptBR}
+              className="bg-slate-800"
+            />
+          </PopoverContent>
+        </Popover>
+
+        <span className="text-slate-500 text-sm">até</span>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'h-8 w-[110px] justify-start text-left font-normal bg-slate-800 border-slate-600 hover:bg-slate-700',
+                !filters.dataFim && 'text-slate-400'
+              )}
+            >
+              <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+              {filters.dataFim ? (
+                format(new Date(filters.dataFim), 'dd/MM/yy', { locale: ptBR })
+              ) : (
+                <span>Até</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-600" align="start">
+            <Calendar
+              mode="single"
+              selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
+              onSelect={(date) => 
+                updateFilter('dataFim', date ? format(date, 'yyyy-MM-dd') : undefined)
+              }
+              locale={ptBR}
+              className="bg-slate-800"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
-      
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Período - Data de início */}
-        <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'w-[140px] justify-start text-left font-normal',
-                  !filters.dataInicio && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {filters.dataInicio ? (
-                  format(new Date(filters.dataInicio), 'dd/MM/yyyy', { locale: ptBR })
-                ) : (
-                  <span>De</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
-                onSelect={(date) => 
-                  updateFilter('dataInicio', date ? format(date, 'yyyy-MM-dd') : undefined)
-                }
-                locale={ptBR}
-              />
-            </PopoverContent>
-          </Popover>
 
-          <span className="text-muted-foreground">até</span>
+      <div className="h-5 w-px bg-slate-600" />
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'w-[140px] justify-start text-left font-normal',
-                  !filters.dataFim && 'text-muted-foreground'
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {filters.dataFim ? (
-                  format(new Date(filters.dataFim), 'dd/MM/yyyy', { locale: ptBR })
-                ) : (
-                  <span>Até</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
-                onSelect={(date) => 
-                  updateFilter('dataFim', date ? format(date, 'yyyy-MM-dd') : undefined)
-                }
-                locale={ptBR}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+      {/* Responsável */}
+      {responsaveis.length > 0 && (
+        <Select
+          value={currentResponsavel}
+          onValueChange={handleResponsavelChange}
+        >
+          <SelectTrigger className="h-8 w-[150px] bg-slate-800 border-slate-600 text-sm">
+            <User className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
+            <SelectValue placeholder="Responsável" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-600">
+            <SelectItem value="all">Todos</SelectItem>
+            {responsaveis.map((r) => (
+              <SelectItem key={r} value={r}>
+                {r}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
-        <div className="h-6 w-px bg-border" />
+      {/* Pipeline */}
+      {options.pipelines.length > 0 && (
+        <Select
+          value={filters.pipeline || 'all'}
+          onValueChange={(v) => updateFilter('pipeline', v)}
+        >
+          <SelectTrigger className="h-8 w-[140px] bg-slate-800 border-slate-600 text-sm">
+            <SelectValue placeholder="Pipeline" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-600">
+            <SelectItem value="all">Todos Pipelines</SelectItem>
+            {options.pipelines.map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
-        {/* Responsável - Combined SDR + Vendedor filter */}
-        {responsaveis.length > 0 && (
-          <Select
-            value={currentResponsavel}
-            onValueChange={handleResponsavelChange}
-          >
-            <SelectTrigger className="w-[180px]">
-              <User className="mr-2 h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Responsável" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Responsáveis</SelectItem>
-              {responsaveis.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+      {/* Origem */}
+      {options.leadFontes.length > 0 && (
+        <Select
+          value={filters.leadFonte || 'all'}
+          onValueChange={(v) => updateFilter('leadFonte', v)}
+        >
+          <SelectTrigger className="h-8 w-[140px] bg-slate-800 border-slate-600 text-sm">
+            <SelectValue placeholder="Origem" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-600">
+            <SelectItem value="all">Todas Origens</SelectItem>
+            {options.leadFontes.map((l) => (
+              <SelectItem key={l} value={l}>
+                {l}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
-        {/* Pipeline */}
-        {options.pipelines.length > 0 && (
-          <Select
-            value={filters.pipeline || 'all'}
-            onValueChange={(v) => updateFilter('pipeline', v)}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Pipeline" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Pipelines</SelectItem>
-              {options.pipelines.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* Origem do Lead */}
-        {options.leadFontes.length > 0 && (
-          <Select
-            value={filters.leadFonte || 'all'}
-            onValueChange={(v) => updateFilter('leadFonte', v)}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Origem" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas Origens</SelectItem>
-              {options.leadFontes.map((l) => (
-                <SelectItem key={l} value={l}>
-                  {l}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* Limpar Filtros */}
-        {hasFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearFilters}
-            className="text-muted-foreground hover:text-destructive"
-          >
-            <X className="h-4 w-4 mr-1" />
-            Limpar
-          </Button>
-        )}
-      </div>
+      {/* Limpar */}
+      {hasFilters && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="h-8 text-slate-400 hover:text-red-400"
+        >
+          <X className="h-3.5 w-3.5 mr-1" />
+          Limpar
+        </Button>
+      )}
     </div>
   );
 }
