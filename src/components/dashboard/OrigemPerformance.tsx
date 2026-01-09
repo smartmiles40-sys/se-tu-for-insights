@@ -43,10 +43,30 @@ export function OrigemPerformance({ negocios }: OrigemPerformanceProps) {
     }).format(value);
 
   return (
-    <div className="bi-card">
-      <h3 className="bi-card-title mb-4">Performance por Origem</h3>
+    <div className="bi-card h-full flex flex-col">
+      <h3 className="bi-card-title mb-3">Performance por Origem</h3>
       
-      <div className="space-y-3">
+      {/* Investment Summary */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <span className="text-xs text-slate-400 uppercase">Meta Ads</span>
+          </div>
+          <div className="text-lg font-bold text-blue-400">R$ 0</div>
+          <div className="text-xs text-slate-500">Investimento</div>
+        </div>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <span className="text-xs text-slate-400 uppercase">Google Ads</span>
+          </div>
+          <div className="text-lg font-bold text-red-400">R$ 0</div>
+          <div className="text-xs text-slate-500">Investimento</div>
+        </div>
+      </div>
+      
+      <div className="space-y-3 flex-1">
         {data.map((item, index) => {
           const maxReceita = data[0]?.receita || 1;
           const widthPercent = (item.receita / maxReceita) * 100;
