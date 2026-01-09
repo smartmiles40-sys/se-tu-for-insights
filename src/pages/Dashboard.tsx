@@ -144,7 +144,7 @@ export default function Dashboard() {
 
             <TabsContent value="home" className="space-y-4 mt-0">
               {/* KPIs Row 1 - Main metrics with sparklines */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <KPICardWithSparkline
                   title="Faturamento"
                   value={formatCurrency(executiveStats.receitaTotal)}
@@ -160,6 +160,13 @@ export default function Dashboard() {
                   sparklineData={sparklineVendas}
                 />
                 <KPICardWithSparkline
+                  title="Ticket Médio"
+                  value={formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)}
+                  icon={TrendingUp}
+                  color="green"
+                  sparklineData={sparklineVendas}
+                />
+                <KPICardWithSparkline
                   title="Reuniões"
                   value={formatNumber(executiveStats.reunioesRealizadas)}
                   icon={Calendar}
@@ -170,7 +177,7 @@ export default function Dashboard() {
                   title="Total Leads"
                   value={formatNumber(executiveStats.totalLeads)}
                   icon={Users}
-                  color="green"
+                  color="orange"
                   sparklineData={sparklineReuniao}
                 />
               </div>
@@ -289,12 +296,12 @@ export default function Dashboard() {
               {/* Marketing Metrics - Cost Indicators */}
               <div className="bi-card">
                 <h3 className="bi-card-title mb-4">Indicadores de Custo & Performance</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   {/* CPL - Custo por Lead */}
                   <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
                     <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CPL</div>
                     <div className="text-xl font-bold text-cyan-400">
-                      {formatCurrency(executiveStats.totalLeads > 0 ? 0 : 0)}
+                      {formatCurrency(0)}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">Custo por Lead</div>
                   </div>
@@ -324,15 +331,6 @@ export default function Dashboard() {
                       {formatCurrency(0)}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">Custo de Aquisição</div>
-                  </div>
-
-                  {/* Ticket Médio */}
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Ticket Médio</div>
-                    <div className="text-xl font-bold text-emerald-400">
-                      {formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Valor médio por venda</div>
                   </div>
 
                   {/* ROAS */}
