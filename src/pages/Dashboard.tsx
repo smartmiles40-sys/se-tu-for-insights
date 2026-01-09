@@ -17,8 +17,6 @@ import {
   YAxis, 
   ResponsiveContainer,
   Tooltip,
-  LineChart,
-  Line,
   CartesianGrid
 } from 'recharts';
 import { format, parseISO, startOfMonth } from 'date-fns';
@@ -288,44 +286,67 @@ export default function Dashboard() {
                 <RankingTable negocios={negocios} type="sdr" limit={4} />
               </div>
 
-              {/* Conversion Trend */}
+              {/* Marketing Metrics - Cost Indicators */}
               <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Tendência de Conversão</h3>
-                <div className="h-[180px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={executiveStats.monthlyData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-                      <XAxis 
-                        dataKey="month" 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 11 }}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: '#94a3b8', fontSize: 11 }}
-                        tickFormatter={(v) => `${v}%`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#1e293b',
-                          border: '1px solid #334155',
-                          borderRadius: '8px',
-                        }}
-                        labelStyle={{ color: '#f1f5f9' }}
-                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Conversão']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="conversao"
-                        stroke="#f472b6"
-                        strokeWidth={2}
-                        dot={{ fill: '#f472b6', strokeWidth: 0, r: 3 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <h3 className="bi-card-title mb-4">Indicadores de Custo & Performance</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {/* CPL - Custo por Lead */}
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CPL</div>
+                    <div className="text-xl font-bold text-cyan-400">
+                      {formatCurrency(executiveStats.totalLeads > 0 ? 0 : 0)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Custo por Lead</div>
+                  </div>
+
+                  {/* Custo MQL */}
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo MQL</div>
+                    <div className="text-xl font-bold text-purple-400">
+                      {formatCurrency(0)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Custo por MQL</div>
+                  </div>
+
+                  {/* Custo por Reunião */}
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo Reunião</div>
+                    <div className="text-xl font-bold text-blue-400">
+                      {formatCurrency(0)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Custo por Reunião</div>
+                  </div>
+
+                  {/* CAC - Custo de Aquisição */}
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CAC</div>
+                    <div className="text-xl font-bold text-orange-400">
+                      {formatCurrency(0)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Custo de Aquisição</div>
+                  </div>
+
+                  {/* Ticket Médio */}
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Ticket Médio</div>
+                    <div className="text-xl font-bold text-emerald-400">
+                      {formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Valor médio por venda</div>
+                  </div>
+
+                  {/* ROAS */}
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">ROAS</div>
+                    <div className="text-xl font-bold text-yellow-400">
+                      0x
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Retorno sobre investimento</div>
+                  </div>
                 </div>
+                <p className="text-xs text-slate-500 mt-4 text-center">
+                  * Métricas de custo requerem dados de investimento em mídia
+                </p>
               </div>
             </TabsContent>
 
