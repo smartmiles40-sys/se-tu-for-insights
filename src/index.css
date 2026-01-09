@@ -8,6 +8,64 @@
 
 @layer base {
   :root {
+    /* Light Theme */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 43 96% 56%;
+    --warning-foreground: 222 47% 11%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.5rem;
+
+    /* Chart colors */
+    --chart-1: 199 89% 48%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 43 96% 56%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 280 65% 60%;
+
+    /* Sidebar - Light */
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 90%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 199 89% 48%;
+
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark {
     /* Dark BI Theme */
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
@@ -43,8 +101,6 @@
     --input: 217 33% 25%;
     --ring: 199 89% 48%;
 
-    --radius: 0.5rem;
-
     /* Chart colors */
     --chart-1: 199 89% 48%;
     --chart-2: 160 84% 39%;
@@ -61,14 +117,6 @@
     --sidebar-accent-foreground: 210 40% 95%;
     --sidebar-border: 217 33% 18%;
     --sidebar-ring: 199 89% 48%;
-
-    --font-body: 'Inter', system-ui, sans-serif;
-  }
-
-  .dark {
-    /* Same as root - already dark */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
   }
 }
 
@@ -89,12 +137,19 @@
 @layer components {
   /* BI Card - Main container style */
   .bi-card {
-    @apply rounded-lg p-4 transition-all duration-200;
+    @apply rounded-lg p-4 transition-all duration-200 bg-card border border-border/50;
+  }
+
+  .bi-card:hover {
+    @apply border-border;
+  }
+
+  .dark .bi-card {
     background: linear-gradient(145deg, hsl(217 33% 17%) 0%, hsl(217 33% 14%) 100%);
     border: 1px solid hsl(217 33% 25% / 0.5);
   }
 
-  .bi-card:hover {
+  .dark .bi-card:hover {
     border-color: hsl(217 33% 30% / 0.8);
   }
 
