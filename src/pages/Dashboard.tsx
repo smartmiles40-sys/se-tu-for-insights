@@ -1,16 +1,28 @@
 import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { NOCKPICard } from '@/components/dashboard/NOCKPICard';
 import { GlobalFilters } from '@/components/dashboard/GlobalFilters';
-import { VisualFunnel } from '@/components/dashboard/VisualFunnel';
-import { CriticalRatesPanel } from '@/components/dashboard/CriticalRatesPanel';
-import { RevenueChart } from '@/components/dashboard/RevenueChart';
-import { ConversionTrendChart } from '@/components/dashboard/ConversionTrendChart';
+import { KPICardWithSparkline } from '@/components/dashboard/KPICardWithSparkline';
+import { FunnelHorizontal } from '@/components/dashboard/FunnelHorizontal';
+import { RankingTable } from '@/components/dashboard/RankingTable';
+import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
 import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
 import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  ResponsiveContainer,
+  Tooltip,
+  LineChart,
+  Line,
+  CartesianGrid
+} from 'recharts';
+import { format, parseISO, startOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function Dashboard() {
   const [filters, setFilters] = useState<NegocioFilters>({});
@@ -29,6 +41,7 @@ export default function Dashboard() {
         taxaNoShow: 0,
         taxaShowUp: 0,
         totalLeads: 0,
+        monthlyData: [],
       };
     }
 
@@ -44,7 +57,43 @@ export default function Dashboard() {
     const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
     const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
 
-    return { receitaTotal, vendasRealizadas, reunioesRealizadas, taxaAgendamento, taxaNoShow, taxaShowUp, totalLeads };
+    // Monthly data for sparklines
+    const monthlyMap: Record<string, { receita: number; vendas: number; leads: number }> = {};
+    negocios.forEach(n => {
+      if (n.data_inicio) {
+        try {
+          const date = parseISO(n.data_inicio);
+          const monthKey = format(startOfMonth(date), 'yyyy-MM');
+          if (!monthlyMap[monthKey]) {
+            monthlyMap[monthKey] = { receita: 0, vendas: 0, leads: 0 };
+          }
+          monthlyMap[monthKey].leads += 1;
+          if (n.venda_aprovada) {
+            monthlyMap[monthKey].vendas += 1;
+            monthlyMap[monthKey].receita += n.total || 0;
+          }
+        } catch (e) {}
+      }
+    });
+    
+    const monthlyData = Object.entries(monthlyMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, data]) => ({
+        month: format(parseISO(key + '-01'), 'MMM', { locale: ptBR }),
+        ...data,
+        conversao: data.leads > 0 ? (data.vendas / data.leads) * 100 : 0,
+      }));
+
+    return { 
+      receitaTotal, 
+      vendasRealizadas, 
+      reunioesRealizadas, 
+      taxaAgendamento, 
+      taxaNoShow, 
+      taxaShowUp, 
+      totalLeads,
+      monthlyData,
+    };
   }, [negocios]);
 
   const formatCurrency = (value: number) =>
@@ -52,9 +101,12 @@ export default function Dashboard() {
 
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
 
+  const formatCompactCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 }).format(value);
+
   if (isLoading || loadingAll) {
     return (
-      <DashboardLayout title="Torre de Controle" subtitle="Carregando...">
+      <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -63,85 +115,204 @@ export default function Dashboard() {
   }
 
   const hasData = negocios && negocios.length > 0;
+  const sparklineReceita = executiveStats.monthlyData.map(d => d.receita);
+  const sparklineVendas = executiveStats.monthlyData.map(d => d.vendas);
+  const sparklineReuniao = executiveStats.monthlyData.map(d => d.leads);
 
   return (
-    <DashboardLayout 
-      title="Torre de Controle" 
-      subtitle={hasData ? `${negocios.length} negócios analisados` : 'Painel de Comando Comercial'}
-    >
-      <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-4">
+        {/* Compact Filter Bar */}
         <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
 
         {!hasData ? (
-          <div className="noc-panel p-16 text-center">
-            <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
-            <h3 className="text-2xl font-display font-semibold mb-3">Nenhum dado encontrado</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
+          <div className="bi-card p-16 text-center">
+            <AlertTriangle className="h-16 w-16 text-slate-500 mx-auto mb-6" />
+            <h3 className="text-2xl font-semibold mb-3 text-slate-200">Nenhum dado encontrado</h3>
+            <p className="text-slate-400 max-w-md mx-auto">
               Importe os dados do CRM através da opção "Importar Dados" no menu lateral.
             </p>
           </div>
         ) : (
           <Tabs defaultValue="home" className="w-full">
-            <TabsList className="grid w-full max-w-lg grid-cols-3 mb-6 bg-muted/50 p-1 rounded-xl">
-              <TabsTrigger value="home" className="rounded-lg font-semibold text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm">HOME</TabsTrigger>
-              <TabsTrigger value="sdr" className="rounded-lg font-semibold text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm">SDRS</TabsTrigger>
-              <TabsTrigger value="especialistas" className="rounded-lg font-semibold text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm">ESPECIALISTAS</TabsTrigger>
+            <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-slate-800/50 p-1 mb-4">
+              <TabsTrigger value="home" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">HOME</TabsTrigger>
+              <TabsTrigger value="sdr" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">SDRS</TabsTrigger>
+              <TabsTrigger value="especialistas" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">ESPECIALISTAS</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="home" className="space-y-6">
-              {/* KPIs Grandes - Clean Card Design */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <NOCKPICard 
-                  title="Faturamento" 
-                  value={formatCurrency(executiveStats.receitaTotal)} 
-                  icon={DollarSign} 
-                  status="good" 
+            <TabsContent value="home" className="space-y-4 mt-0">
+              {/* KPIs Row 1 - Main metrics with sparklines */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <KPICardWithSparkline
+                  title="Faturamento"
+                  value={formatCurrency(executiveStats.receitaTotal)}
+                  icon={DollarSign}
+                  color="cyan"
+                  sparklineData={sparklineReceita}
                 />
-                <NOCKPICard 
-                  title="Vendas" 
-                  value={formatNumber(executiveStats.vendasRealizadas)} 
-                  icon={Target} 
-                  status="neutral" 
+                <KPICardWithSparkline
+                  title="Vendas"
+                  value={formatNumber(executiveStats.vendasRealizadas)}
+                  icon={Target}
+                  color="yellow"
+                  sparklineData={sparklineVendas}
                 />
-                <NOCKPICard 
-                  title="Reuniões" 
-                  value={formatNumber(executiveStats.reunioesRealizadas)} 
-                  icon={Calendar} 
-                  status="neutral" 
+                <KPICardWithSparkline
+                  title="Reuniões"
+                  value={formatNumber(executiveStats.reunioesRealizadas)}
+                  icon={Calendar}
+                  color="magenta"
+                  sparklineData={sparklineReuniao}
                 />
-                <NOCKPICard 
-                  title="% Agendamento" 
-                  value={`${executiveStats.taxaAgendamento.toFixed(1)}%`} 
-                  icon={TrendingUp} 
-                  status={executiveStats.taxaAgendamento >= 50 ? 'good' : executiveStats.taxaAgendamento >= 30 ? 'warning' : 'critical'} 
-                  idealValue="≥50%" 
-                />
-                <NOCKPICard 
-                  title="% No-Show" 
-                  value={`${executiveStats.taxaNoShow.toFixed(1)}%`} 
-                  icon={XCircle} 
-                  status={executiveStats.taxaNoShow <= 15 ? 'good' : executiveStats.taxaNoShow <= 25 ? 'warning' : 'critical'} 
-                  idealValue="≤20%" 
-                />
-                <NOCKPICard 
-                  title="% Show-Up" 
-                  value={`${executiveStats.taxaShowUp.toFixed(1)}%`} 
-                  icon={Users} 
-                  status={executiveStats.taxaShowUp >= 80 ? 'good' : executiveStats.taxaShowUp >= 60 ? 'warning' : 'critical'} 
-                  idealValue="≥80%" 
+                <KPICardWithSparkline
+                  title="Total Leads"
+                  value={formatNumber(executiveStats.totalLeads)}
+                  icon={Users}
+                  color="green"
+                  sparklineData={sparklineReuniao}
                 />
               </div>
 
-              {/* Taxas Críticas */}
-              <CriticalRatesPanel negocios={negocios} />
-
-              {/* Funil + Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <VisualFunnel negocios={negocios} />
-                <RevenueChart negocios={negocios} />
+              {/* KPIs Row 2 - Rates */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Agendamento</span>
+                    <TrendingUp className="h-4 w-4 text-slate-500" />
+                  </div>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {executiveStats.taxaAgendamento.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≥50%</div>
+                </div>
+                
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% No-Show</span>
+                    <XCircle className="h-4 w-4 text-slate-500" />
+                  </div>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {executiveStats.taxaNoShow.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≤20%</div>
+                </div>
+                
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Show-Up</span>
+                    <Users className="h-4 w-4 text-slate-500" />
+                  </div>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`}>
+                    {executiveStats.taxaShowUp.toFixed(1)}%
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≥80%</div>
+                </div>
               </div>
 
-              <ConversionTrendChart negocios={negocios} />
+              {/* Main Grid - Charts and Tables */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Revenue Trend Chart */}
+                <div className="bi-card lg:col-span-2">
+                  <h3 className="bi-card-title mb-4">Tendência de Faturamento</h3>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={executiveStats.monthlyData}>
+                        <defs>
+                          <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                        <XAxis 
+                          dataKey="month" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 11 }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#94a3b8', fontSize: 11 }}
+                          tickFormatter={formatCompactCurrency}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                          }}
+                          labelStyle={{ color: '#f1f5f9' }}
+                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="receita"
+                          stroke="#22d3ee"
+                          strokeWidth={2}
+                          fill="url(#revGradient)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Ranking Especialistas */}
+                <RankingTable negocios={negocios} type="especialista" limit={4} />
+              </div>
+
+              {/* Second Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Funnel */}
+                <FunnelHorizontal negocios={negocios} />
+                
+                {/* Origem Performance */}
+                <OrigemPerformance negocios={negocios} />
+
+                {/* Ranking SDRs */}
+                <RankingTable negocios={negocios} type="sdr" limit={4} />
+              </div>
+
+              {/* Conversion Trend */}
+              <div className="bi-card">
+                <h3 className="bi-card-title mb-4">Tendência de Conversão</h3>
+                <div className="h-[180px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={executiveStats.monthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#94a3b8', fontSize: 11 }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#94a3b8', fontSize: 11 }}
+                        tickFormatter={(v) => `${v}%`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1e293b',
+                          border: '1px solid #334155',
+                          borderRadius: '8px',
+                        }}
+                        labelStyle={{ color: '#f1f5f9' }}
+                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Conversão']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="conversao"
+                        stroke="#f472b6"
+                        strokeWidth={2}
+                        dot={{ fill: '#f472b6', strokeWidth: 0, r: 3 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="sdr">

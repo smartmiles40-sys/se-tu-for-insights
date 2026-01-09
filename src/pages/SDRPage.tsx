@@ -14,7 +14,7 @@ export default function SDRPage() {
 
   if (isLoading || loadingAll) {
     return (
-      <DashboardLayout title="SDRs" subtitle="Carregando...">
+      <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -23,11 +23,13 @@ export default function SDRPage() {
   }
 
   return (
-    <DashboardLayout 
-      title="Performance SDRs" 
-      subtitle="Análise detalhada de agendamentos e conversões"
-    >
+    <DashboardLayout>
       <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Performance SDRs</h1>
+          <p className="text-sm text-muted-foreground">Análise detalhada de agendamentos e conversões</p>
+        </div>
+        
         <FilterBar 
           filters={filters} 
           onFiltersChange={setFilters} 

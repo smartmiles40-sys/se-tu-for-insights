@@ -14,7 +14,7 @@ export default function MarketingPage() {
 
   if (isLoading || loadingAll) {
     return (
-      <DashboardLayout title="Marketing" subtitle="Carregando...">
+      <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -23,11 +23,13 @@ export default function MarketingPage() {
   }
 
   return (
-    <DashboardLayout 
-      title="Dashboard Marketing" 
-      subtitle="Análise de canais e origem de leads"
-    >
+    <DashboardLayout>
       <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard Marketing</h1>
+          <p className="text-sm text-muted-foreground">Análise de canais e origem de leads</p>
+        </div>
+        
         <FilterBar 
           filters={filters} 
           onFiltersChange={setFilters} 

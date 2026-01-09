@@ -2,115 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* STFEV BI Enterprise - Torre de Controle Design System */
+/* STFEV BI Enterprise - Professional Dark BI Theme */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Light mode - Clean Enterprise */
-    --background: 220 14% 96%;
-    --foreground: 220 13% 15%;
+    /* Dark BI Theme */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 15%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 15%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 201 96% 32%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 220 14% 90%;
-    --secondary-foreground: 220 13% 15%;
+    --secondary: 217 33% 22%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 14% 90%;
-    --muted-foreground: 220 8% 46%;
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 220 13% 15%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 222 47% 11%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --success: 160 84% 39%;
+    --success-foreground: 222 47% 11%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 220 13% 15%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 222 47% 11%;
 
-    --border: 220 13% 85%;
-    --input: 220 13% 85%;
-    --ring: 201 96% 32%;
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 199 89% 48%;
 
     --radius: 0.5rem;
 
     /* Chart colors */
-    --chart-1: 201 96% 32%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 38 92% 50%;
+    --chart-1: 199 89% 48%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 43 96% 56%;
     --chart-4: 0 72% 51%;
     --chart-5: 280 65% 60%;
 
-    /* Sidebar */
-    --sidebar-background: 220 13% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 201 96% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 13% 18%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 20%;
-    --sidebar-ring: 201 96% 50%;
+    /* Sidebar - Darker */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217 33% 15%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 217 33% 18%;
+    --sidebar-ring: 199 89% 48%;
 
-    /* Typography */
-    --font-display: 'Orbitron', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
   }
 
   .dark {
-    /* Dark mode - Torre de Controle / NOC style */
-    --background: 220 13% 8%;
-    --foreground: 0 0% 95%;
-
-    --card: 220 13% 11%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 220 13% 11%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 201 96% 50%;
-    --primary-foreground: 220 13% 8%;
-
-    --secondary: 220 13% 16%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 220 13% 16%;
-    --muted-foreground: 220 8% 60%;
-
-    --accent: 38 92% 50%;
-    --accent-foreground: 220 13% 8%;
-
-    --success: 142 76% 45%;
-    --success-foreground: 220 13% 8%;
-
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --warning: 38 92% 55%;
-    --warning-foreground: 220 13% 8%;
-
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
-    --ring: 201 96% 50%;
-
-    --sidebar-background: 220 13% 6%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 201 96% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 13% 12%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 14%;
-    --sidebar-ring: 201 96% 50%;
+    /* Same as root - already dark */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
   }
 }
 
@@ -124,49 +82,36 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight;
+    @apply font-semibold tracking-tight;
   }
 }
 
 @layer components {
-  /* Torre de Controle KPI Cards */
-  .kpi-card-noc {
-    @apply relative overflow-hidden rounded-lg p-6 transition-all duration-300;
-    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.8) 100%);
-    border: 1px solid hsl(var(--border) / 0.5);
+  /* BI Card - Main container style */
+  .bi-card {
+    @apply rounded-lg p-4 transition-all duration-200;
+    background: linear-gradient(145deg, hsl(217 33% 17%) 0%, hsl(217 33% 14%) 100%);
+    border: 1px solid hsl(217 33% 25% / 0.5);
   }
 
-  .kpi-card-noc::before {
-    content: '';
-    @apply absolute inset-0 opacity-20;
-    background: linear-gradient(180deg, transparent 0%, hsl(var(--primary) / 0.1) 100%);
+  .bi-card:hover {
+    border-color: hsl(217 33% 30% / 0.8);
   }
 
-  .kpi-value-lg {
-    @apply text-5xl font-display font-bold tracking-tight;
+  .bi-card-title {
+    @apply text-sm font-semibold text-slate-300 uppercase tracking-wider;
   }
 
-  .kpi-label {
-    @apply text-xs font-medium text-muted-foreground uppercase tracking-widest;
+  /* Dashboard section */
+  .dashboard-section {
+    @apply bg-card rounded-xl p-6 border border-border/50;
   }
 
-  /* Status indicators */
-  .status-good {
-    @apply text-success;
-    text-shadow: 0 0 20px hsl(var(--success) / 0.5);
+  .section-title {
+    @apply text-lg font-semibold text-foreground mb-4 uppercase tracking-wide;
   }
 
-  .status-warning {
-    @apply text-warning;
-    text-shadow: 0 0 20px hsl(var(--warning) / 0.5);
-  }
-
-  .status-critical {
-    @apply text-destructive;
-    text-shadow: 0 0 20px hsl(var(--destructive) / 0.5);
-  }
-
-  /* NOC Panel */
+  /* NOC Panel (legacy support) */
   .noc-panel {
     @apply rounded-xl p-6 border border-border/50;
     background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.9) 100%);
@@ -177,46 +122,25 @@
   }
 
   .noc-panel-title {
-    @apply text-lg font-display font-semibold text-foreground uppercase tracking-wider;
+    @apply text-lg font-semibold text-foreground uppercase tracking-wider;
   }
 
-  /* Gauge styles */
-  .gauge-container {
-    @apply relative flex flex-col items-center justify-center;
+  /* Status indicators */
+  .status-good {
+    @apply text-success;
   }
 
-  .gauge-value {
-    @apply absolute text-3xl font-display font-bold;
+  .status-warning {
+    @apply text-warning;
   }
 
-  /* Grid NOC */
-  .noc-grid {
-    @apply grid gap-4;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  }
-
-  /* Dashboard section */
-  .dashboard-section {
-    @apply bg-card rounded-xl p-6 border border-border/50;
-  }
-
-  .section-title {
-    @apply text-lg font-display font-semibold text-foreground mb-4 uppercase tracking-wide;
+  .status-critical {
+    @apply text-destructive;
   }
 
   /* Filter bar */
   .filter-bar {
     @apply flex flex-wrap gap-3 p-4 bg-secondary/30 rounded-lg border border-border/30;
-  }
-
-  /* Animated pulse for alerts */
-  .pulse-alert {
-    animation: pulseAlert 2s ease-in-out infinite;
-  }
-
-  @keyframes pulseAlert {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
   }
 }
 
@@ -227,10 +151,6 @@
 
   .animate-slide-up {
     animation: slideUp 0.4s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
   }
 
   @keyframes fadeIn {
@@ -247,29 +167,5 @@
       opacity: 1; 
       transform: translateY(0); 
     }
-  }
-
-  @keyframes scaleIn {
-    from { 
-      opacity: 0; 
-      transform: scale(0.95); 
-    }
-    to { 
-      opacity: 1; 
-      transform: scale(1); 
-    }
-  }
-
-  /* Glow effects for NOC */
-  .glow-success {
-    box-shadow: 0 0 30px hsl(var(--success) / 0.3);
-  }
-
-  .glow-warning {
-    box-shadow: 0 0 30px hsl(var(--warning) / 0.3);
-  }
-
-  .glow-critical {
-    box-shadow: 0 0 30px hsl(var(--destructive) / 0.3);
   }
 }

@@ -14,7 +14,7 @@ export default function EspecialistasPage() {
 
   if (isLoading || loadingAll) {
     return (
-      <DashboardLayout title="Especialistas" subtitle="Carregando...">
+      <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -23,11 +23,13 @@ export default function EspecialistasPage() {
   }
 
   return (
-    <DashboardLayout 
-      title="Performance Especialistas" 
-      subtitle="Análise de vendas e fechamento"
-    >
+    <DashboardLayout>
       <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Performance Especialistas</h1>
+          <p className="text-sm text-muted-foreground">Análise de vendas e fechamento</p>
+        </div>
+        
         <FilterBar 
           filters={filters} 
           onFiltersChange={setFilters} 
