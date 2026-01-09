@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      colaboradores: {
+        Row: {
+          ativo: boolean | null
+          created_at: string
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string
+          id?: string
+          nome: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metas: {
         Row: {
           ano: number
