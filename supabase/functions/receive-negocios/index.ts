@@ -111,17 +111,23 @@ serve(async (req) => {
     // Map incoming fields to staging_negocios table
     const stagingRecord = {
       // Core business fields
-      nome: getValue('criado_crm'),
+      nome: getValue('nome_negocio') || getValue('criado_crm'),
       pipeline: getValue('pipeline'),
       vendedor: getValue('responsavel_id'),
+      sdr: getValue('quem_agendou'),
       contato_fonte: getValue('fonte_contato'),
+      lead_fonte: getValue('lead_qlf'),
       data_inicio: parseDateField(getValue('data_inicio')),
       total: parseNumericField(getValue('valor')),
+      tipo_venda: getValue('tipo_venda') || getValue('venda_tipo_realizada'),
+      motivo_perda: getValue('motivo_perda'),
       
       // Boolean fields - convert "sim" to true
       mql: parseBooleanField(getValue('mql')),
       sql_qualificado: parseBooleanField(getValue('sql')),
       reuniao_agendada: parseBooleanField(getValue('reuniao_agendada')),
+      reuniao_realizada: parseBooleanField(getValue('reuniao_realizada_check')),
+      no_show: parseBooleanField(getValue('no_show')),
       venda_aprovada: parseBooleanField(getValue('venda_aprovada')),
       
       // UTM fields
