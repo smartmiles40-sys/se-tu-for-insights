@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   FileSpreadsheet,
+  Target,
 } from 'lucide-react';
 import { useStagingPendingCount } from '@/hooks/useStagingNegocios';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ const navItems = [
 ];
 
 const dataItems = [
+  { path: '/metas', label: 'Metas', icon: Target, roles: ['admin', 'gestor'] },
   { path: '/staging', label: 'Dados Recebidos', icon: FileSpreadsheet, roles: ['admin', 'gestor'], showBadge: true },
   { path: '/import', label: 'Importar Dados', icon: Upload, roles: ['admin', 'gestor'] },
 ];

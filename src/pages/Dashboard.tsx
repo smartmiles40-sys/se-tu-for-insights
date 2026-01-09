@@ -7,7 +7,9 @@ import { RankingTable } from '@/components/dashboard/RankingTable';
 import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
 import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
 import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
+import { MetaProgress } from '@/components/dashboard/MetaProgress';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
+import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -35,9 +37,14 @@ export default function Dashboard() {
 
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
   
+  // Get current month/year for meta
+  const currentMonth = filters.dataInicio ? new Date(filters.dataInicio).getMonth() + 1 : new Date().getMonth() + 1;
+  const currentYear = filters.dataInicio ? new Date(filters.dataInicio).getFullYear() : new Date().getFullYear();
+  
   const { data: allNegocios, isLoading: loadingAll } = useNegocios();
   const filterOptions = useFilterOptions(allNegocios);
   const { data: negocios, isLoading } = useNegocios(filters);
+  const { data: metaGlobal, isLoading: loadingMeta } = useMetaGlobal(currentMonth, currentYear);
 
   const executiveStats = useMemo(() => {
     if (!negocios || negocios.length === 0) {
@@ -94,10 +101,13 @@ export default function Dashboard() {
         conversao: data.leads > 0 ? (data.vendas / data.leads) * 100 : 0,
       }));
 
+    const reunioesAgendadasCount = reunioesAgendadas;
+
     return { 
       receitaTotal, 
       vendasRealizadas, 
       reunioesRealizadas, 
+      reunioesAgendadas: reunioesAgendadasCount,
       taxaAgendamento, 
       taxaNoShow, 
       taxaShowUp, 
@@ -106,6 +116,14 @@ export default function Dashboard() {
       monthlyData,
     };
   }, [negocios]);
+
+  // Prepare data for MetaProgress
+  const realizadoData = useMemo(() => ({
+    faturamento: executiveStats.receitaTotal,
+    vendas: executiveStats.vendasRealizadas,
+    reunioes: executiveStats.reunioesRealizadas,
+    agendamentos: executiveStats.reunioesAgendadas,
+  }), [executiveStats]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
@@ -249,28 +267,14 @@ export default function Dashboard() {
 
                 {/* Indicadores - 1 column, stacked */}
                 <div className="flex flex-col gap-2 h-full">
-                  {/* Indicadores de Custo */}
+                  {/* Meta x Realizado */}
                   <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
-                    <div className="space-y-2 flex-1 flex flex-col justify-around">
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">CPL</div>
-                        </div>
-                        <div className="text-base font-bold text-cyan-400">{formatCurrency(0)}</div>
-                      </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
-                        </div>
-                        <div className="text-base font-bold text-purple-400">{formatCurrency(0)}</div>
-                      </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
-                        </div>
-                        <div className="text-base font-bold text-blue-400">{formatCurrency(0)}</div>
-                      </div>
+                    <h3 className="bi-card-title mb-2 text-sm flex items-center gap-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      Meta x Realizado
+                    </h3>
+                    <div className="flex-1">
+                      <MetaProgress meta={metaGlobal} realizado={realizadoData} />
                     </div>
                   </div>
 
@@ -278,6 +282,12 @@ export default function Dashboard() {
                   <div className="bi-card py-3 px-3 flex-1 flex flex-col">
                     <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
                     <div className="space-y-2 flex-1 flex flex-col justify-around">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">CPL</div>
+                        </div>
+                        <div className="text-base font-bold text-cyan-400">{formatCurrency(0)}</div>
+                      </div>
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">CAC</div>
@@ -289,12 +299,6 @@ export default function Dashboard() {
                           <div className="text-xs text-slate-400 uppercase">ROAS</div>
                         </div>
                         <div className="text-base font-bold text-yellow-400">0x</div>
-                      </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
-                        </div>
-                        <div className="text-base font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30d' : '0d'}</div>
                       </div>
                     </div>
                   </div>
