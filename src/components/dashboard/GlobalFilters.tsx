@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X, Filter } from 'lucide-react';
+import { CalendarIcon, X, Filter, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,9 @@ interface GlobalFiltersProps {
 export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFiltersProps) {
   const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
 
+  // Combine SDRs and Vendedores for "Responsável" filter
+  const responsaveis = [...new Set([...options.sdrs, ...options.vendedores])].sort();
+
   const clearFilters = () => {
     onFiltersChange({});
   };
@@ -40,6 +43,28 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
       [key]: value === 'all' ? undefined : value,
     });
   };
+
+  const handleResponsavelChange = (value: string) => {
+    if (value === 'all') {
+      onFiltersChange({
+        ...filters,
+        sdr: undefined,
+        vendedor: undefined,
+      });
+    } else {
+      // Check if the value is an SDR or Vendedor and set appropriately
+      const isSDR = options.sdrs.includes(value);
+      const isVendedor = options.vendedores.includes(value);
+      
+      onFiltersChange({
+        ...filters,
+        sdr: isSDR ? value : undefined,
+        vendedor: isVendedor ? value : undefined,
+      });
+    }
+  };
+
+  const currentResponsavel = filters.sdr || filters.vendedor || 'all';
 
   return (
     <div className="bg-card rounded-xl p-4 shadow-sm border border-border/50">
@@ -116,6 +141,27 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
 
         <div className="h-6 w-px bg-border" />
 
+        {/* Responsável - Combined SDR + Vendedor filter */}
+        {responsaveis.length > 0 && (
+          <Select
+            value={currentResponsavel}
+            onValueChange={handleResponsavelChange}
+          >
+            <SelectTrigger className="w-[180px]">
+              <User className="mr-2 h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Responsáveis</SelectItem>
+              {responsaveis.map((r) => (
+                <SelectItem key={r} value={r}>
+                  {r}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         {/* Pipeline */}
         {options.pipelines.length > 0 && (
           <Select
@@ -150,26 +196,6 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
               {options.leadFontes.map((l) => (
                 <SelectItem key={l} value={l}>
                   {l}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {/* UTM Source */}
-        {options.utmSources.length > 0 && (
-          <Select
-            value={filters.utmSource || 'all'}
-            onValueChange={(v) => updateFilter('utmSource', v)}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="UTM Source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos UTMs</SelectItem>
-              {options.utmSources.map((u) => (
-                <SelectItem key={u} value={u}>
-                  {u}
                 </SelectItem>
               ))}
             </SelectContent>
