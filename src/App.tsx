@@ -13,6 +13,7 @@ import StagingPage from "./pages/StagingPage";
 import SDRPage from "./pages/SDRPage";
 import EspecialistasPage from "./pages/EspecialistasPage";
 import MarketingPage from "./pages/MarketingPage";
+import MetasPage from "./pages/MetasPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/import" element={<ProtectedRoute requiredRole="gestor"><ImportPage /></ProtectedRoute>} />
               <Route path="/staging" element={<ProtectedRoute requiredRole="gestor"><StagingPage /></ProtectedRoute>} />
+              <Route path="/metas" element={<ProtectedRoute requiredRole="gestor"><MetasPage /></ProtectedRoute>} />
               <Route path="/sdr" element={<ProtectedRoute><SDRPage /></ProtectedRoute>} />
               <Route path="/especialistas" element={<ProtectedRoute><EspecialistasPage /></ProtectedRoute>} />
               <Route path="/marketing" element={<ProtectedRoute><MarketingPage /></ProtectedRoute>} />

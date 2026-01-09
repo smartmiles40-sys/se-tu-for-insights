@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      metas: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          mes: number
+          meta_agendamentos: number | null
+          meta_faturamento: number | null
+          meta_reunioes: number | null
+          meta_vendas: number | null
+          responsavel: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          id?: string
+          mes: number
+          meta_agendamentos?: number | null
+          meta_faturamento?: number | null
+          meta_reunioes?: number | null
+          meta_vendas?: number | null
+          responsavel?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          mes?: number
+          meta_agendamentos?: number | null
+          meta_faturamento?: number | null
+          meta_reunioes?: number | null
+          meta_vendas?: number | null
+          responsavel?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       negocios: {
         Row: {
           contato_fonte: string | null
