@@ -35,9 +35,9 @@ export default function Dashboard() {
 
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
   
-  // Get current month/year for meta
-  const currentMonth = filters.dataInicio ? new Date(filters.dataInicio).getMonth() + 1 : new Date().getMonth() + 1;
-  const currentYear = filters.dataInicio ? new Date(filters.dataInicio).getFullYear() : new Date().getFullYear();
+  // Get current month/year for meta - parse directly from string to avoid timezone issues
+  const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : new Date().getMonth() + 1;
+  const currentYear = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[0]) : new Date().getFullYear();
   
   const { data: allNegocios, isLoading: loadingAll } = useNegocios();
   const filterOptions = useFilterOptions(allNegocios);
