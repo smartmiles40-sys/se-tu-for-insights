@@ -46,41 +46,38 @@ export function OrigemPerformance({ negocios }: OrigemPerformanceProps) {
     <div className="bi-card">
       <h3 className="bi-card-title mb-4">Performance por Origem</h3>
       
-      <div className="h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ left: 0, right: 10 }}>
-            <XAxis 
-              type="number" 
-              hide 
-            />
-            <YAxis 
-              type="category" 
-              dataKey="nomeShort"
-              axisLine={false}
-              tickLine={false}
-              width={80}
-              tick={{ fill: '#94a3b8', fontSize: 11 }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                borderRadius: '8px',
-              }}
-              labelStyle={{ color: '#f1f5f9' }}
-              formatter={(value: number) => [formatCurrency(value), 'Receita']}
-            />
-            <Bar 
-              dataKey="receita" 
-              radius={[0, 4, 4, 0]}
-              barSize={20}
-            >
-              {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="space-y-3">
+        {data.map((item, index) => {
+          const maxReceita = data[0]?.receita || 1;
+          const widthPercent = (item.receita / maxReceita) * 100;
+          
+          return (
+            <div key={item.origem} className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-300 font-medium truncate max-w-[140px]" title={item.origem}>
+                  {item.origem}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-slate-400 text-xs">
+                    {item.leads} leads
+                  </span>
+                  <span className="text-slate-200 font-semibold">
+                    {formatCurrency(item.receita)}
+                  </span>
+                </div>
+              </div>
+              <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ 
+                    width: `${Math.max(widthPercent, 2)}%`,
+                    backgroundColor: COLORS[index % COLORS.length]
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
