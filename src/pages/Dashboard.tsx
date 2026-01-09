@@ -277,8 +277,59 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Ranking Especialistas */}
-                <RankingTable negocios={negocios} type="especialista" limit={4} />
+                {/* Marketing Metrics - Cost Indicators */}
+                <div className="bi-card">
+                  <h3 className="bi-card-title mb-4">Indicadores de Custo & Performance</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {/* CPL - Custo por Lead */}
+                    <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CPL</div>
+                      <div className="text-xl font-bold text-cyan-400">
+                        {formatCurrency(0)}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">Custo por Lead</div>
+                    </div>
+
+                    {/* Custo MQL */}
+                    <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo MQL</div>
+                      <div className="text-xl font-bold text-purple-400">
+                        {formatCurrency(0)}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">Custo por MQL</div>
+                    </div>
+
+                    {/* Custo por Reunião */}
+                    <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo Reunião</div>
+                      <div className="text-xl font-bold text-blue-400">
+                        {formatCurrency(0)}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">Custo por Reunião</div>
+                    </div>
+
+                    {/* CAC - Custo de Aquisição */}
+                    <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CAC</div>
+                      <div className="text-xl font-bold text-orange-400">
+                        {formatCurrency(0)}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">Custo de Aquisição</div>
+                    </div>
+
+                    {/* ROAS */}
+                    <div className="bg-slate-800/50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 dark:border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">ROAS</div>
+                      <div className="text-xl font-bold text-yellow-400">
+                        0x
+                      </div>
+                      <div className="text-xs text-slate-500 mt-1">Retorno sobre investimento</div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-4 text-center">
+                    * Métricas de custo requerem dados de investimento em mídia
+                  </p>
+                </div>
               </div>
 
               {/* Second Row */}
@@ -288,63 +339,15 @@ export default function Dashboard() {
                 
                 {/* Origem Performance */}
                 <OrigemPerformance negocios={negocios} />
+              </div>
+
+              {/* Rankings Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Ranking Especialistas */}
+                <RankingTable negocios={negocios} type="especialista" limit={4} />
 
                 {/* Ranking SDRs */}
                 <RankingTable negocios={negocios} type="sdr" limit={4} />
-              </div>
-
-              {/* Marketing Metrics - Cost Indicators */}
-              <div className="bi-card">
-                <h3 className="bi-card-title mb-4">Indicadores de Custo & Performance</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {/* CPL - Custo por Lead */}
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CPL</div>
-                    <div className="text-xl font-bold text-cyan-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por Lead</div>
-                  </div>
-
-                  {/* Custo MQL */}
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo MQL</div>
-                    <div className="text-xl font-bold text-purple-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por MQL</div>
-                  </div>
-
-                  {/* Custo por Reunião */}
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Custo Reunião</div>
-                    <div className="text-xl font-bold text-blue-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo por Reunião</div>
-                  </div>
-
-                  {/* CAC - Custo de Aquisição */}
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">CAC</div>
-                    <div className="text-xl font-bold text-orange-400">
-                      {formatCurrency(0)}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Custo de Aquisição</div>
-                  </div>
-
-                  {/* ROAS */}
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">ROAS</div>
-                    <div className="text-xl font-bold text-yellow-400">
-                      0x
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">Retorno sobre investimento</div>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-4 text-center">
-                  * Métricas de custo requerem dados de investimento em mídia
-                </p>
               </div>
             </TabsContent>
 
