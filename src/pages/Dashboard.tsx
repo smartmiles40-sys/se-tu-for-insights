@@ -23,7 +23,17 @@ import { format, parseISO, startOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function Dashboard() {
-  const [filters, setFilters] = useState<NegocioFilters>({});
+  // Default filters: current month (1st day to today)
+  const getDefaultFilters = (): NegocioFilters => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return {
+      dataInicio: format(firstDayOfMonth, 'yyyy-MM-dd'),
+      dataFim: format(today, 'yyyy-MM-dd'),
+    };
+  };
+
+  const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
   
   const { data: allNegocios, isLoading: loadingAll } = useNegocios();
   const filterOptions = useFilterOptions(allNegocios);

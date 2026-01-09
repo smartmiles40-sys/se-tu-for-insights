@@ -19,10 +19,13 @@ import {
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/import', label: 'Importar Dados', icon: Upload, roles: ['admin', 'gestor'] },
   { path: '/sdr', label: 'SDRs', icon: Users },
   { path: '/especialistas', label: 'Especialistas', icon: UserCheck },
   { path: '/marketing', label: 'Marketing', icon: Megaphone },
+];
+
+const dataItems = [
+  { path: '/import', label: 'Importar Dados', icon: Upload, roles: ['admin', 'gestor'] },
 ];
 
 export function AppSidebar() {
@@ -30,7 +33,7 @@ export function AppSidebar() {
   const { user, role, signOut } = useAuth();
   const location = useLocation();
 
-  const filteredNavItems = navItems.filter(item => {
+  const filteredDataItems = dataItems.filter(item => {
     if (!item.roles) return true;
     return item.roles.includes(role || '');
   });
@@ -91,7 +94,7 @@ export function AppSidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
-          {filteredNavItems.map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <NavLink
@@ -113,6 +116,28 @@ export function AppSidebar() {
 
         {/* User Section */}
         <div className="p-4 border-t border-sidebar-border space-y-2">
+          <ThemeToggle collapsed={collapsed} />
+          
+          {/* Data Items - Below Theme Toggle */}
+          {filteredDataItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                )}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span className="font-medium">{item.label}</span>}
+              </NavLink>
+            );
+          })}
+
           {!collapsed && user && (
             <div className="mb-3 px-3">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
@@ -123,7 +148,6 @@ export function AppSidebar() {
               </p>
             </div>
           )}
-          <ThemeToggle collapsed={collapsed} />
           <Button
             variant="ghost"
             size={collapsed ? 'icon' : 'default'}
