@@ -278,22 +278,22 @@ export default function Dashboard() {
                 </div>
 
                 {/* Indicadores Column - Right Side */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 h-full">
                   {/* Indicadores de Custo - Card 1 */}
-                  <div className="bi-card">
+                  <div className="bi-card flex-1 flex flex-col">
                     <h3 className="bi-card-title mb-3">Indicadores de Custo</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                    <div className="grid grid-cols-3 gap-2 flex-1">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 flex flex-col justify-center">
                         <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">CPL</div>
                         <div className="text-lg font-bold text-cyan-400">{formatCurrency(0)}</div>
                         <div className="text-xs text-slate-500">Custo por Lead</div>
                       </div>
-                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 flex flex-col justify-center">
                         <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Custo MQL</div>
                         <div className="text-lg font-bold text-purple-400">{formatCurrency(0)}</div>
                         <div className="text-xs text-slate-500">Custo por MQL</div>
                       </div>
-                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 flex flex-col justify-center">
                         <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Custo Reunião</div>
                         <div className="text-lg font-bold text-blue-400">{formatCurrency(0)}</div>
                         <div className="text-xs text-slate-500">Custo por Reunião</div>
@@ -303,20 +303,20 @@ export default function Dashboard() {
                   </div>
 
                   {/* Indicadores de Performance - Card 2 */}
-                  <div className="bi-card">
+                  <div className="bi-card flex-1 flex flex-col">
                     <h3 className="bi-card-title mb-3">Indicadores de Performance</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                    <div className="grid grid-cols-3 gap-2 flex-1">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 flex flex-col justify-center">
                         <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">CAC</div>
                         <div className="text-lg font-bold text-orange-400">{formatCurrency(0)}</div>
                         <div className="text-xs text-slate-500">Custo Aquisição</div>
                       </div>
-                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 flex flex-col justify-center">
                         <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">ROAS</div>
                         <div className="text-lg font-bold text-yellow-400">0x</div>
                         <div className="text-xs text-slate-500">Retorno investimento</div>
                       </div>
-                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                      <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 flex flex-col justify-center">
                         <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Tempo Médio</div>
                         <div className="text-lg font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30 dias' : '0 dias'}</div>
                         <div className="text-xs text-slate-500">Fechamento</div>
