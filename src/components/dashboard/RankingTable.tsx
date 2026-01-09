@@ -64,9 +64,6 @@ export function RankingTable({ negocios, type, limit = 5 }: RankingTableProps) {
     }).format(value);
 
   const title = type === 'sdr' ? 'Ranking SDRs' : 'Ranking Especialistas';
-  const columns = type === 'sdr' 
-    ? ['Ranking', 'SDR', 'Receita Gerada']
-    : ['Ranking', 'Especialista', 'Receita'];
 
   return (
     <div className="bi-card">
@@ -76,9 +73,10 @@ export function RankingTable({ negocios, type, limit = 5 }: RankingTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-slate-500 text-xs uppercase tracking-wider">
-              {columns.map(col => (
-                <th key={col} className="text-left pb-3 font-medium">{col}</th>
-              ))}
+              <th className="text-left pb-3 font-medium">Ranking</th>
+              <th className="text-left pb-3 font-medium">{type === 'sdr' ? 'SDR' : 'Especialista'}</th>
+              <th className="text-left pb-3 font-medium">Conversão</th>
+              <th className="text-left pb-3 font-medium">Receita</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/50">
@@ -96,6 +94,14 @@ export function RankingTable({ negocios, type, limit = 5 }: RankingTableProps) {
                   </span>
                 </td>
                 <td className="py-2.5 text-slate-200 font-medium">{item.name}</td>
+                <td className="py-2.5">
+                  <span className={cn(
+                    'font-semibold',
+                    item.taxa >= 25 ? 'text-emerald-400' : item.taxa >= 15 ? 'text-yellow-400' : 'text-red-400'
+                  )}>
+                    {item.taxa.toFixed(1)}%
+                  </span>
+                </td>
                 <td className="py-2.5 text-cyan-400 font-semibold">{formatCurrency(item.receita)}</td>
               </tr>
             ))}
