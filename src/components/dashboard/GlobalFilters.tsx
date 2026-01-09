@@ -80,7 +80,7 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
             >
               <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
               {filters.dataInicio ? (
-                format(new Date(filters.dataInicio), 'dd/MM/yy', { locale: ptBR })
+                format(new Date(filters.dataInicio + 'T12:00:00'), 'dd/MM/yy', { locale: ptBR })
               ) : (
                 <span>De</span>
               )}
@@ -118,7 +118,7 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
             >
               <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
               {filters.dataFim ? (
-                format(new Date(filters.dataFim), 'dd/MM/yy', { locale: ptBR })
+                format(new Date(filters.dataFim + 'T12:00:00'), 'dd/MM/yy', { locale: ptBR })
               ) : (
                 <span>Até</span>
               )}
