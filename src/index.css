@@ -227,94 +227,96 @@
 
 /* TV Mode - Fullscreen optimizations for large displays */
 .tv-mode {
-  /* Full viewport usage */
   height: 100vh;
   width: 100vw;
   overflow: hidden;
 }
 
 .tv-mode .tv-content {
-  height: calc(100vh - 1rem);
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: calc(100vh - 0.5rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Scale everything down slightly on very large screens to fit more content */
+/* Dashboard TV Layout - Fills entire screen */
+.tv-dashboard {
+  height: calc(100vh - 3rem) !important;
+  overflow: hidden !important;
+}
+
+.tv-dashboard .tv-home-grid {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0.5rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Compact KPI row for TV mode */
+.tv-dashboard .grid-cols-2,
+.tv-dashboard .md\\:grid-cols-3,
+.tv-dashboard .lg\\:grid-cols-5,
+.tv-dashboard .md\\:grid-cols-4 {
+  gap: 0.375rem;
+}
+
+/* Compact cards */
+.tv-mode .bi-card {
+  @apply p-2;
+}
+
+.tv-mode .bi-card-title {
+  @apply text-xs mb-1;
+}
+
+/* Rankings row - stretch to fill remaining space */
+.tv-dashboard .tv-rankings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  min-height: 0;
+  flex: 1;
+}
+
+.tv-dashboard .tv-rankings-row > div {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Middle content row */
+.tv-dashboard .tv-middle-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+/* Funnel row */
+.tv-dashboard .lg\\:col-span-2 {
+  min-height: 0;
+}
+
+/* Scale text for readability on large TVs */
+@media (min-width: 1920px) {
+  .tv-mode .text-xl {
+    font-size: 1.5rem;
+  }
+  
+  .tv-mode .text-2xl {
+    font-size: 1.75rem;
+  }
+}
+
 @media (min-width: 2560px) {
   .tv-mode {
-    font-size: 14px;
-  }
-  
-  .tv-mode .bi-card {
-    @apply p-3;
-  }
-  
-  .tv-mode .space-y-4 > * + * {
-    margin-top: 0.75rem;
-  }
-  
-  .tv-mode .gap-4 {
-    gap: 0.75rem;
+    font-size: 15px;
   }
 }
 
-/* 4K and larger displays (3840px+) */
 @media (min-width: 3840px) {
   .tv-mode {
-    font-size: 16px;
-  }
-  
-  .tv-mode .grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  
-  .tv-mode .lg\\:grid-cols-5 {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-  
-  .tv-mode .lg\\:grid-cols-3 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* Very large TV displays (75 inches typically run at 4K or higher) */
-@media (min-height: 1800px) {
-  .tv-mode .tv-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  
-  .tv-mode .bi-card {
-    @apply p-4;
-  }
-}
-
-/* Ensure text scales appropriately for distance viewing on large TVs */
-@media (min-width: 1920px) {
-  .tv-mode h1 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-  }
-  
-  .tv-mode h2 {
-    font-size: 1.5rem;
-    line-height: 2rem;
-  }
-  
-  .tv-mode .kpi-value {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
-  }
-}
-
-/* Ultra-wide support */
-@media (min-aspect-ratio: 21/9) {
-  .tv-mode .tv-grid-3 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  
-  .tv-mode .tv-grid-2 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    font-size: 18px;
   }
 }

@@ -76,7 +76,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className={cn(
           "transition-all duration-300",
           isFullscreen 
-            ? "p-2 lg:p-3 2xl:p-4 tv-content" 
+            ? "p-2 tv-content h-full" 
             : "p-4 lg:p-6"
         )}>
           {children}
