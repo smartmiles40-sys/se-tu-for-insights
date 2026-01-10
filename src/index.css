@@ -234,89 +234,57 @@
 
 .tv-mode .tv-content {
   height: calc(100vh - 0.5rem);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-/* Dashboard TV Layout - Fills entire screen */
+/* Dashboard TV Layout */
 .tv-dashboard {
-  height: calc(100vh - 3rem) !important;
-  overflow: hidden !important;
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 1rem;
 }
 
-.tv-dashboard .tv-home-grid {
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+/* Compact spacing for TV mode */
+.tv-dashboard > .space-y-4 > * + *,
+.tv-dashboard .space-y-4 > * + * {
+  margin-top: 0.5rem;
+}
+
+.tv-dashboard .gap-4 {
   gap: 0.5rem;
-  height: 100%;
-  overflow: hidden;
 }
 
-/* Compact KPI row for TV mode */
-.tv-dashboard .grid-cols-2,
-.tv-dashboard .md\\:grid-cols-3,
-.tv-dashboard .lg\\:grid-cols-5,
-.tv-dashboard .md\\:grid-cols-4 {
+.tv-dashboard .gap-2 {
   gap: 0.375rem;
 }
 
 /* Compact cards */
 .tv-mode .bi-card {
-  @apply p-2;
+  padding: 0.5rem;
 }
 
 .tv-mode .bi-card-title {
-  @apply text-xs mb-1;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
 }
 
-/* Rankings row - stretch to fill remaining space */
-.tv-dashboard .tv-rankings-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  min-height: 0;
-  flex: 1;
-}
-
-.tv-dashboard .tv-rankings-row > div {
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Middle content row */
-.tv-dashboard .tv-middle-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  min-height: 0;
-}
-
-/* Funnel row */
-.tv-dashboard .lg\\:col-span-2 {
-  min-height: 0;
-}
-
-/* Scale text for readability on large TVs */
+/* Scale text appropriately */
 @media (min-width: 1920px) {
-  .tv-mode .text-xl {
-    font-size: 1.5rem;
-  }
-  
-  .tv-mode .text-2xl {
-    font-size: 1.75rem;
+  .tv-mode {
+    font-size: 14px;
   }
 }
 
 @media (min-width: 2560px) {
   .tv-mode {
-    font-size: 15px;
+    font-size: 16px;
   }
 }
 
 @media (min-width: 3840px) {
   .tv-mode {
-    font-size: 18px;
+    font-size: 20px;
   }
 }
