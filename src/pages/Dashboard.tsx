@@ -36,6 +36,17 @@ export default function Dashboard() {
 
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
   
+  // Check if in fullscreen mode - must be at top level before any conditional returns
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+  
   // Get current month/year for meta - parse directly from string to avoid timezone issues
   const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : new Date().getMonth() + 1;
   const currentYear = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[0]) : new Date().getFullYear();
@@ -147,16 +158,6 @@ export default function Dashboard() {
   const sparklineVendas = executiveStats.monthlyData.map(d => d.vendas);
   const sparklineReuniao = executiveStats.monthlyData.map(d => d.leads);
 
-  // Check if in fullscreen mode
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   return (
     <DashboardLayout>
