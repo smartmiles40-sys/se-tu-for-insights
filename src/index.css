@@ -224,3 +224,97 @@
     }
   }
 }
+
+/* TV Mode - Fullscreen optimizations for large displays */
+.tv-mode {
+  /* Full viewport usage */
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.tv-mode .tv-content {
+  height: calc(100vh - 1rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scale everything down slightly on very large screens to fit more content */
+@media (min-width: 2560px) {
+  .tv-mode {
+    font-size: 14px;
+  }
+  
+  .tv-mode .bi-card {
+    @apply p-3;
+  }
+  
+  .tv-mode .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .tv-mode .gap-4 {
+    gap: 0.75rem;
+  }
+}
+
+/* 4K and larger displays (3840px+) */
+@media (min-width: 3840px) {
+  .tv-mode {
+    font-size: 16px;
+  }
+  
+  .tv-mode .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .tv-mode .lg\\:grid-cols-5 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  
+  .tv-mode .lg\\:grid-cols-3 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Very large TV displays (75 inches typically run at 4K or higher) */
+@media (min-height: 1800px) {
+  .tv-mode .tv-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .tv-mode .bi-card {
+    @apply p-4;
+  }
+}
+
+/* Ensure text scales appropriately for distance viewing on large TVs */
+@media (min-width: 1920px) {
+  .tv-mode h1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  
+  .tv-mode h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  .tv-mode .kpi-value {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+}
+
+/* Ultra-wide support */
+@media (min-aspect-ratio: 21/9) {
+  .tv-mode .tv-grid-3 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .tv-mode .tv-grid-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
