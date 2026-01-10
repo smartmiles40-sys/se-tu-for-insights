@@ -118,7 +118,7 @@ export default function Dashboard() {
   // Prepare data for MetaProgress
   const realizadoData = useMemo(() => ({
     faturamento: executiveStats.receitaTotal,
-    vendas: executiveStats.vendasRealizadas,
+    vendas: executiveStats.taxaConversaoGeral, // Use conversion rate (percentage), not sales count
     reunioes: executiveStats.reunioesRealizadas,
     agendamentos: executiveStats.reunioesAgendadas,
   }), [executiveStats]);
