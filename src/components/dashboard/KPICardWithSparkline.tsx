@@ -12,6 +12,7 @@ interface KPICardWithSparklineProps {
   color?: 'cyan' | 'yellow' | 'magenta' | 'green' | 'red' | 'orange';
   sparklineData?: number[];
   className?: string;
+  compact?: boolean;
 }
 
 const colorClasses = {
@@ -68,6 +69,7 @@ export function KPICardWithSparkline({
   color = 'cyan',
   sparklineData,
   className,
+  compact = false,
 }: KPICardWithSparklineProps) {
   const colors = colorClasses[color];
   
@@ -81,25 +83,33 @@ export function KPICardWithSparkline({
   return (
     <div className={cn(
       'bi-card group',
+      compact && 'p-2',
       className
     )}>
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+      <div className={cn("flex items-start justify-between", compact ? "mb-1" : "mb-3")}>
+        <span className={cn(
+          "font-medium text-slate-400 uppercase tracking-wider",
+          compact ? "text-[10px]" : "text-xs"
+        )}>
           {title}
         </span>
         {Icon && (
-          <div className={cn('p-1.5 rounded-md', colors.bg)}>
-            <Icon className={cn('h-3.5 w-3.5', colors.text)} />
+          <div className={cn('rounded-md', colors.bg, compact ? 'p-1' : 'p-1.5')}>
+            <Icon className={cn(colors.text, compact ? 'h-2.5 w-2.5' : 'h-3.5 w-3.5')} />
           </div>
         )}
       </div>
       
       <div className="flex items-end justify-between">
         <div>
-          <div className={cn('text-2xl font-bold tracking-tight', colors.text)}>
+          <div className={cn(
+            'font-bold tracking-tight',
+            colors.text,
+            compact ? 'text-lg' : 'text-2xl'
+          )}>
             {value}
           </div>
-          {previousValue && (
+          {previousValue && !compact && (
             <div className="flex items-center gap-1 mt-1">
               <span className="text-xs text-slate-500">PY {previousValue}</span>
               {trend !== undefined && (
@@ -119,7 +129,7 @@ export function KPICardWithSparkline({
           )}
         </div>
         
-        {chartData && (
+        {chartData && !compact && (
           <div className="w-24 h-12">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>

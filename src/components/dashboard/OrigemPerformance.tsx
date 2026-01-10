@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { cn } from '@/lib/utils';
 
 interface OrigemPerformanceProps {
   negocios: Negocio[];
+  compact?: boolean;
 }
 
 const COLORS = ['#22d3ee', '#facc15', '#f472b6', '#34d399', '#fb923c'];
 
-export function OrigemPerformance({ negocios }: OrigemPerformanceProps) {
+export function OrigemPerformance({ negocios, compact = false }: OrigemPerformanceProps) {
   const data = useMemo(() => {
     const origemMap: Record<string, { origem: string; leads: number; vendas: number; receita: number }> = {};
     
@@ -43,26 +44,26 @@ export function OrigemPerformance({ negocios }: OrigemPerformanceProps) {
     }).format(value);
 
   return (
-    <div className="bi-card h-full flex flex-col">
-      <h3 className="bi-card-title mb-3">Performance por Origem</h3>
+    <div className={cn("bi-card h-full flex flex-col", compact && "p-2")}>
+      <h3 className={cn("bi-card-title mb-3", compact && "mb-2 text-xs")}>Performance por Origem</h3>
       
       {/* Investment Summary */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+      <div className={cn("grid grid-cols-2 gap-2 mb-4", compact && "mb-2")}>
+        <div className={cn("bg-slate-800/50 rounded-lg p-3 border border-slate-700/50", compact && "p-2")}>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span className="text-xs text-slate-400 uppercase">Meta Ads</span>
+            <span className={cn("text-xs text-slate-400 uppercase", compact && "text-[10px]")}>Meta Ads</span>
           </div>
-          <div className="text-lg font-bold text-blue-400">R$ 0</div>
-          <div className="text-xs text-slate-500">Investimento</div>
+          <div className={cn("font-bold text-blue-400", compact ? "text-sm" : "text-lg")}>R$ 0</div>
+          {!compact && <div className="text-xs text-slate-500">Investimento</div>}
         </div>
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+        <div className={cn("bg-slate-800/50 rounded-lg p-3 border border-slate-700/50", compact && "p-2")}>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 rounded-full bg-red-500"></div>
-            <span className="text-xs text-slate-400 uppercase">Google Ads</span>
+            <span className={cn("text-xs text-slate-400 uppercase", compact && "text-[10px]")}>Google Ads</span>
           </div>
-          <div className="text-lg font-bold text-red-400">R$ 0</div>
-          <div className="text-xs text-slate-500">Investimento</div>
+          <div className={cn("font-bold text-red-400", compact ? "text-sm" : "text-lg")}>R$ 0</div>
+          {!compact && <div className="text-xs text-slate-500">Investimento</div>}
         </div>
       </div>
       
