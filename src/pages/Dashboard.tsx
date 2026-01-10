@@ -160,9 +160,12 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className={cn("space-y-4", isFullscreen && "space-y-2 tv-dashboard")}>
+      <div className={cn(
+        "space-y-4",
+        isFullscreen && "h-full flex flex-col tv-dashboard"
+      )}>
         {/* Compact Filter Bar */}
-        <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
+        <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} compact={isFullscreen} />
 
         {!hasData ? (
           <div className="bi-card p-16 text-center">
@@ -192,7 +195,7 @@ export default function Dashboard() {
               )}>ESPECIALISTAS</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="home" className={cn("space-y-4 mt-0", isFullscreen && "space-y-2")}>
+            <TabsContent value="home" className={cn("space-y-4 mt-0", isFullscreen && "flex-1 grid gap-2 tv-home-grid")}>
               {/* KPIs Row 1 - Main metrics with sparklines */}
               <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4", isFullscreen && "gap-2")}>
                 <KPICardWithSparkline
@@ -337,7 +340,7 @@ export default function Dashboard() {
               </div>
 
               {/* Second Row - Meta x Realizado and Origem */}
-              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", isFullscreen && "gap-2")}>
+              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", isFullscreen && "gap-2 tv-middle-row")}>
                 {/* Meta x Realizado */}
                 <div className={cn("bi-card", isFullscreen && "p-2")}>
                   <h3 className={cn("bi-card-title mb-3 flex items-center gap-2", isFullscreen && "mb-1 text-xs")}>
@@ -352,7 +355,7 @@ export default function Dashboard() {
               </div>
 
               {/* Rankings Row */}
-              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", isFullscreen && "gap-2")}>
+              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", isFullscreen && "gap-2 tv-rankings-row")}>
                 {/* Ranking Especialistas */}
                 <RankingTable negocios={negocios} type="especialista" limit={isFullscreen ? 3 : 4} compact={isFullscreen} />
 
