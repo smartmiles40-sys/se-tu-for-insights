@@ -48,8 +48,20 @@ export type Database = {
           id: string
           mes: number
           meta_agendamentos: number | null
+          meta_agendamentos_excelente: number | null
+          meta_agendamentos_minimo: number | null
+          meta_agendamentos_satisfatorio: number | null
+          meta_conversao_excelente: number | null
+          meta_conversao_minimo: number | null
+          meta_conversao_satisfatorio: number | null
           meta_faturamento: number | null
+          meta_faturamento_excelente: number | null
+          meta_faturamento_minimo: number | null
+          meta_faturamento_satisfatorio: number | null
           meta_reunioes: number | null
+          meta_reunioes_excelente: number | null
+          meta_reunioes_minimo: number | null
+          meta_reunioes_satisfatorio: number | null
           meta_vendas: number | null
           responsavel: string | null
           tipo: string
@@ -61,8 +73,20 @@ export type Database = {
           id?: string
           mes: number
           meta_agendamentos?: number | null
+          meta_agendamentos_excelente?: number | null
+          meta_agendamentos_minimo?: number | null
+          meta_agendamentos_satisfatorio?: number | null
+          meta_conversao_excelente?: number | null
+          meta_conversao_minimo?: number | null
+          meta_conversao_satisfatorio?: number | null
           meta_faturamento?: number | null
+          meta_faturamento_excelente?: number | null
+          meta_faturamento_minimo?: number | null
+          meta_faturamento_satisfatorio?: number | null
           meta_reunioes?: number | null
+          meta_reunioes_excelente?: number | null
+          meta_reunioes_minimo?: number | null
+          meta_reunioes_satisfatorio?: number | null
           meta_vendas?: number | null
           responsavel?: string | null
           tipo: string
@@ -74,8 +98,20 @@ export type Database = {
           id?: string
           mes?: number
           meta_agendamentos?: number | null
+          meta_agendamentos_excelente?: number | null
+          meta_agendamentos_minimo?: number | null
+          meta_agendamentos_satisfatorio?: number | null
+          meta_conversao_excelente?: number | null
+          meta_conversao_minimo?: number | null
+          meta_conversao_satisfatorio?: number | null
           meta_faturamento?: number | null
+          meta_faturamento_excelente?: number | null
+          meta_faturamento_minimo?: number | null
+          meta_faturamento_satisfatorio?: number | null
           meta_reunioes?: number | null
+          meta_reunioes_excelente?: number | null
+          meta_reunioes_minimo?: number | null
+          meta_reunioes_satisfatorio?: number | null
           meta_vendas?: number | null
           responsavel?: string | null
           tipo?: string
