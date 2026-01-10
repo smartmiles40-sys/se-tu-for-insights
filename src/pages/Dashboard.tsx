@@ -163,7 +163,7 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className={cn(
         "space-y-4",
-        isFullscreen && "h-full flex flex-col tv-dashboard"
+        isFullscreen && "space-y-2 tv-dashboard"
       )}>
         {/* Compact Filter Bar */}
         <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} compact={isFullscreen} />
@@ -196,7 +196,7 @@ export default function Dashboard() {
               )}>ESPECIALISTAS</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="home" className={cn("space-y-4 mt-0", isFullscreen && "flex-1 grid gap-2 tv-home-grid")}>
+            <TabsContent value="home" className={cn("space-y-4 mt-0", isFullscreen && "space-y-2")}>
               {/* KPIs Row 1 - Main metrics with sparklines */}
               <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4", isFullscreen && "gap-2")}>
                 <KPICardWithSparkline
