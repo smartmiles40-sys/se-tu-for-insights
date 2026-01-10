@@ -27,9 +27,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <AppSidebar />
+      {!isFullscreen && <AppSidebar />}
       
-      <main className="flex-1 lg:ml-0 mt-14 lg:mt-0 relative">
+      <main className={`flex-1 relative ${isFullscreen ? 'mt-0' : 'lg:ml-0 mt-14 lg:mt-0'}`}>
         <Button
           variant="ghost"
           size="icon"
@@ -43,7 +43,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Maximize2 className="h-4 w-4" />
           )}
         </Button>
-        <div className="p-4 lg:p-6">
+        <div className={`${isFullscreen ? 'p-2' : 'p-4 lg:p-6'}`}>
           {children}
         </div>
       </main>
