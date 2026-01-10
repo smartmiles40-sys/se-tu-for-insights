@@ -33,15 +33,17 @@ export function MetaProgress({ meta, realizado, compact = false }: MetaProgressP
         progress: calcProgress(realizado.faturamento, meta.meta_faturamento),
         format: (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact' }).format(v),
         color: 'cyan',
+        isThreshold: false,
       },
       {
         label: 'Conversão de Vendas',
         icon: TrendingUp,
         atual: realizado.vendas,
         meta: meta.meta_vendas,
-        progress: calcProgress(realizado.vendas, meta.meta_vendas),
-        format: (v: number) => `${v}%`,
-        color: 'green',
+        progress: 100, // Always full bar, color indicates status
+        format: (v: number) => `${v.toFixed(1)}%`,
+        color: realizado.vendas >= (meta.meta_vendas || 0) ? 'green' : 'red',
+        isThreshold: true, // This is a minimum threshold indicator
       },
       {
         label: 'Reuniões',
@@ -51,6 +53,7 @@ export function MetaProgress({ meta, realizado, compact = false }: MetaProgressP
         progress: calcProgress(realizado.reunioes, meta.meta_reunioes),
         format: (v: number) => v.toString(),
         color: 'purple',
+        isThreshold: false,
       },
       {
         label: 'Agendamentos',
@@ -60,6 +63,7 @@ export function MetaProgress({ meta, realizado, compact = false }: MetaProgressP
         progress: calcProgress(realizado.agendamentos, meta.meta_agendamentos),
         format: (v: number) => v.toString(),
         color: 'yellow',
+        isThreshold: false,
       },
     ];
   }, [meta, realizado]);
@@ -77,6 +81,7 @@ export function MetaProgress({ meta, realizado, compact = false }: MetaProgressP
     green: { bg: 'bg-green-500/20', progress: 'bg-green-500', text: 'text-green-400' },
     purple: { bg: 'bg-purple-500/20', progress: 'bg-purple-500', text: 'text-purple-400' },
     yellow: { bg: 'bg-yellow-500/20', progress: 'bg-yellow-500', text: 'text-yellow-400' },
+    red: { bg: 'bg-red-500/20', progress: 'bg-red-500', text: 'text-red-400' },
   };
 
   if (compact) {
@@ -127,12 +132,23 @@ export function MetaProgress({ meta, realizado, compact = false }: MetaProgressP
             />
           </div>
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{item.progress.toFixed(1)}% atingido</span>
-            {item.progress < 100 && item.meta > 0 && (
-              <span>Falta: {item.format(item.meta - item.atual)}</span>
-            )}
-            {item.progress >= 100 && (
-              <span className="text-green-400">✓ Meta atingida!</span>
+            {item.isThreshold ? (
+              <>
+                <span className={item.atual >= item.meta ? 'text-green-400' : 'text-red-400'}>
+                  {item.atual >= item.meta ? '✓ Acima da meta mínima' : '✗ Abaixo da meta mínima'}
+                </span>
+                <span>Mínimo: {item.format(item.meta)}</span>
+              </>
+            ) : (
+              <>
+                <span>{item.progress.toFixed(1)}% atingido</span>
+                {item.progress < 100 && item.meta > 0 && (
+                  <span>Falta: {item.format(item.meta - item.atual)}</span>
+                )}
+                {item.progress >= 100 && (
+                  <span className="text-green-400">✓ Meta atingida!</span>
+                )}
+              </>
             )}
           </div>
         </div>
