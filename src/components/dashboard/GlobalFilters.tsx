@@ -25,10 +25,9 @@ interface GlobalFiltersProps {
     leadFontes: string[];
     tiposVenda: string[];
   };
-  compact?: boolean;
 }
 
-export function GlobalFilters({ filters, onFiltersChange, options, compact = false }: GlobalFiltersProps) {
+export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFiltersProps) {
   const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
 
   const responsaveis = [...new Set([...options.sdrs, ...options.vendedores])].sort();
@@ -66,10 +65,7 @@ export function GlobalFilters({ filters, onFiltersChange, options, compact = fal
   const currentResponsavel = filters.sdr || filters.vendedor || 'all';
 
   return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50",
-      compact && "gap-2 p-2"
-    )}>
+    <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
       {/* Período */}
       <div className="flex items-center gap-2">
         <Popover>

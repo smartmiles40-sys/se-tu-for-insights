@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { useState, useMemo } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { GlobalFilters } from '@/components/dashboard/GlobalFilters';
 import { KPICardWithSparkline } from '@/components/dashboard/KPICardWithSparkline';
@@ -35,17 +34,6 @@ export default function Dashboard() {
   };
 
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
-  
-  // Check if in fullscreen mode - must be at top level before any conditional returns
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
   
   // Get current month/year for meta - parse directly from string to avoid timezone issues
   const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : new Date().getMonth() + 1;
@@ -158,15 +146,11 @@ export default function Dashboard() {
   const sparklineVendas = executiveStats.monthlyData.map(d => d.vendas);
   const sparklineReuniao = executiveStats.monthlyData.map(d => d.leads);
 
-
   return (
     <DashboardLayout>
-      <div className={cn(
-        "space-y-4",
-        isFullscreen && "space-y-2 tv-dashboard"
-      )}>
+      <div className="space-y-4">
         {/* Compact Filter Bar */}
-        <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} compact={isFullscreen} />
+        <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
 
         {!hasData ? (
           <div className="bi-card p-16 text-center">
@@ -178,34 +162,21 @@ export default function Dashboard() {
           </div>
         ) : (
           <Tabs defaultValue="home" className="w-full">
-            <TabsList className={cn(
-              "inline-flex h-10 items-center justify-center rounded-lg bg-slate-800/50 p-1 mb-4",
-              isFullscreen && "h-8 mb-2"
-            )}>
-              <TabsTrigger value="home" className={cn(
-                "rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white",
-                isFullscreen && "px-4 py-1 text-xs"
-              )}>HOME</TabsTrigger>
-              <TabsTrigger value="sdr" className={cn(
-                "rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white",
-                isFullscreen && "px-4 py-1 text-xs"
-              )}>SDRS</TabsTrigger>
-              <TabsTrigger value="especialistas" className={cn(
-                "rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white",
-                isFullscreen && "px-4 py-1 text-xs"
-              )}>ESPECIALISTAS</TabsTrigger>
+            <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-slate-800/50 p-1 mb-4">
+              <TabsTrigger value="home" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">HOME</TabsTrigger>
+              <TabsTrigger value="sdr" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">SDRS</TabsTrigger>
+              <TabsTrigger value="especialistas" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">ESPECIALISTAS</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="home" className={cn("space-y-4 mt-0", isFullscreen && "space-y-2")}>
+            <TabsContent value="home" className="space-y-4 mt-0">
               {/* KPIs Row 1 - Main metrics with sparklines */}
-              <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4", isFullscreen && "gap-2")}>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <KPICardWithSparkline
                   title="Faturamento"
                   value={formatCurrency(executiveStats.receitaTotal)}
                   icon={DollarSign}
                   color="cyan"
                   sparklineData={sparklineReceita}
-                  compact={isFullscreen}
                 />
                 <KPICardWithSparkline
                   title="Vendas"
@@ -213,7 +184,6 @@ export default function Dashboard() {
                   icon={Target}
                   color="yellow"
                   sparklineData={sparklineVendas}
-                  compact={isFullscreen}
                 />
                 <KPICardWithSparkline
                   title="Total Leads"
@@ -221,7 +191,6 @@ export default function Dashboard() {
                   icon={Users}
                   color="orange"
                   sparklineData={sparklineReuniao}
-                  compact={isFullscreen}
                 />
                 <KPICardWithSparkline
                   title="Reuniões"
@@ -229,7 +198,6 @@ export default function Dashboard() {
                   icon={Calendar}
                   color="magenta"
                   sparklineData={sparklineReuniao}
-                  compact={isFullscreen}
                 />
                 <KPICardWithSparkline
                   title="Ticket Médio"
@@ -237,131 +205,140 @@ export default function Dashboard() {
                   icon={TrendingUp}
                   color="green"
                   sparklineData={sparklineVendas}
-                  compact={isFullscreen}
                 />
               </div>
 
               {/* KPIs Row 2 - Rates */}
-              <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-4", isFullscreen && "gap-2")}>
-                <div className={cn("bi-card", isFullscreen && "p-2")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={cn("text-xs text-slate-400 uppercase tracking-wider", isFullscreen && "text-[10px]")}>% Agendamento</span>
-                    <TrendingUp className={cn("h-4 w-4 text-slate-500", isFullscreen && "h-3 w-3")} />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Agendamento</span>
+                    <TrendingUp className="h-4 w-4 text-slate-500" />
                   </div>
-                  <div className={cn(`font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`, isFullscreen ? "text-xl" : "text-3xl")}>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaAgendamento.toFixed(1)}%
                   </div>
-                  {!isFullscreen && <div className="text-xs text-slate-500 mt-1">Meta: ≥50%</div>}
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≥50%</div>
                 </div>
                 
-                <div className={cn("bi-card", isFullscreen && "p-2")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={cn("text-xs text-slate-400 uppercase tracking-wider", isFullscreen && "text-[10px]")}>% No-Show</span>
-                    <XCircle className={cn("h-4 w-4 text-slate-500", isFullscreen && "h-3 w-3")} />
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% No-Show</span>
+                    <XCircle className="h-4 w-4 text-slate-500" />
                   </div>
-                  <div className={cn(`font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`, isFullscreen ? "text-xl" : "text-3xl")}>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaNoShow.toFixed(1)}%
                   </div>
-                  {!isFullscreen && <div className="text-xs text-slate-500 mt-1">Meta: ≤20%</div>}
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≤20%</div>
                 </div>
                 
-                <div className={cn("bi-card", isFullscreen && "p-2")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={cn("text-xs text-slate-400 uppercase tracking-wider", isFullscreen && "text-[10px]")}>% Show-Up</span>
-                    <Users className={cn("h-4 w-4 text-slate-500", isFullscreen && "h-3 w-3")} />
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Show-Up</span>
+                    <Users className="h-4 w-4 text-slate-500" />
                   </div>
-                  <div className={cn(`font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`, isFullscreen ? "text-xl" : "text-3xl")}>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`}>
                     {executiveStats.taxaShowUp.toFixed(1)}%
                   </div>
-                  {!isFullscreen && <div className="text-xs text-slate-500 mt-1">Meta: ≥80%</div>}
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≥80%</div>
                 </div>
 
-                <div className={cn("bi-card", isFullscreen && "p-2")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={cn("text-xs text-slate-400 uppercase tracking-wider", isFullscreen && "text-[10px]")}>% Conversão</span>
-                    <Target className={cn("h-4 w-4 text-slate-500", isFullscreen && "h-3 w-3")} />
+                <div className="bi-card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Conversão Vendas</span>
+                    <Target className="h-4 w-4 text-slate-500" />
                   </div>
-                  <div className={cn(`font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`, isFullscreen ? "text-xl" : "text-3xl")}>
+                  <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaConversaoGeral.toFixed(1)}%
                   </div>
-                  {!isFullscreen && <div className="text-xs text-slate-500 mt-1">Meta: ≥25%</div>}
+                  <div className="text-xs text-slate-500 mt-1">Meta: ≥25%</div>
                 </div>
               </div>
 
 
               {/* Main Grid - Funnel Left, Indicators Right */}
-              <div className={cn("grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch", isFullscreen && "gap-2")}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
                 {/* Funnel - 2 columns */}
                 <div className="lg:col-span-2 h-full">
-                  <FunnelHorizontal negocios={negocios} compact={isFullscreen} />
+                  <FunnelHorizontal negocios={negocios} />
                 </div>
 
-                {/* Indicadores - 1 column, stacked - HIDE in fullscreen to save space */}
-                {!isFullscreen && (
-                  <div className="flex flex-col gap-2 h-full">
-                    {/* Indicadores de Custo */}
-                    <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                      <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
-                      <div className="space-y-2 flex-1 flex flex-col justify-around">
-                        <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                {/* Indicadores - 1 column, stacked */}
+                <div className="flex flex-col gap-2 h-full">
+                  {/* Indicadores de Custo */}
+                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
+                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
+                    <div className="space-y-2 flex-1 flex flex-col justify-around">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
                           <div className="text-xs text-slate-400 uppercase">CPL</div>
-                          <div className="text-base font-bold text-cyan-400">{formatCurrency(0)}</div>
                         </div>
-                        <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                          <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
-                          <div className="text-base font-bold text-purple-400">{formatCurrency(0)}</div>
-                        </div>
-                        <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                          <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
-                          <div className="text-base font-bold text-blue-400">{formatCurrency(0)}</div>
-                        </div>
+                        <div className="text-base font-bold text-cyan-400">{formatCurrency(0)}</div>
                       </div>
-                    </div>
-
-                    {/* Indicadores de Performance */}
-                    <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                      <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
-                      <div className="space-y-2 flex-1 flex flex-col justify-around">
-                        <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                          <div className="text-xs text-slate-400 uppercase">CAC</div>
-                          <div className="text-base font-bold text-orange-400">{formatCurrency(0)}</div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
                         </div>
-                        <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                          <div className="text-xs text-slate-400 uppercase">ROAS</div>
-                          <div className="text-base font-bold text-yellow-400">0x</div>
+                        <div className="text-base font-bold text-purple-400">{formatCurrency(0)}</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
                         </div>
-                        <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                          <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
-                          <div className="text-base font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30d' : '0d'}</div>
-                        </div>
+                        <div className="text-base font-bold text-blue-400">{formatCurrency(0)}</div>
                       </div>
                     </div>
                   </div>
-                )}
+
+                  {/* Indicadores de Performance */}
+                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
+                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
+                    <div className="space-y-2 flex-1 flex flex-col justify-around">
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">CAC</div>
+                        </div>
+                        <div className="text-base font-bold text-orange-400">{formatCurrency(0)}</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">ROAS</div>
+                        </div>
+                        <div className="text-base font-bold text-yellow-400">0x</div>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                        <div>
+                          <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
+                        </div>
+                        <div className="text-base font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30d' : '0d'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Second Row - Meta x Realizado and Origem */}
-              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", isFullscreen && "gap-2 tv-middle-row")}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Meta x Realizado */}
-                <div className={cn("bi-card", isFullscreen && "p-2")}>
-                  <h3 className={cn("bi-card-title mb-3 flex items-center gap-2", isFullscreen && "mb-1 text-xs")}>
-                    <Target className={cn("h-4 w-4 text-primary", isFullscreen && "h-3 w-3")} />
+                <div className="bi-card">
+                  <h3 className="bi-card-title mb-3 flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
                     Meta x Realizado
                   </h3>
-                  <MetaProgress meta={metaGlobal} realizado={realizadoData} compact={isFullscreen} />
+                  <MetaProgress meta={metaGlobal} realizado={realizadoData} />
                 </div>
                 
                 {/* Origem Performance */}
-                <OrigemPerformance negocios={negocios} compact={isFullscreen} />
+                <OrigemPerformance negocios={negocios} />
               </div>
 
               {/* Rankings Row */}
-              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4", isFullscreen && "gap-2 tv-rankings-row")}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Ranking Especialistas */}
-                <RankingTable negocios={negocios} type="especialista" limit={isFullscreen ? 3 : 4} compact={isFullscreen} />
+                <RankingTable negocios={negocios} type="especialista" limit={4} />
 
                 {/* Ranking SDRs */}
-                <RankingTable negocios={negocios} type="sdr" limit={isFullscreen ? 3 : 4} compact={isFullscreen} />
+                <RankingTable negocios={negocios} type="sdr" limit={4} />
               </div>
             </TabsContent>
 

@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 
 interface FunnelHorizontalProps {
   negocios: Negocio[];
-  compact?: boolean;
 }
 
 const IDEAL_RATES = {
@@ -20,7 +19,7 @@ const FUNNEL_COLORS = [
   { bg: 'bg-emerald-500', border: 'border-emerald-600', text: 'text-emerald-500' },
 ];
 
-export function FunnelHorizontal({ negocios, compact = false }: FunnelHorizontalProps) {
+export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
   const funnelData = useMemo(() => {
     const leads = negocios.length;
     const mql = negocios.filter(n => n.mql).length;
@@ -42,10 +41,10 @@ export function FunnelHorizontal({ negocios, compact = false }: FunnelHorizontal
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
 
   return (
-    <div className={cn("bi-card h-full flex flex-col", compact && "p-2")}>
-      <h3 className={cn("bi-card-title mb-4", compact && "mb-2 text-xs")}>Funil Comercial</h3>
+    <div className="bi-card h-full flex flex-col">
+      <h3 className="bi-card-title mb-4">Funil Comercial</h3>
       
-      <div className={cn("flex gap-8 flex-1", compact && "gap-4")}>
+      <div className="flex gap-8 flex-1">
         {/* Funnel Visual */}
         <div className="flex-1 flex flex-col items-center justify-center gap-1">
           {funnelData.map((stage, index) => {
@@ -60,9 +59,8 @@ export function FunnelHorizontal({ negocios, compact = false }: FunnelHorizontal
                 {/* Trapezoid shape using clip-path */}
                 <div 
                   className={cn(
-                    'flex items-center justify-center relative',
-                    colors.bg,
-                    compact ? 'h-[50px]' : 'h-[72px]'
+                    'h-[72px] flex items-center justify-center relative',
+                    colors.bg
                   )}
                   style={{
                     clipPath: index === funnelData.length - 1 
@@ -71,7 +69,7 @@ export function FunnelHorizontal({ negocios, compact = false }: FunnelHorizontal
                   }}
                 >
                   <div className="text-center z-10">
-                    <span className={cn("font-bold text-white drop-shadow-md", compact ? "text-base" : "text-xl")}>
+                    <span className="text-xl font-bold text-white drop-shadow-md">
                       {formatNumber(stage.value)}
                     </span>
                   </div>
