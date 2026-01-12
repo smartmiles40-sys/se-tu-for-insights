@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StagingTable } from '@/components/staging/StagingTable';
 import { StagingFilters } from '@/components/staging/StagingFilters';
 import { StagingActions } from '@/components/staging/StagingActions';
+import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
 import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
 
@@ -156,6 +157,9 @@ export default function StagingPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Daily Revenue Chart */}
+        <DailyRevenueChart data={allData || []} />
       </div>
     </DashboardLayout>
   );
