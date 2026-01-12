@@ -6,10 +6,10 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  Cell
 } from 'recharts';
-import { format, parseISO, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { parseISO, getDaysInMonth } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
 
@@ -21,42 +21,52 @@ interface DailyRevenueData {
 
 interface DailyRevenueChartProps {
   data: DailyRevenueData[];
+  month: number; // 1-12
+  year: number;
   title?: string;
 }
 
-export function DailyRevenueChart({ data, title = "Faturamento por Dia" }: DailyRevenueChartProps) {
+export function DailyRevenueChart({ data, month, year, title = "Faturamento por Dia" }: DailyRevenueChartProps) {
   const chartData = useMemo(() => {
-    const dailyData: Record<string, { day: string; date: string; receita: number; vendas: number }> = {};
+    // Get number of days in the selected month
+    const daysInMonth = getDaysInMonth(new Date(year, month - 1));
     
+    // Initialize all days with zero
+    const dailyData: { day: number; label: string; receita: number; vendas: number }[] = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+      dailyData.push({
+        day: i,
+        label: String(i),
+        receita: 0,
+        vendas: 0
+      });
+    }
+    
+    // Fill in actual revenue data
     data.forEach(item => {
       if (item.venda_aprovada && item.data_venda && item.total) {
         try {
           const date = parseISO(item.data_venda);
-          const dayKey = format(startOfDay(date), 'yyyy-MM-dd');
-          const dayLabel = format(date, 'dd/MM', { locale: ptBR });
+          const itemMonth = date.getMonth() + 1;
+          const itemYear = date.getFullYear();
           
-          if (!dailyData[dayKey]) {
-            dailyData[dayKey] = { 
-              day: dayLabel, 
-              date: dayKey,
-              receita: 0, 
-              vendas: 0 
-            };
+          // Only include data from the selected month/year
+          if (itemMonth === month && itemYear === year) {
+            const dayOfMonth = date.getDate();
+            const dayIndex = dayOfMonth - 1;
+            if (dayIndex >= 0 && dayIndex < dailyData.length) {
+              dailyData[dayIndex].receita += item.total;
+              dailyData[dayIndex].vendas += 1;
+            }
           }
-          
-          dailyData[dayKey].receita += item.total;
-          dailyData[dayKey].vendas += 1;
         } catch (e) {
           // Skip invalid dates
         }
       }
     });
 
-    return Object.entries(dailyData)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-30) // Last 30 days
-      .map(([, d]) => d);
-  }, [data]);
+    return dailyData;
+  }, [data, month, year]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', {
@@ -73,38 +83,28 @@ export function DailyRevenueChart({ data, title = "Faturamento por Dia" }: Daily
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-          <p className="font-medium text-foreground">{label}</p>
+          <p className="font-medium text-foreground">Dia {label}</p>
           <p className="text-sm text-success">
-            {formatCurrency(payload[0].value)}
+            {formatCurrency(data.receita)}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {payload[0].payload.vendas} venda(s)
-          </p>
+          {data.vendas > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {data.vendas} venda(s)
+            </p>
+          )}
         </div>
       );
     }
     return null;
   };
 
-  if (chartData.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            {title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-            Sem dados de faturamento
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
 
   return (
     <Card>
@@ -112,13 +112,13 @@ export function DailyRevenueChart({ data, title = "Faturamento por Dia" }: Daily
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            {title}
+            {title} - {monthNames[month - 1]} {year}
           </CardTitle>
           <div className="text-right">
             <p className="text-2xl font-bold text-success">
               {formatCurrency(totalRevenue)}
             </p>
-            <p className="text-xs text-muted-foreground">Total período</p>
+            <p className="text-xs text-muted-foreground">Total do mês</p>
           </div>
         </div>
       </CardHeader>
@@ -134,12 +134,12 @@ export function DailyRevenueChart({ data, title = "Faturamento por Dia" }: Daily
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis 
-                dataKey="day" 
+                dataKey="label" 
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
-                interval="preserveStartEnd"
+                interval={0}
               />
               <YAxis 
                 stroke="hsl(var(--muted-foreground))"
@@ -151,9 +151,15 @@ export function DailyRevenueChart({ data, title = "Faturamento por Dia" }: Daily
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="receita"
-                fill="url(#dailyRevenueGradient)"
-                radius={[4, 4, 0, 0]}
-              />
+                radius={[2, 2, 0, 0]}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`}
+                    fill={entry.receita > 0 ? "url(#dailyRevenueGradient)" : "hsl(var(--muted) / 0.3)"}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
