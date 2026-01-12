@@ -151,15 +151,8 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Compact Filter Bar + Meta Progress */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start">
-          <div className="flex-1 min-w-0">
-            <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
-          </div>
-          <div className="w-full lg:w-72 shrink-0">
-            <MetaProgressCompact meta={metaGlobal} realizado={realizadoData} />
-          </div>
-        </div>
+        {/* Compact Filter Bar */}
+        <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
 
         {!hasData ? (
           <div className="bi-card p-16 text-center">
@@ -171,11 +164,14 @@ export default function Dashboard() {
           </div>
         ) : (
           <Tabs defaultValue="home" className="w-full">
-            <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-slate-800/50 p-1 mb-4">
-              <TabsTrigger value="home" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">HOME</TabsTrigger>
-              <TabsTrigger value="sdr" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">SDRS</TabsTrigger>
-              <TabsTrigger value="especialistas" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">ESPECIALISTAS</TabsTrigger>
-            </TabsList>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+              <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-slate-800/50 p-1">
+                <TabsTrigger value="home" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">HOME</TabsTrigger>
+                <TabsTrigger value="sdr" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">SDRS</TabsTrigger>
+                <TabsTrigger value="especialistas" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">ESPECIALISTAS</TabsTrigger>
+              </TabsList>
+              <MetaProgressCompact meta={metaGlobal} realizado={realizadoData} />
+            </div>
 
             <TabsContent value="home" className="space-y-4 mt-0">
               {/* KPIs Row 1 - Main metrics with sparklines */}
