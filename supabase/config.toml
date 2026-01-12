@@ -1,4 +1,7 @@
 project_id = "xmmwylpdydynteocuxmx"
 
+[functions.test-webhook]
+verify_jwt = false
+
 [functions.receive-negocios]
 verify_jwt = false
