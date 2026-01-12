@@ -8,6 +8,7 @@ import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
 import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
 import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
 import { MetaProgress } from '@/components/dashboard/MetaProgress';
+import { MetaProgressCompact } from '@/components/dashboard/MetaProgressCompact';
 import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { useMetaGlobal } from '@/hooks/useMetas';
@@ -150,8 +151,15 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        {/* Compact Filter Bar */}
-        <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
+        {/* Compact Filter Bar + Meta Progress */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start">
+          <div className="flex-1 min-w-0">
+            <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
+          </div>
+          <div className="w-full lg:w-72 shrink-0">
+            <MetaProgressCompact meta={metaGlobal} realizado={realizadoData} />
+          </div>
+        </div>
 
         {!hasData ? (
           <div className="bi-card p-16 text-center">
