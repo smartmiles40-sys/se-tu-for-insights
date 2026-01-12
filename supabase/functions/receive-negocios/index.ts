@@ -132,30 +132,40 @@ serve(async (req) => {
     };
 
     // Map incoming fields to staging_negocios table
-    // For MQL, SQL, Reunião, Venda - these come as dates, set boolean to true if date exists
-    const dataMql = parseDateField(getValue('mql')) || parseDateField(getValue('data_mql'));
-    const dataSql = parseDateField(getValue('sql')) || parseDateField(getValue('data_sql'));
-    const dataAgendamento = parseDateField(getValue('reuniao_agendada')) || parseDateField(getValue('data_agendamento'));
-    const dataReuniaoRealizada = parseDateField(getValue('reuniao_realizada_check')) || parseDateField(getValue('data_reuniao_realizada'));
-    const dataVenda = parseDateField(getValue('venda_aprovada')) || parseDateField(getValue('data_venda'));
-    const dataNoshow = parseDateField(getValue('no_show')) || parseDateField(getValue('data_noshow'));
+    // Field mappings from n8n:
+    // valor -> total, data_venda, data_sql, data_mql, data_reuniao -> data_reuniao_realizada
+    // responsavel_reuniao, venda_realizada -> quem_vendeu, primeiro_lead -> primeiro_contato
+    // data_agendamento, responsavel_agendamento -> sdr, fonte -> lead_fonte
+    // fase, fechado -> venda_aprovada, pipeline, nome, id -> crm_id
+    
+    const dataMql = parseDateField(getValue('data_mql'));
+    const dataSql = parseDateField(getValue('data_sql'));
+    const dataAgendamento = parseDateField(getValue('data_agendamento'));
+    const dataReuniaoRealizada = parseDateField(getValue('data_reuniao'));
+    const dataVenda = parseDateField(getValue('data_venda'));
+    const dataNoshow = parseDateField(getValue('data_noshow'));
+    const primeiroContato = parseDateField(getValue('primeiro_lead'));
+    
+    // Parse fechado as boolean for venda_aprovada
+    const fechadoValue = getValue('fechado');
+    const vendaAprovada = fechadoValue ? parseBooleanField(fechadoValue) : !!dataVenda;
 
     const stagingRecord = {
       // Core business fields
       crm_id: getValue('id'),
-      nome: getValue('nome_negocio') || getValue('criado_crm'),
+      nome: getValue('nome'),
       pipeline: getValue('pipeline'),
       vendedor: getValue('responsavel_id'),
-      sdr: getValue('quem_agendou'),
+      sdr: getValue('responsavel_agendamento') || getValue('quem_agendou'),
       contato_fonte: getValue('fonte_contato'),
-      lead_fonte: getValue('lead_qlf'),
+      lead_fonte: getValue('fonte') || getValue('lead_qlf'),
       data_inicio: parseDateField(getValue('data_inicio')),
       total: parseNumericField(getValue('valor')),
       custo: parseNumericField(getValue('custo')) || parseNumericField(getValue('custo_total')),
       tipo_venda: getValue('tipo_venda') || getValue('venda_tipo_realizada'),
       motivo_perda: getValue('motivo_perda'),
       fase: getValue('fase'),
-      quem_vendeu: getValue('quem_vendeu'),
+      quem_vendeu: getValue('venda_realizada') || getValue('quem_vendeu'),
       responsavel_reuniao: getValue('responsavel_reuniao'),
       info_etapa: getValue('info_etapa'),
       
@@ -165,7 +175,7 @@ serve(async (req) => {
       reuniao_agendada: !!dataAgendamento,
       reuniao_realizada: !!dataReuniaoRealizada,
       no_show: !!dataNoshow,
-      venda_aprovada: !!dataVenda,
+      venda_aprovada: vendaAprovada,
       
       // Date fields
       data_mql: dataMql,
@@ -175,7 +185,7 @@ serve(async (req) => {
       data_venda: dataVenda,
       data_noshow: dataNoshow,
       data_prevista: parseDateField(getValue('data_prevista')),
-      primeiro_contato: parseDateField(getValue('primeiro_contato')),
+      primeiro_contato: primeiroContato,
       data_movimentacao: parseDateField(getValue('data_movimentacao')),
       
       // UTM fields
