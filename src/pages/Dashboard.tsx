@@ -8,6 +8,7 @@ import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
 import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
 import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
 import { MetaProgress } from '@/components/dashboard/MetaProgress';
+import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
@@ -340,6 +341,13 @@ export default function Dashboard() {
                 {/* Ranking SDRs */}
                 <RankingTable negocios={negocios} type="sdr" limit={4} />
               </div>
+
+              {/* Daily Revenue Chart */}
+              <DailyRevenueChart 
+                data={negocios} 
+                month={currentMonth} 
+                year={currentYear} 
+              />
             </TabsContent>
 
             <TabsContent value="sdr">
