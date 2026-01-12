@@ -229,7 +229,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
             <TableHead>Fase</TableHead>
             <TableHead>Tipo Venda</TableHead>
             <TableHead>Fonte</TableHead>
-            <TableHead>Data Início</TableHead>
+            
             <TableHead>1º Contato</TableHead>
             <TableHead>Agendamento</TableHead>
             <TableHead>Reunião</TableHead>
@@ -242,7 +242,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={22} className="h-24 text-center text-muted-foreground">
+              <TableCell colSpan={21} className="h-24 text-center text-muted-foreground">
                 Nenhum registro encontrado
               </TableCell>
             </TableRow>
@@ -306,9 +306,6 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                 </TableCell>
                 <TableCell>
                   <EditableCell id={row.id} field="contato_fonte" value={row.contato_fonte} />
-                </TableCell>
-                <TableCell>
-                  <EditableDateCell id={row.id} field="data_inicio" value={row.data_inicio} />
                 </TableCell>
                 <TableCell>
                   <EditableDateCell id={row.id} field="primeiro_contato" value={row.primeiro_contato} />
