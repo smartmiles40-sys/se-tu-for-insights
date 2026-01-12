@@ -109,6 +109,14 @@ serve(async (req) => {
     };
 
     // Map incoming fields to staging_negocios table
+    // For MQL, SQL, Reunião, Venda - these come as dates, set boolean to true if date exists
+    const dataMql = parseDateField(getValue('mql')) || parseDateField(getValue('data_mql'));
+    const dataSql = parseDateField(getValue('sql')) || parseDateField(getValue('data_sql'));
+    const dataAgendamento = parseDateField(getValue('reuniao_agendada')) || parseDateField(getValue('data_agendamento'));
+    const dataReuniaoRealizada = parseDateField(getValue('reuniao_realizada_check')) || parseDateField(getValue('data_reuniao_realizada'));
+    const dataVenda = parseDateField(getValue('venda_aprovada')) || parseDateField(getValue('data_venda'));
+    const dataNoshow = parseDateField(getValue('no_show')) || parseDateField(getValue('data_noshow'));
+
     const stagingRecord = {
       // Core business fields
       crm_id: getValue('id'),
@@ -128,21 +136,21 @@ serve(async (req) => {
       responsavel_reuniao: getValue('responsavel_reuniao'),
       info_etapa: getValue('info_etapa'),
       
-      // Boolean fields - convert "sim" to true
-      mql: parseBooleanField(getValue('mql')),
-      sql_qualificado: parseBooleanField(getValue('sql')),
-      reuniao_agendada: parseBooleanField(getValue('reuniao_agendada')),
-      reuniao_realizada: parseBooleanField(getValue('reuniao_realizada_check')),
-      no_show: parseBooleanField(getValue('no_show')),
-      venda_aprovada: parseBooleanField(getValue('venda_aprovada')),
+      // Boolean fields - set to true if corresponding date exists
+      mql: !!dataMql,
+      sql_qualificado: !!dataSql,
+      reuniao_agendada: !!dataAgendamento,
+      reuniao_realizada: !!dataReuniaoRealizada,
+      no_show: !!dataNoshow,
+      venda_aprovada: !!dataVenda,
       
       // Date fields
-      data_agendamento: parseDateField(getValue('data_agendamento')),
-      data_reuniao_realizada: parseDateField(getValue('data_reuniao_realizada')),
-      data_mql: parseDateField(getValue('data_mql')),
-      data_sql: parseDateField(getValue('data_sql')),
-      data_venda: parseDateField(getValue('data_venda')),
-      data_noshow: parseDateField(getValue('data_noshow')),
+      data_mql: dataMql,
+      data_sql: dataSql,
+      data_agendamento: dataAgendamento,
+      data_reuniao_realizada: dataReuniaoRealizada,
+      data_venda: dataVenda,
+      data_noshow: dataNoshow,
       data_prevista: parseDateField(getValue('data_prevista')),
       primeiro_contato: parseDateField(getValue('primeiro_contato')),
       data_movimentacao: parseDateField(getValue('data_movimentacao')),
