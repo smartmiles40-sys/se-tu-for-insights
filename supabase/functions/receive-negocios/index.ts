@@ -16,9 +16,11 @@ function parseBooleanField(value: string | null | undefined): boolean {
 // Parse numeric value, handling Brazilian format (comma as decimal separator)
 function parseNumericField(value: string | null | undefined): number {
   if (!value) return 0;
-  // Replace comma with dot for decimal
-  const normalized = value.replace(',', '.').replace(/[^\d.-]/g, '');
+  // Trim whitespace first, then replace comma with dot for decimal
+  const trimmed = String(value).trim();
+  const normalized = trimmed.replace(',', '.').replace(/[^\d.-]/g, '');
   const parsed = parseFloat(normalized);
+  console.log(`parseNumericField: input="${value}" -> trimmed="${trimmed}" -> normalized="${normalized}" -> parsed=${parsed}`);
   return isNaN(parsed) ? 0 : parsed;
 }
 
@@ -97,10 +99,18 @@ serve(async (req) => {
         const contentType = req.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
           bodyData = await req.json();
+          console.log('Raw body data received:', JSON.stringify(bodyData, null, 2));
         }
-      } catch {
-        // Ignore body parsing errors, continue with query params
+      } catch (e) {
+        console.error('Error parsing body:', e);
       }
+    }
+    
+    // Log query params
+    const queryParams: Record<string, string> = {};
+    params.forEach((value, key) => { queryParams[key] = value; });
+    if (Object.keys(queryParams).length > 0) {
+      console.log('Query params received:', JSON.stringify(queryParams, null, 2));
     }
 
     // Helper to get value from query params or body
