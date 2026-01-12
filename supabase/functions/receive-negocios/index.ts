@@ -24,15 +24,34 @@ function parseNumericField(value: string | null | undefined): number {
   return isNaN(parsed) ? 0 : parsed;
 }
 
-// Parse date field
+// Parse date field - supports Brazilian DD/MM/YYYY format
 function parseDateField(value: string | null | undefined): string | null {
   if (!value) return null;
-  // Try to parse the date - accept various formats
+  
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  
+  // Detect Brazilian format DD/MM/YYYY
+  const brDateMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brDateMatch) {
+    const [, day, month, year] = brDateMatch;
+    const result = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    console.log(`parseDateField: "${value}" (BR format) -> "${result}"`);
+    return result;
+  }
+  
+  // Try other formats as fallback
   try {
     const date = new Date(value);
-    if (isNaN(date.getTime())) return null;
-    return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+    if (isNaN(date.getTime())) {
+      console.log(`parseDateField: "${value}" -> null (invalid date)`);
+      return null;
+    }
+    const result = date.toISOString().split('T')[0];
+    console.log(`parseDateField: "${value}" -> "${result}"`);
+    return result;
   } catch {
+    console.log(`parseDateField: "${value}" -> null (parse error)`);
     return null;
   }
 }
@@ -141,8 +160,17 @@ serve(async (req) => {
     const dataMql = parseDateField(getValue('data_mql'));
     const dataSql = parseDateField(getValue('data_sql'));
     const dataAgendamento = parseDateField(getValue('data_agendamento'));
-    const dataReuniaoRealizada = parseDateField(getValue('data_reuniao'));
+    // Support both "data_reuniao" and "data_reunião" (with accent)
+    const dataReuniaoRealizada = parseDateField(getValue('data_reuniao') || getValue('data_reunião'));
     const dataVenda = parseDateField(getValue('data_venda'));
+    
+    console.log('Date parsing summary:', {
+      data_mql: { raw: getValue('data_mql'), parsed: dataMql },
+      data_sql: { raw: getValue('data_sql'), parsed: dataSql },
+      data_agendamento: { raw: getValue('data_agendamento'), parsed: dataAgendamento },
+      data_reuniao: { raw: getValue('data_reuniao') || getValue('data_reunião'), parsed: dataReuniaoRealizada },
+      data_venda: { raw: getValue('data_venda'), parsed: dataVenda },
+    });
     const dataNoshow = parseDateField(getValue('data_noshow'));
     const primeiroContato = parseDateField(getValue('primeiro_lead'));
     
