@@ -164,7 +164,6 @@ serve(async (req) => {
       
       // Metadata
       source: 'n8n',
-      status: 'pendente',
       batch_id: crypto.randomUUID(),
     };
 
@@ -176,29 +175,78 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Insert into staging_negocios
-    const { data, error } = await supabase
-      .from('staging_negocios')
-      .insert(stagingRecord)
-      .select('id, batch_id')
-      .single();
+    // Check if record with this crm_id already exists
+    const crmId = stagingRecord.crm_id;
+    let existingRecord = null;
+    
+    if (crmId) {
+      const { data: existing } = await supabase
+        .from('staging_negocios')
+        .select('id, status')
+        .eq('crm_id', crmId)
+        .maybeSingle();
+      existingRecord = existing;
+    }
+
+    let data;
+    let error;
+    let isUpdate = false;
+
+    if (existingRecord) {
+      // Update existing record - preserve status if already approved/rejected
+      isUpdate = true;
+      console.log(`Found existing record with crm_id ${crmId}, updating...`);
+      
+      const updateData = {
+        ...stagingRecord,
+        // Keep status as 'pendente' on update so it can be re-reviewed
+        status: 'pendente',
+        updated_at: new Date().toISOString(),
+      };
+      
+      const result = await supabase
+        .from('staging_negocios')
+        .update(updateData)
+        .eq('crm_id', crmId)
+        .select('id, batch_id')
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    } else {
+      // Insert new record
+      const insertData = {
+        ...stagingRecord,
+        status: 'pendente',
+      };
+      
+      const result = await supabase
+        .from('staging_negocios')
+        .insert(insertData)
+        .select('id, batch_id')
+        .single();
+      
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
-      console.error('Error inserting into staging_negocios:', error);
+      console.error('Error saving to staging_negocios:', error);
       return new Response(
         JSON.stringify({ error: 'Failed to save data', details: error.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Successfully inserted staging record:', data);
+    console.log(`Successfully ${isUpdate ? 'updated' : 'inserted'} staging record:`, data);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Data received and queued for review',
-        id: data.id,
-        batch_id: data.batch_id
+        message: isUpdate ? 'Data updated successfully' : 'Data received and queued for review',
+        operation: isUpdate ? 'update' : 'insert',
+        id: data?.id,
+        batch_id: data?.batch_id
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
