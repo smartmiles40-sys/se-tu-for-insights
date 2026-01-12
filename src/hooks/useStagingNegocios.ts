@@ -111,15 +111,26 @@ export function useUpdateStagingNegocio() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<StagingNegocio> }) => {
-      const { error } = await supabase
+      console.log('Updating staging record:', { id, updates });
+      
+      const { data, error } = await supabase
         .from('staging_negocios')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+      
+      console.log('Update result:', data);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Update successful:', data);
       queryClient.invalidateQueries({ queryKey: ['staging-negocios'] });
+      toast.success('Registro atualizado!');
     },
     onError: (error) => {
       console.error('Error updating staging record:', error);
