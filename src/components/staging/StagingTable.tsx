@@ -58,7 +58,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
     let value: string | number | null = editValue;
 
     // Handle numeric fields
-    if (field === 'total') {
+    if (field === 'total' || field === 'custo') {
       value = parseFloat(editValue.replace(',', '.')) || 0;
     }
 
@@ -184,7 +184,8 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
     );
   };
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | null) => {
+    if (value === null || value === undefined) return '-';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -219,21 +220,32 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
             <TableHead>Nome</TableHead>
             <TableHead>Pipeline</TableHead>
             <TableHead>Vendedor</TableHead>
+            <TableHead>SDR</TableHead>
+            <TableHead>Quem Vendeu</TableHead>
+            <TableHead>Resp. Reunião</TableHead>
             <TableHead>Valor</TableHead>
-            <TableHead>Data Início</TableHead>
-            <TableHead>MQL</TableHead>
-            <TableHead>SQL</TableHead>
-            <TableHead>Reunião</TableHead>
-            <TableHead>Venda</TableHead>
+            <TableHead>Custo</TableHead>
+            <TableHead>CRM ID</TableHead>
+            <TableHead>Fase</TableHead>
+            <TableHead>Tipo Venda</TableHead>
+            <TableHead>Motivo Perda</TableHead>
             <TableHead>Fonte</TableHead>
-            <TableHead>UTM Source</TableHead>
-            <TableHead>Importado em</TableHead>
+            <TableHead>Data Início</TableHead>
+            <TableHead>1º Contato</TableHead>
+            <TableHead>Agendamento</TableHead>
+            <TableHead>Reunião</TableHead>
+            <TableHead>Data No-Show</TableHead>
+            <TableHead>Data MQL</TableHead>
+            <TableHead>Data SQL</TableHead>
+            <TableHead>Data Venda</TableHead>
+            <TableHead>Lote</TableHead>
+            <TableHead>Criado em</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={14} className="h-24 text-center text-muted-foreground">
+              <TableCell colSpan={25} className="h-24 text-center text-muted-foreground">
                 Nenhum registro encontrado
               </TableCell>
             </TableRow>
@@ -264,6 +276,15 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   <EditableCell id={row.id} field="vendedor" value={row.vendedor} />
                 </TableCell>
                 <TableCell>
+                  <EditableCell id={row.id} field="sdr" value={row.sdr} />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="quem_vendeu" value={row.quem_vendeu} />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="responsavel_reuniao" value={row.responsavel_reuniao} />
+                </TableCell>
+                <TableCell>
                   <EditableCell 
                     id={row.id} 
                     field="total" 
@@ -271,7 +292,41 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   />
                 </TableCell>
                 <TableCell>
+                  <EditableCell 
+                    id={row.id} 
+                    field="custo" 
+                    value={formatCurrency(row.custo)} 
+                  />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="crm_id" value={row.crm_id} />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="fase" value={row.fase} />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="tipo_venda" value={row.tipo_venda} />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="motivo_perda" value={row.motivo_perda} />
+                </TableCell>
+                <TableCell>
+                  <EditableCell id={row.id} field="contato_fonte" value={row.contato_fonte} />
+                </TableCell>
+                <TableCell>
                   <EditableDateCell id={row.id} field="data_inicio" value={row.data_inicio} />
+                </TableCell>
+                <TableCell>
+                  <EditableDateCell id={row.id} field="primeiro_contato" value={row.primeiro_contato} />
+                </TableCell>
+                <TableCell>
+                  <EditableDateCell id={row.id} field="data_agendamento" value={row.data_agendamento} />
+                </TableCell>
+                <TableCell>
+                  <EditableDateCell id={row.id} field="data_reuniao_realizada" value={row.data_reuniao_realizada} />
+                </TableCell>
+                <TableCell>
+                  <EditableDateCell id={row.id} field="data_noshow" value={row.data_noshow} />
                 </TableCell>
                 <TableCell>
                   <EditableDateCell id={row.id} field="data_mql" value={row.data_mql} />
@@ -280,16 +335,10 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   <EditableDateCell id={row.id} field="data_sql" value={row.data_sql} />
                 </TableCell>
                 <TableCell>
-                  <EditableDateCell id={row.id} field="data_reuniao_realizada" value={row.data_reuniao_realizada} />
-                </TableCell>
-                <TableCell>
                   <EditableDateCell id={row.id} field="data_venda" value={row.data_venda} />
                 </TableCell>
-                <TableCell>
-                  <EditableCell id={row.id} field="contato_fonte" value={row.contato_fonte} />
-                </TableCell>
-                <TableCell>
-                  <EditableCell id={row.id} field="utm_source" value={row.utm_source} />
+                <TableCell className="text-muted-foreground text-xs font-mono">
+                  {row.batch_id?.slice(0, 8) || '-'}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {format(new Date(row.imported_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
