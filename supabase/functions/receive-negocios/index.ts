@@ -178,9 +178,15 @@ serve(async (req) => {
     const fechadoValue = getValue('fechado');
     const vendaAprovada = fechadoValue ? parseBooleanField(fechadoValue) : !!dataVenda;
 
+    // Handle crm_id - convert empty string to null to avoid unique constraint violations
+    const rawCrmId = getValue('id');
+    const crmId = rawCrmId && rawCrmId.trim() !== '' ? rawCrmId.trim() : null;
+    
+    console.log(`crm_id processing: raw="${rawCrmId}" -> final="${crmId}"`);
+
     const stagingRecord = {
       // Core business fields
-      crm_id: getValue('id'),
+      crm_id: crmId,
       nome: getValue('nome'),
       pipeline: getValue('pipeline'),
       vendedor: getValue('responsavel_id') || getValue('venda_realizada') || getValue('quem_vendeu'),
@@ -236,8 +242,8 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if record with this crm_id already exists
-    const crmId = stagingRecord.crm_id;
+    // Check if record with this crm_id already exists (only if crm_id is not null)
+    // When crm_id is null, always insert as a new record
     let existingRecord = null;
     
     if (crmId) {
@@ -247,6 +253,9 @@ serve(async (req) => {
         .eq('crm_id', crmId)
         .maybeSingle();
       existingRecord = existing;
+      console.log(`Checking existing record for crm_id="${crmId}": ${existing ? 'found' : 'not found'}`);
+    } else {
+      console.log('crm_id is null, will insert as new record');
     }
 
     let data;
