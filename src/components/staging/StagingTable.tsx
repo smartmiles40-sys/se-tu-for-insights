@@ -10,6 +10,10 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -129,6 +133,57 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
     );
   };
 
+  const EditableDateCell = ({
+    id,
+    field,
+    value,
+  }: {
+    id: string;
+    field: string;
+    value: string | null;
+  }) => {
+    const [open, setOpen] = useState(false);
+
+    const handleDateSelect = async (date: Date | undefined) => {
+      const dateValue = date ? format(date, 'yyyy-MM-dd') : null;
+      await updateMutation.mutateAsync({
+        id,
+        updates: { [field]: dateValue },
+      });
+      setOpen(false);
+    };
+
+    const parsedDate = value ? new Date(value + 'T00:00:00') : undefined;
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              'h-8 justify-start text-left font-normal px-2 -mx-2 hover:bg-muted/50',
+              !value && 'text-muted-foreground'
+            )}
+          >
+            <CalendarIcon className="mr-1 h-3 w-3" />
+            {value ? formatDate(value) : '-'}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={parsedDate}
+            onSelect={handleDateSelect}
+            initialFocus
+            locale={ptBR}
+            className={cn("p-3 pointer-events-auto")}
+          />
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -215,26 +270,20 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                     value={formatCurrency(row.total)} 
                   />
                 </TableCell>
-                <TableCell>{formatDate(row.data_inicio)}</TableCell>
                 <TableCell>
-                  <Badge variant={row.mql ? 'default' : 'outline'}>
-                    {row.mql ? 'Sim' : 'Não'}
-                  </Badge>
+                  <EditableDateCell id={row.id} field="data_inicio" value={row.data_inicio} />
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.sql_qualificado ? 'default' : 'outline'}>
-                    {row.sql_qualificado ? 'Sim' : 'Não'}
-                  </Badge>
+                  <EditableDateCell id={row.id} field="data_mql" value={row.data_mql} />
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.reuniao_agendada ? 'default' : 'outline'}>
-                    {row.reuniao_agendada ? 'Sim' : 'Não'}
-                  </Badge>
+                  <EditableDateCell id={row.id} field="data_sql" value={row.data_sql} />
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.venda_aprovada ? 'default' : 'outline'}>
-                    {row.venda_aprovada ? 'Sim' : 'Não'}
-                  </Badge>
+                  <EditableDateCell id={row.id} field="data_reuniao_realizada" value={row.data_reuniao_realizada} />
+                </TableCell>
+                <TableCell>
+                  <EditableDateCell id={row.id} field="data_venda" value={row.data_venda} />
                 </TableCell>
                 <TableCell>
                   <EditableCell id={row.id} field="contato_fonte" value={row.contato_fonte} />
