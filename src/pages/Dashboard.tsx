@@ -344,9 +344,10 @@ export default function Dashboard() {
 
               {/* Daily Revenue Chart */}
               <DailyRevenueChart 
-                data={negocios} 
+                data={allNegocios || []} 
                 month={currentMonth} 
-                year={currentYear} 
+                year={currentYear}
+                metaExcelente={metaGlobal?.meta_faturamento_excelente}
               />
             </TabsContent>
 
