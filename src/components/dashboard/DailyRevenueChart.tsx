@@ -17,6 +17,7 @@ import { TrendingUp, Target } from 'lucide-react';
 interface DailyRevenueData {
   total?: number | null;
   data_venda?: string | null;
+  data_inicio?: string | null;
   venda_aprovada?: boolean | null;
 }
 
@@ -44,11 +45,15 @@ export function DailyRevenueChart({ data, month, year, title = "Faturamento por 
       });
     }
     
-    // Fill in actual revenue data - filter for approved sales with data_venda
+    // Fill in actual revenue data - filter for approved sales
+    // Use data_venda if available, otherwise fall back to data_inicio
     data.forEach(item => {
-      if (item.venda_aprovada && item.data_venda && item.total) {
+      if (item.venda_aprovada && item.total) {
+        const dateStr = item.data_venda || item.data_inicio;
+        if (!dateStr) return;
+        
         try {
-          const date = parseISO(item.data_venda);
+          const date = parseISO(dateStr);
           const itemMonth = date.getMonth() + 1;
           const itemYear = date.getFullYear();
           
