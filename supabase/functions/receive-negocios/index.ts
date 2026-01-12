@@ -183,7 +183,7 @@ serve(async (req) => {
       crm_id: getValue('id'),
       nome: getValue('nome'),
       pipeline: getValue('pipeline'),
-      vendedor: getValue('responsavel_id'),
+      vendedor: getValue('responsavel_id') || getValue('venda_realizada') || getValue('quem_vendeu'),
       sdr: getValue('responsavel_agendamento') || getValue('quem_agendou'),
       contato_fonte: getValue('fonte_contato'),
       lead_fonte: getValue('fonte') || getValue('lead_qlf'),
