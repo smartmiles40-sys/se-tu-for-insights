@@ -113,9 +113,22 @@ serve(async (req) => {
       console.log('Query params received:', JSON.stringify(queryParams, null, 2));
     }
 
-    // Helper to get value from query params or body
+    // Helper to get value from query params or body (case-insensitive for body)
     const getValue = (key: string): string | null => {
-      return params.get(key) || bodyData[key] || null;
+      // First try exact match from query params
+      const queryValue = params.get(key);
+      if (queryValue) return queryValue;
+      
+      // For body, try exact match first, then case-insensitive
+      if (bodyData[key]) return bodyData[key];
+      
+      // Case-insensitive search in body
+      const lowerKey = key.toLowerCase();
+      for (const [k, v] of Object.entries(bodyData)) {
+        if (k.toLowerCase() === lowerKey) return v;
+      }
+      
+      return null;
     };
 
     // Map incoming fields to staging_negocios table
