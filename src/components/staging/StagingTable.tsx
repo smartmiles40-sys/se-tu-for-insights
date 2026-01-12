@@ -228,24 +228,21 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
             <TableHead>CRM ID</TableHead>
             <TableHead>Fase</TableHead>
             <TableHead>Tipo Venda</TableHead>
-            <TableHead>Motivo Perda</TableHead>
             <TableHead>Fonte</TableHead>
             <TableHead>Data Início</TableHead>
             <TableHead>1º Contato</TableHead>
             <TableHead>Agendamento</TableHead>
             <TableHead>Reunião</TableHead>
-            <TableHead>Data No-Show</TableHead>
             <TableHead>Data MQL</TableHead>
             <TableHead>Data SQL</TableHead>
             <TableHead>Data Venda</TableHead>
-            <TableHead>Lote</TableHead>
             <TableHead>Criado em</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={25} className="h-24 text-center text-muted-foreground">
+              <TableCell colSpan={22} className="h-24 text-center text-muted-foreground">
                 Nenhum registro encontrado
               </TableCell>
             </TableRow>
@@ -308,9 +305,6 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   <EditableCell id={row.id} field="tipo_venda" value={row.tipo_venda} />
                 </TableCell>
                 <TableCell>
-                  <EditableCell id={row.id} field="motivo_perda" value={row.motivo_perda} />
-                </TableCell>
-                <TableCell>
                   <EditableCell id={row.id} field="contato_fonte" value={row.contato_fonte} />
                 </TableCell>
                 <TableCell>
@@ -326,9 +320,6 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   <EditableDateCell id={row.id} field="data_reuniao_realizada" value={row.data_reuniao_realizada} />
                 </TableCell>
                 <TableCell>
-                  <EditableDateCell id={row.id} field="data_noshow" value={row.data_noshow} />
-                </TableCell>
-                <TableCell>
                   <EditableDateCell id={row.id} field="data_mql" value={row.data_mql} />
                 </TableCell>
                 <TableCell>
@@ -336,9 +327,6 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                 </TableCell>
                 <TableCell>
                   <EditableDateCell id={row.id} field="data_venda" value={row.data_venda} />
-                </TableCell>
-                <TableCell className="text-muted-foreground text-xs font-mono">
-                  {row.batch_id?.slice(0, 8) || '-'}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {format(new Date(row.imported_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
