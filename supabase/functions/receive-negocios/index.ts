@@ -185,7 +185,7 @@ serve(async (req) => {
       pipeline: getValue('pipeline'),
       vendedor: getValue('responsavel_id') || getValue('venda_realizada') || getValue('quem_vendeu'),
       sdr: getValue('responsavel_agendamento') || getValue('quem_agendou'),
-      contato_fonte: getValue('fonte_contato'),
+      contato_fonte: getValue('fonte_contato') || getValue('fonte'),
       lead_fonte: getValue('fonte') || getValue('lead_qlf'),
       data_inicio: parseDateField(getValue('data_inicio')),
       total: parseNumericField(getValue('valor')),
