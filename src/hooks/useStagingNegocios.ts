@@ -267,6 +267,7 @@ export function useDeleteStaging() {
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['staging-negocios'] });
       queryClient.invalidateQueries({ queryKey: ['staging-negocios-count'] });
+      queryClient.invalidateQueries({ queryKey: ['negocios'] }); // Also invalidate negocios since trigger deletes from there
       toast.success(`${count} registro(s) excluído(s)`);
     },
     onError: (error) => {

@@ -32,7 +32,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      onSelectionChange(data.filter(d => d.status === 'pendente').map(d => d.id));
+      onSelectionChange(data.map(d => d.id));
     } else {
       onSelectionChange([]);
     }
@@ -201,8 +201,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
     }
   };
 
-  const pendingCount = data.filter(d => d.status === 'pendente').length;
-  const allPendingSelected = pendingCount > 0 && selectedIds.length === pendingCount;
+  const allSelected = data.length > 0 && selectedIds.length === data.length;
 
   return (
     <div className="rounded-md border">
@@ -211,9 +210,9 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
-                checked={allPendingSelected}
+                checked={allSelected}
                 onCheckedChange={handleSelectAll}
-                disabled={pendingCount === 0}
+                disabled={data.length === 0}
               />
             </TableHead>
             <TableHead>Status</TableHead>
@@ -259,7 +258,6 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   <Checkbox
                     checked={selectedIds.includes(row.id)}
                     onCheckedChange={(checked) => handleSelectRow(row.id, !!checked)}
-                    disabled={row.status !== 'pendente'}
                   />
                 </TableCell>
                 <TableCell>{getStatusBadge(row.status)}</TableCell>
