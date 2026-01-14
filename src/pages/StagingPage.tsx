@@ -48,12 +48,6 @@ export default function StagingPage() {
     };
   }, [allData]);
 
-  // Get all pending IDs for "Approve All" action
-  const allPendingIds = useMemo(() => {
-    if (!allData) return [];
-    return allData.filter(d => d.status === 'pendente').map(d => d.id);
-  }, [allData]);
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -62,10 +56,10 @@ export default function StagingPage() {
           <div>
             <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-3">
               <FileSpreadsheet className="h-7 w-7" />
-              Dados Recebidos
+              Gerenciar Dados
             </h1>
             <p className="text-muted-foreground mt-1">
-              Revise e aprove os dados recebidos do n8n antes de irem para o dashboard.
+              Dados recebidos do n8n são sincronizados automaticamente com o dashboard. Exclua registros problemáticos aqui.
             </p>
           </div>
 
@@ -120,12 +114,11 @@ export default function StagingPage() {
               <div>
                 <CardTitle>Registros</CardTitle>
                 <CardDescription>
-                  Clique em uma célula para editar. Selecione registros para aprovar ou rejeitar.
+                  Clique em uma célula para editar. Selecione registros para excluir do dashboard.
                 </CardDescription>
               </div>
               <StagingActions
                 selectedIds={selectedIds}
-                allPendingIds={allPendingIds}
                 onClearSelection={() => setSelectedIds([])}
               />
             </div>
