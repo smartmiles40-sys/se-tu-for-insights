@@ -263,16 +263,58 @@ serve(async (req) => {
     let isUpdate = false;
 
     if (existingRecord) {
-      // Update existing record - preserve status if already approved/rejected
+      // Update existing record - ONLY update fields that have values (partial update)
       isUpdate = true;
-      console.log(`Found existing record with crm_id ${crmId}, updating...`);
+      console.log(`Found existing record with crm_id ${crmId}, performing partial update...`);
       
-      const updateData = {
-        ...stagingRecord,
-        // Keep status as 'pendente' on update so it can be re-reviewed
-        status: 'pendente',
-        updated_at: new Date().toISOString(),
-      };
+      // Filter out empty/null/zero fields to preserve existing values
+      const updateData: Record<string, unknown> = {};
+      
+      for (const [key, value] of Object.entries(stagingRecord)) {
+        // Always include these metadata fields
+        if (key === 'source' || key === 'batch_id') {
+          updateData[key] = value;
+          continue;
+        }
+        
+        // Skip null/undefined values
+        if (value === null || value === undefined) continue;
+        
+        // For numbers: skip if 0 (means not provided)
+        if (typeof value === 'number' && value === 0) continue;
+        
+        // For strings: skip if empty
+        if (typeof value === 'string' && value.trim() === '') continue;
+        
+        // For booleans: only include if corresponding date exists
+        // This prevents false from overwriting true when date is not sent
+        if (typeof value === 'boolean') {
+          // Map boolean fields to their corresponding date fields
+          const boolDateMap: Record<string, string> = {
+            mql: 'data_mql',
+            sql_qualificado: 'data_sql',
+            reuniao_agendada: 'data_agendamento',
+            reuniao_realizada: 'data_reuniao_realizada',
+            no_show: 'data_noshow',
+            venda_aprovada: 'data_venda',
+          };
+          
+          const dateField = boolDateMap[key];
+          if (dateField) {
+            // Only update boolean if the corresponding date was provided
+            const dateValue = stagingRecord[dateField as keyof typeof stagingRecord];
+            if (!dateValue) continue;
+          }
+        }
+        
+        updateData[key] = value;
+      }
+      
+      // Always set these
+      updateData.status = 'pendente';
+      updateData.updated_at = new Date().toISOString();
+      
+      console.log('Partial update data:', JSON.stringify(updateData, null, 2));
       
       const result = await supabase
         .from('staging_negocios')
@@ -284,7 +326,7 @@ serve(async (req) => {
       data = result.data;
       error = result.error;
     } else {
-      // Insert new record
+      // Insert new record with all fields
       const insertData = {
         ...stagingRecord,
         status: 'pendente',
