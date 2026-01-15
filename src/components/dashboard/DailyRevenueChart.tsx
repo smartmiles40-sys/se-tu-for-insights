@@ -100,7 +100,8 @@ export function DailyRevenueChart({ data, month, year, title = "Faturamento por 
     ? Math.min((totalRevenue / metaExcelente) * 100, 100) 
     : 0;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const renderTooltip = (props: { active?: boolean; payload?: any[]; label?: string }) => {
+    const { active, payload, label } = props;
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -199,7 +200,7 @@ export function DailyRevenueChart({ data, month, year, title = "Faturamento por 
                 axisLine={false}
                 tickFormatter={formatCurrency}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={renderTooltip} />
               {dailyTarget > 0 && (
                 <ReferenceLine 
                   y={dailyTarget} 

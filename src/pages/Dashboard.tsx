@@ -443,9 +443,9 @@ export default function Dashboard() {
                 <RankingTable negocios={negocios} type="sdr" limit={4} filters={filters} />
               </div>
 
-              {/* Daily Revenue Chart */}
+              {/* Daily Revenue Chart - apenas pipeline Comercial */}
               <DailyRevenueChart 
-                data={allNegocios || []} 
+                data={(allNegocios || []).filter(n => isComercial(n.pipeline))} 
                 month={currentMonth} 
                 year={currentYear}
                 metaExcelente={metaGlobal?.meta_faturamento_excelente}
