@@ -14,7 +14,7 @@ import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegoci
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format, parseISO, startOfMonth } from 'date-fns';
+import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function Dashboard() {
@@ -66,6 +66,10 @@ export default function Dashboard() {
         taxaConversaoGeral: 0,
         totalLeads: 0,
         monthlyData: [],
+        // Métricas de cohort
+        vendasDosLeadsDoPeriodo: 0,
+        taxaConversaoLeadsDoPeriodo: 0,
+        tempoMedioFechamento: 0,
       };
     }
 
@@ -90,12 +94,35 @@ export default function Dashboard() {
     );
     const reunioesRealizadas = reunioesNoPeriodo.length;
 
-    // VENDAS E FATURAMENTO: count by data_venda
+    // VENDAS E FATURAMENTO DO MÊS: count by data_venda
     const vendasNoPeriodo = negocios.filter(n => 
       n.venda_aprovada && isInPeriod(n.data_venda)
     );
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
+
+    // ANÁLISE DE COHORT: Dos leads que entraram no período, quantos converteram?
+    // (mesmo que a venda tenha sido em mês posterior)
+    const vendasDosLeadsDoPeriodo = leadsNoPeriodo.filter(n => n.venda_aprovada).length;
+    const taxaConversaoLeadsDoPeriodo = totalLeads > 0 
+      ? (vendasDosLeadsDoPeriodo / totalLeads) * 100 
+      : 0;
+
+    // TEMPO MÉDIO DE FECHAMENTO: diferença entre primeiro_contato e data_venda
+    const vendasComDatas = vendasNoPeriodo.filter(n => n.primeiro_contato && n.data_venda);
+    let tempoMedioFechamento = 0;
+    if (vendasComDatas.length > 0) {
+      const totalDias = vendasComDatas.reduce((sum, n) => {
+        try {
+          const inicio = parseISO(n.primeiro_contato!);
+          const fim = parseISO(n.data_venda!);
+          return sum + differenceInDays(fim, inicio);
+        } catch {
+          return sum;
+        }
+      }, 0);
+      tempoMedioFechamento = Math.round(totalDias / vendasComDatas.length);
+    }
 
     // NO-SHOWS: agendamentos no período que não compareceram
     const noShows = agendamentosNoPeriodo.filter(n => !n.reuniao_realizada).length;
@@ -167,6 +194,10 @@ export default function Dashboard() {
       taxaConversaoGeral,
       totalLeads,
       monthlyData,
+      // Cohort
+      vendasDosLeadsDoPeriodo,
+      taxaConversaoLeadsDoPeriodo,
+      tempoMedioFechamento,
     };
   }, [negocios, filters]);
 
@@ -351,25 +382,30 @@ export default function Dashboard() {
 
                   {/* Indicadores de Performance */}
                   <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Performance</h3>
+                    <h3 className="bi-card-title mb-2 text-sm">Análise de Cohort</h3>
                     <div className="space-y-2 flex-1 flex flex-col justify-around">
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
-                          <div className="text-xs text-slate-400 uppercase">CAC</div>
+                          <div className="text-xs text-slate-400 uppercase">Vendas dos Leads</div>
+                          <div className="text-[10px] text-slate-500">Leads do período que converteram</div>
                         </div>
-                        <div className="text-base font-bold text-orange-400">{formatCurrency(0)}</div>
+                        <div className="text-base font-bold text-emerald-400">{executiveStats.vendasDosLeadsDoPeriodo}</div>
                       </div>
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
-                          <div className="text-xs text-slate-400 uppercase">ROAS</div>
+                          <div className="text-xs text-slate-400 uppercase">% Conv. Leads</div>
+                          <div className="text-[10px] text-slate-500">Taxa de conversão do cohort</div>
                         </div>
-                        <div className="text-base font-bold text-yellow-400">0x</div>
+                        <div className={`text-base font-bold ${executiveStats.taxaConversaoLeadsDoPeriodo >= 10 ? 'text-emerald-400' : executiveStats.taxaConversaoLeadsDoPeriodo >= 5 ? 'text-yellow-400' : 'text-orange-400'}`}>
+                          {executiveStats.taxaConversaoLeadsDoPeriodo.toFixed(1)}%
+                        </div>
                       </div>
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
+                          <div className="text-[10px] text-slate-500">Dias até fechamento</div>
                         </div>
-                        <div className="text-base font-bold text-pink-400">{executiveStats.vendasRealizadas > 0 ? '30d' : '0d'}</div>
+                        <div className="text-base font-bold text-pink-400">{executiveStats.tempoMedioFechamento}d</div>
                       </div>
                     </div>
                   </div>
