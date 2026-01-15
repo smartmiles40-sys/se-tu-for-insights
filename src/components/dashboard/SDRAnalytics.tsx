@@ -60,11 +60,11 @@ export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
         n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
       ).length;
       
-      // No-shows: agendou mas não realizou
+      // No-shows: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
       const noShows = sdrNegocios.filter(n => 
-        n.reuniao_agendada && 
-        !n.reuniao_realizada && 
-        isInPeriod(n.data_agendamento || n.primeiro_contato)
+        n.data_noshow !== null && 
+        n.data_noshow !== undefined &&
+        isInPeriod(n.data_noshow)
       ).length;
       
       const taxaAgendamento = leadsRecebidos > 0 ? (reunioesAgendadas / leadsRecebidos) * 100 : 0;

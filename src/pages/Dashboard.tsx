@@ -98,8 +98,8 @@ export default function Dashboard() {
     // REUNIÕES REALIZADAS: COUNT(reuniao_realizada = true)
     const reunioesRealizadas = negociosValidos.filter(n => n.reuniao_realizada === true).length;
 
-    // NO-SHOWS: COUNT(no_show = true)
-    const noShows = negociosValidos.filter(n => n.no_show === true).length;
+    // NO-SHOWS: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
+    const noShows = negociosValidos.filter(n => n.data_noshow !== null && n.data_noshow !== undefined).length;
 
     // VENDAS: COUNT(venda_aprovada = true) - apenas pipeline Comercial para faturamento
     const vendasRealizadas = negociosComercial.filter(n => n.venda_aprovada === true).length;
