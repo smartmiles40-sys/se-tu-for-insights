@@ -1,24 +1,41 @@
 import { useMemo } from 'react';
-import { Negocio } from '@/hooks/useNegocios';
+import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
 
 interface OrigemPerformanceProps {
   negocios: Negocio[];
+  filters?: NegocioFilters;
 }
 
 const COLORS = ['#22d3ee', '#facc15', '#f472b6', '#34d399', '#fb923c'];
 
-export function OrigemPerformance({ negocios }: OrigemPerformanceProps) {
+export function OrigemPerformance({ negocios, filters }: OrigemPerformanceProps) {
+  // Helper to check if date is in period
+  const isInPeriod = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    if (!filters?.dataInicio || !filters?.dataFim) return true;
+    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  };
+
   const data = useMemo(() => {
     const origemMap: Record<string, { origem: string; leads: number; vendas: number; receita: number }> = {};
     
     negocios.forEach(n => {
       const origem = n.lead_fonte || n.utm_source || 'Direto';
-      if (!origemMap[origem]) {
-        origemMap[origem] = { origem, leads: 0, vendas: 0, receita: 0 };
+      
+      // Leads: por primeiro_contato
+      if (isInPeriod(n.primeiro_contato)) {
+        if (!origemMap[origem]) {
+          origemMap[origem] = { origem, leads: 0, vendas: 0, receita: 0 };
+        }
+        origemMap[origem].leads += 1;
       }
-      origemMap[origem].leads += 1;
-      if (n.venda_aprovada) {
+      
+      // Vendas e receita: por data_venda
+      if (n.venda_aprovada && isInPeriod(n.data_venda)) {
+        if (!origemMap[origem]) {
+          origemMap[origem] = { origem, leads: 0, vendas: 0, receita: 0 };
+        }
         origemMap[origem].vendas += 1;
         origemMap[origem].receita += n.total || 0;
       }
@@ -32,7 +49,7 @@ export function OrigemPerformance({ negocios }: OrigemPerformanceProps) {
         conversao: o.leads > 0 ? (o.vendas / o.leads) * 100 : 0,
         nomeShort: o.origem.length > 12 ? o.origem.substring(0, 12) + '...' : o.origem,
       }));
-  }, [negocios]);
+  }, [negocios, filters]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', {

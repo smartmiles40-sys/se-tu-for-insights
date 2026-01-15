@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Negocio } from '@/hooks/useNegocios';
+import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
 import { CheckCircle, AlertTriangle, Award } from 'lucide-react';
 import { 
@@ -16,6 +16,7 @@ import {
 
 interface EspecialistasAnalyticsProps {
   negocios: Negocio[];
+  filters?: NegocioFilters;
 }
 
 interface EspecialistaStats {
@@ -27,14 +28,29 @@ interface EspecialistaStats {
   ticketMedio: number;
 }
 
-export function EspecialistasAnalytics({ negocios }: EspecialistasAnalyticsProps) {
+export function EspecialistasAnalytics({ negocios, filters }: EspecialistasAnalyticsProps) {
+  // Helper to check if date is in period
+  const isInPeriod = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    if (!filters?.dataInicio || !filters?.dataFim) return true;
+    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  };
+
   const { especialistaStats, mediaConversao, mediaFaturamento } = useMemo(() => {
     const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v))];
     
     const stats = vendedores.map(vendedor => {
       const vendedorNegocios = negocios.filter(n => n.vendedor === vendedor);
-      const reunioesRecebidas = vendedorNegocios.filter(n => n.reuniao_realizada).length;
-      const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
+      
+      // Reuniões: por data_reuniao_realizada
+      const reunioesRecebidas = vendedorNegocios.filter(n => 
+        n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
+      ).length;
+      
+      // Vendas e faturamento: por data_venda
+      const vendas = vendedorNegocios.filter(n => 
+        n.venda_aprovada && isInPeriod(n.data_venda)
+      );
       const vendasRealizadas = vendas.length;
       const taxaConversao = reunioesRecebidas > 0 ? (vendasRealizadas / reunioesRecebidas) * 100 : 0;
       const faturamento = vendas.reduce((sum, n) => sum + (n.total || 0), 0);
@@ -58,7 +74,7 @@ export function EspecialistasAnalytics({ negocios }: EspecialistasAnalyticsProps
       mediaConversao: stats.length > 0 ? totalConversao / stats.length : 0,
       mediaFaturamento: stats.length > 0 ? totalFaturamento / stats.length : 0,
     };
-  }, [negocios]);
+  }, [negocios, filters]);
 
   const formatNumber = (value: number) =>
     new Intl.NumberFormat('pt-BR').format(value);
