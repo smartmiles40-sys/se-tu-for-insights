@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Negocio } from '@/hooks/useNegocios';
+import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
 import { CheckCircle, AlertTriangle, Award } from 'lucide-react';
 import { 
@@ -15,6 +15,7 @@ import {
 
 interface SDRAnalyticsProps {
   negocios: Negocio[];
+  filters?: NegocioFilters;
 }
 
 interface SDRStats {
@@ -29,23 +30,47 @@ interface SDRStats {
   faturamentoOriginado: number;
 }
 
-export function SDRAnalytics({ negocios }: SDRAnalyticsProps) {
+export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
+  // Helper to check if date is in period
+  const isInPeriod = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    if (!filters?.dataInicio || !filters?.dataFim) return true;
+    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  };
+
   const sdrStats = useMemo((): SDRStats[] => {
     const sdrs = [...new Set(negocios.map(n => n.sdr).filter((s): s is string => !!s))];
     
     return sdrs.map(sdr => {
       const sdrNegocios = negocios.filter(n => n.sdr === sdr);
-      const leadsRecebidos = sdrNegocios.length;
-      const reunioesAgendadas = sdrNegocios.filter(n => n.reuniao_agendada).length;
-      const reunioesRealizadas = sdrNegocios.filter(n => n.reuniao_realizada).length;
-      const noShows = sdrNegocios.filter(n => n.reuniao_agendada && !n.reuniao_realizada).length;
+      
+      // Leads: por primeiro_contato
+      const leadsRecebidos = sdrNegocios.filter(n => isInPeriod(n.primeiro_contato)).length;
+      
+      // Agendamentos: por data_agendamento
+      const reunioesAgendadas = sdrNegocios.filter(n => 
+        n.reuniao_agendada && isInPeriod(n.data_agendamento || n.primeiro_contato)
+      ).length;
+      
+      // Reuniões realizadas: por data_reuniao_realizada
+      const reunioesRealizadas = sdrNegocios.filter(n => 
+        n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
+      ).length;
+      
+      // No-shows: agendou mas não realizou
+      const noShows = sdrNegocios.filter(n => 
+        n.reuniao_agendada && 
+        !n.reuniao_realizada && 
+        isInPeriod(n.data_agendamento || n.primeiro_contato)
+      ).length;
       
       const taxaAgendamento = leadsRecebidos > 0 ? (reunioesAgendadas / leadsRecebidos) * 100 : 0;
       const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
       const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
       
+      // Faturamento: por data_venda
       const faturamentoOriginado = sdrNegocios
-        .filter(n => n.venda_aprovada)
+        .filter(n => n.venda_aprovada && isInPeriod(n.data_venda))
         .reduce((sum, n) => sum + (n.total || 0), 0);
       
       return {
@@ -60,7 +85,7 @@ export function SDRAnalytics({ negocios }: SDRAnalyticsProps) {
         faturamentoOriginado,
       };
     }).sort((a, b) => b.faturamentoOriginado - a.faturamentoOriginado);
-  }, [negocios]);
+  }, [negocios, filters]);
 
   const formatNumber = (value: number) =>
     new Intl.NumberFormat('pt-BR').format(value);

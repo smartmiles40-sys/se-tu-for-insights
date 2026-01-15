@@ -65,24 +65,25 @@ export function useNegocios(filters?: NegocioFilters) {
         .select('*')
         .order('data_inicio', { ascending: false });
 
-      // Filter by date range - include records where:
-      // - data_inicio is in range, OR
-      // - data_venda is in range (for sales that happened in the period)
-      // - data_reuniao_realizada is in range (for meetings in the period)
+      // Filter by date range - include records where ANY relevant date is in range:
+      // - primeiro_contato (for leads count)
+      // - data_venda (for sales/revenue)
+      // - data_reuniao_realizada (for meetings)
+      // This allows intelligent filtering per metric
       if (filters?.dataInicio && filters?.dataFim) {
         query = query.or(
-          `data_inicio.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio}`
+          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio}`
         );
         query = query.or(
-          `data_inicio.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim}`
+          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim}`
         );
       } else if (filters?.dataInicio) {
         query = query.or(
-          `data_inicio.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio}`
+          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio}`
         );
       } else if (filters?.dataFim) {
         query = query.or(
-          `data_inicio.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim}`
+          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim}`
         );
       }
       if (filters?.sdr) {

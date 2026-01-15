@@ -46,12 +46,20 @@ export default function Dashboard() {
   const { data: negocios, isLoading } = useNegocios(filters);
   const { data: metaGlobal, isLoading: loadingMeta } = useMetaGlobal(currentMonth, currentYear);
 
+  // Helper function to check if a date is within the filter period
+  const isInPeriod = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    if (!filters.dataInicio || !filters.dataFim) return true;
+    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  };
+
   const executiveStats = useMemo(() => {
     if (!negocios || negocios.length === 0) {
       return {
         receitaTotal: 0,
         vendasRealizadas: 0,
         reunioesRealizadas: 0,
+        reunioesAgendadas: 0,
         taxaAgendamento: 0,
         taxaNoShow: 0,
         taxaShowUp: 0,
@@ -61,34 +69,81 @@ export default function Dashboard() {
       };
     }
 
-    const totalLeads = negocios.length;
-    const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada).length;
-    const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
-    const noShows = negocios.filter(n => n.reuniao_agendada && !n.reuniao_realizada).length;
-    const vendas = negocios.filter(n => n.venda_aprovada);
-    const vendasRealizadas = vendas.length;
-    const receitaTotal = vendas.reduce((sum, n) => sum + (n.total || 0), 0);
+    // FILTRO INTELIGENTE POR MÉTRICA:
+    // - Leads: filtrar por primeiro_contato
+    // - Faturamento/Vendas: filtrar por data_venda
+    // - Reuniões: filtrar por data_reuniao_realizada
 
+    // LEADS: count by primeiro_contato
+    const leadsNoPeriodo = negocios.filter(n => isInPeriod(n.primeiro_contato));
+    const totalLeads = leadsNoPeriodo.length;
+
+    // AGENDAMENTOS: count by data_agendamento (or primeiro_contato if no agendamento date)
+    const agendamentosNoPeriodo = negocios.filter(n => 
+      n.reuniao_agendada && isInPeriod(n.data_agendamento || n.primeiro_contato)
+    );
+    const reunioesAgendadas = agendamentosNoPeriodo.length;
+
+    // REUNIÕES REALIZADAS: count by data_reuniao_realizada
+    const reunioesNoPeriodo = negocios.filter(n => 
+      n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
+    );
+    const reunioesRealizadas = reunioesNoPeriodo.length;
+
+    // VENDAS E FATURAMENTO: count by data_venda
+    const vendasNoPeriodo = negocios.filter(n => 
+      n.venda_aprovada && isInPeriod(n.data_venda)
+    );
+    const vendasRealizadas = vendasNoPeriodo.length;
+    const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
+
+    // NO-SHOWS: agendamentos no período que não compareceram
+    const noShows = agendamentosNoPeriodo.filter(n => !n.reuniao_realizada).length;
+
+    // Taxas calculadas
     const taxaAgendamento = totalLeads > 0 ? (reunioesAgendadas / totalLeads) * 100 : 0;
     const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
     const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
     const taxaConversaoGeral = reunioesRealizadas > 0 ? (vendasRealizadas / reunioesRealizadas) * 100 : 0;
 
-    // Monthly data for sparklines
-    const monthlyMap: Record<string, { receita: number; vendas: number; leads: number }> = {};
+    // Monthly data for sparklines - cada métrica usa sua própria data
+    const monthlyMap: Record<string, { receita: number; vendas: number; leads: number; reunioes: number }> = {};
+    
     negocios.forEach(n => {
-      if (n.data_inicio) {
+      // Leads por primeiro_contato
+      if (n.primeiro_contato) {
         try {
-          const date = parseISO(n.data_inicio);
+          const date = parseISO(n.primeiro_contato);
           const monthKey = format(startOfMonth(date), 'yyyy-MM');
           if (!monthlyMap[monthKey]) {
-            monthlyMap[monthKey] = { receita: 0, vendas: 0, leads: 0 };
+            monthlyMap[monthKey] = { receita: 0, vendas: 0, leads: 0, reunioes: 0 };
           }
           monthlyMap[monthKey].leads += 1;
-          if (n.venda_aprovada) {
-            monthlyMap[monthKey].vendas += 1;
-            monthlyMap[monthKey].receita += n.total || 0;
+        } catch (e) {}
+      }
+      
+      // Vendas e receita por data_venda
+      if (n.venda_aprovada && n.data_venda) {
+        try {
+          const date = parseISO(n.data_venda);
+          const monthKey = format(startOfMonth(date), 'yyyy-MM');
+          if (!monthlyMap[monthKey]) {
+            monthlyMap[monthKey] = { receita: 0, vendas: 0, leads: 0, reunioes: 0 };
           }
+          monthlyMap[monthKey].vendas += 1;
+          monthlyMap[monthKey].receita += n.total || 0;
+        } catch (e) {}
+      }
+
+      // Reuniões por data_reuniao_realizada
+      if (n.reuniao_realizada && n.data_reuniao_realizada) {
+        try {
+          const date = parseISO(n.data_reuniao_realizada);
+          const monthKey = format(startOfMonth(date), 'yyyy-MM');
+          if (!monthlyMap[monthKey]) {
+            monthlyMap[monthKey] = { receita: 0, vendas: 0, leads: 0, reunioes: 0 };
+          }
+          monthlyMap[monthKey].reunioes += 1;
         } catch (e) {}
       }
     });
@@ -101,13 +156,11 @@ export default function Dashboard() {
         conversao: data.leads > 0 ? (data.vendas / data.leads) * 100 : 0,
       }));
 
-    const reunioesAgendadasCount = reunioesAgendadas;
-
     return { 
       receitaTotal, 
       vendasRealizadas, 
       reunioesRealizadas, 
-      reunioesAgendadas: reunioesAgendadasCount,
+      reunioesAgendadas,
       taxaAgendamento, 
       taxaNoShow, 
       taxaShowUp, 
@@ -115,7 +168,7 @@ export default function Dashboard() {
       totalLeads,
       monthlyData,
     };
-  }, [negocios]);
+  }, [negocios, filters]);
 
   // Prepare data for MetaProgress
   const realizadoData = useMemo(() => ({
@@ -146,7 +199,8 @@ export default function Dashboard() {
   const hasData = negocios && negocios.length > 0;
   const sparklineReceita = executiveStats.monthlyData.map(d => d.receita);
   const sparklineVendas = executiveStats.monthlyData.map(d => d.vendas);
-  const sparklineReuniao = executiveStats.monthlyData.map(d => d.leads);
+  const sparklineLeads = executiveStats.monthlyData.map(d => d.leads);
+  const sparklineReunioes = executiveStats.monthlyData.map((d: any) => d.reunioes || 0);
 
   return (
     <DashboardLayout>
@@ -195,14 +249,14 @@ export default function Dashboard() {
                   value={formatNumber(executiveStats.totalLeads)}
                   icon={Users}
                   color="orange"
-                  sparklineData={sparklineReuniao}
+                  sparklineData={sparklineLeads}
                 />
                 <KPICardWithSparkline
                   title="Reuniões"
                   value={formatNumber(executiveStats.reunioesRealizadas)}
                   icon={Calendar}
                   color="magenta"
-                  sparklineData={sparklineReuniao}
+                  sparklineData={sparklineReunioes}
                 />
                 <KPICardWithSparkline
                   title="Ticket Médio"
@@ -265,7 +319,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
                 {/* Funnel - 2 columns */}
                 <div className="lg:col-span-2 h-full">
-                  <FunnelHorizontal negocios={negocios} />
+                  <FunnelHorizontal negocios={negocios} filters={filters} />
                 </div>
 
                 {/* Indicadores - 1 column, stacked */}
@@ -334,16 +388,16 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Origem Performance */}
-                <OrigemPerformance negocios={negocios} />
+                <OrigemPerformance negocios={negocios} filters={filters} />
               </div>
 
               {/* Rankings Row */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Ranking Especialistas */}
-                <RankingTable negocios={negocios} type="especialista" limit={4} />
+                <RankingTable negocios={negocios} type="especialista" limit={4} filters={filters} />
 
                 {/* Ranking SDRs */}
-                <RankingTable negocios={negocios} type="sdr" limit={4} />
+                <RankingTable negocios={negocios} type="sdr" limit={4} filters={filters} />
               </div>
 
               {/* Daily Revenue Chart */}
@@ -356,11 +410,11 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="sdr">
-              <SDRAnalytics negocios={negocios} />
+              <SDRAnalytics negocios={negocios} filters={filters} />
             </TabsContent>
 
             <TabsContent value="especialistas">
-              <EspecialistasAnalytics negocios={negocios} />
+              <EspecialistasAnalytics negocios={negocios} filters={filters} />
             </TabsContent>
           </Tabs>
         )}

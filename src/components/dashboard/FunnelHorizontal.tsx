@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { Negocio } from '@/hooks/useNegocios';
+import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
 
 interface FunnelHorizontalProps {
   negocios: Negocio[];
+  filters?: NegocioFilters;
 }
 
 const IDEAL_RATES = {
@@ -19,12 +20,31 @@ const FUNNEL_COLORS = [
   { bg: 'bg-emerald-500', border: 'border-emerald-600', text: 'text-emerald-500' },
 ];
 
-export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
+export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
+  // Helper to check if date is in period
+  const isInPeriod = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    if (!filters?.dataInicio || !filters?.dataFim) return true;
+    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  };
+
   const funnelData = useMemo(() => {
-    const leads = negocios.length;
-    const mql = negocios.filter(n => n.mql).length;
-    const sql = negocios.filter(n => n.sql_qualificado || n.reuniao_agendada).length;
-    const vendas = negocios.filter(n => n.venda_aprovada).length;
+    // Leads: por primeiro_contato
+    const leads = negocios.filter(n => isInPeriod(n.primeiro_contato)).length;
+    
+    // MQL: por primeiro_contato (quando virou MQL)
+    const mql = negocios.filter(n => n.mql && isInPeriod(n.primeiro_contato)).length;
+    
+    // SQL: por data_agendamento ou primeiro_contato
+    const sql = negocios.filter(n => 
+      (n.sql_qualificado || n.reuniao_agendada) && 
+      isInPeriod(n.data_agendamento || n.primeiro_contato)
+    ).length;
+    
+    // Vendas: por data_venda
+    const vendas = negocios.filter(n => 
+      n.venda_aprovada && isInPeriod(n.data_venda)
+    ).length;
 
     const leadsToMqlRate = leads > 0 ? (mql / leads) * 100 : 0;
     const mqlToSqlRate = mql > 0 ? (sql / mql) * 100 : 0;
@@ -36,7 +56,7 @@ export function FunnelHorizontal({ negocios }: FunnelHorizontalProps) {
       { name: 'SQL', value: sql, rate: mqlToSqlRate, ideal: IDEAL_RATES.mqlToSql, width: 60 },
       { name: 'Vendas', value: vendas, rate: sqlToVendasRate, ideal: IDEAL_RATES.sqlToVendas, width: 40 },
     ];
-  }, [negocios]);
+  }, [negocios, filters]);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
 

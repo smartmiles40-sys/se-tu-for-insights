@@ -1,26 +1,52 @@
 import { useMemo } from 'react';
-import { Negocio } from '@/hooks/useNegocios';
+import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
 
 interface RankingTableProps {
   negocios: Negocio[];
   type: 'sdr' | 'especialista';
   limit?: number;
+  filters?: NegocioFilters;
 }
 
-export function RankingTable({ negocios, type, limit = 5 }: RankingTableProps) {
+export function RankingTable({ negocios, type, limit = 5, filters }: RankingTableProps) {
+  // Helper to check if date is in period
+  const isInPeriod = (dateStr: string | null | undefined): boolean => {
+    if (!dateStr) return false;
+    if (!filters?.dataInicio || !filters?.dataFim) return true;
+    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  };
+
   const rankingData = useMemo(() => {
     if (type === 'sdr') {
       const sdrMap: Record<string, { name: string; agendamentos: number; leads: number; receita: number }> = {};
       
       negocios.forEach(n => {
         const sdr = n.sdr || 'Sem SDR';
-        if (!sdrMap[sdr]) {
-          sdrMap[sdr] = { name: sdr, agendamentos: 0, leads: 0, receita: 0 };
+        
+        // Leads: por primeiro_contato
+        if (isInPeriod(n.primeiro_contato)) {
+          if (!sdrMap[sdr]) {
+            sdrMap[sdr] = { name: sdr, agendamentos: 0, leads: 0, receita: 0 };
+          }
+          sdrMap[sdr].leads += 1;
         }
-        sdrMap[sdr].leads += 1;
-        if (n.reuniao_agendada) sdrMap[sdr].agendamentos += 1;
-        if (n.venda_aprovada) sdrMap[sdr].receita += n.total || 0;
+        
+        // Agendamentos: por data_agendamento
+        if (n.reuniao_agendada && isInPeriod(n.data_agendamento || n.primeiro_contato)) {
+          if (!sdrMap[sdr]) {
+            sdrMap[sdr] = { name: sdr, agendamentos: 0, leads: 0, receita: 0 };
+          }
+          sdrMap[sdr].agendamentos += 1;
+        }
+        
+        // Receita: por data_venda
+        if (n.venda_aprovada && isInPeriod(n.data_venda)) {
+          if (!sdrMap[sdr]) {
+            sdrMap[sdr] = { name: sdr, agendamentos: 0, leads: 0, receita: 0 };
+          }
+          sdrMap[sdr].receita += n.total || 0;
+        }
       });
 
       return Object.values(sdrMap)
@@ -35,11 +61,20 @@ export function RankingTable({ negocios, type, limit = 5 }: RankingTableProps) {
       
       negocios.forEach(n => {
         const esp = n.vendedor || 'Sem Especialista';
-        if (!espMap[esp]) {
-          espMap[esp] = { name: esp, vendas: 0, reunioes: 0, receita: 0 };
+        
+        // Reuniões: por data_reuniao_realizada
+        if (n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)) {
+          if (!espMap[esp]) {
+            espMap[esp] = { name: esp, vendas: 0, reunioes: 0, receita: 0 };
+          }
+          espMap[esp].reunioes += 1;
         }
-        if (n.reuniao_realizada) espMap[esp].reunioes += 1;
-        if (n.venda_aprovada) {
+        
+        // Vendas e receita: por data_venda
+        if (n.venda_aprovada && isInPeriod(n.data_venda)) {
+          if (!espMap[esp]) {
+            espMap[esp] = { name: esp, vendas: 0, reunioes: 0, receita: 0 };
+          }
           espMap[esp].vendas += 1;
           espMap[esp].receita += n.total || 0;
         }
@@ -53,7 +88,7 @@ export function RankingTable({ negocios, type, limit = 5 }: RankingTableProps) {
         .sort((a, b) => b.receita - a.receita)
         .slice(0, limit);
     }
-  }, [negocios, type, limit]);
+  }, [negocios, type, limit, filters]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', {
