@@ -12,32 +12,86 @@ import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from 'luc
 
 // Mapeamento das colunas do CSV para o banco (mais flexível)
 const columnMapping: Record<string, keyof Negocio> = {
+  // ID do CRM
+  'id': 'crm_id',
+  'crm_id': 'crm_id',
+  
   // Nome
   'nome': 'nome',
   'título': 'nome',
   'titulo': 'nome',
-  'id': 'nome',
+  
   // Pipeline
   'pipeline de negócio': 'pipeline',
   'pipeline de negocio': 'pipeline',
   'pipeline': 'pipeline',
-  // Data
+  
+  // Fase
+  'fase: em andamento': 'fase',
+  'fase: perdidos': 'fase',
+  'fase: fechados': 'fase',
+  'fase': 'fase',
+  
+  // Data de Início
   'data de início': 'data_inicio',
   'data de inicio': 'data_inicio',
   'data_inicio': 'data_inicio',
   'data criação': 'data_inicio',
   'data criacao': 'data_inicio',
+  
+  // Datas específicas
+  'data do agendamento': 'data_agendamento',
+  'data_agendamento': 'data_agendamento',
+  'data da reunião realizada': 'data_reuniao_realizada',
+  'data da reuniao realizada': 'data_reuniao_realizada',
+  'data_reuniao_realizada': 'data_reuniao_realizada',
+  'data do mql': 'data_mql',
+  'data_mql': 'data_mql',
+  'data do sql': 'data_sql',
+  'data_sql': 'data_sql',
+  'data da venda realizada': 'data_venda',
+  'data_venda': 'data_venda',
+  'data de no show': 'data_noshow',
+  'data_noshow': 'data_noshow',
+  'data prevista de fechamento': 'data_prevista',
+  'data_prevista': 'data_prevista',
+  'primeiro contato lead': 'primeiro_contato',
+  'primeiro_contato': 'primeiro_contato',
+  'data de movimentação do card': 'data_movimentacao',
+  'data de movimentacao do card': 'data_movimentacao',
+  'data_movimentacao': 'data_movimentacao',
+  
   // Vendedor
   'vendedor': 'vendedor',
   'responsável': 'vendedor',
   'responsavel': 'vendedor',
+  
   // SDR
   'quem fez o agendamento?': 'sdr',
   'quem fez o agendamento': 'sdr',
   'sdr': 'sdr',
-  // MQL/SQL
+  
+  // Responsáveis adicionais
+  'quem realizou a venda?': 'quem_vendeu',
+  'quem realizou a venda': 'quem_vendeu',
+  'quem_vendeu': 'quem_vendeu',
+  'responsável pela reunião': 'responsavel_reuniao',
+  'responsavel pela reuniao': 'responsavel_reuniao',
+  'responsavel_reuniao': 'responsavel_reuniao',
+  
+  // Info etapa
+  'informações da etapa': 'info_etapa',
+  'informacoes da etapa': 'info_etapa',
+  'info_etapa': 'info_etapa',
+  
+  // MQL/SQL com variações
   'mql': 'mql',
+  'mql (preencha com "sim)': 'mql',
+  'mql (preencha com "sim")': 'mql',
   'sql': 'sql_qualificado',
+  'sql (preencha com "sim")': 'sql_qualificado',
+  'sql_qualificado': 'sql_qualificado',
+  
   // Reuniões
   'reunião agendada?': 'reuniao_agendada',
   'reunião agendada': 'reuniao_agendada',
@@ -49,32 +103,51 @@ const columnMapping: Record<string, keyof Negocio> = {
   'reuniao realizada?': 'reuniao_realizada',
   'reuniao realizada': 'reuniao_realizada',
   'reuniao_realizada': 'reuniao_realizada',
+  
   // No show
   'no show?': 'no_show',
   'no show': 'no_show',
   'no_show': 'no_show',
-  // Vendas - Fase: Fechados = venda aprovada
+  
+  // Venda aprovada
   'venda aprovada': 'venda_aprovada',
   'venda_aprovada': 'venda_aprovada',
-  'fase: fechados': 'venda_aprovada',
-  'fechados': 'venda_aprovada',
-  // Total
+  'venda aprovada (preencha com "sim")': 'venda_aprovada',
+  
+  // Total / Custo
   'total': 'total',
   'valor': 'total',
   'valor total': 'total',
+  'lead: total': 'total',
+  'custo': 'custo',
+  'custo total da venda': 'custo',
+  
   // Tipo de venda
   'tipo de venda': 'tipo_venda',
   'tipo_venda': 'tipo_venda',
-  // Motivo de perda - Fase: Perdidos pode indicar perda
+  'venda realizada - tipo': 'tipo_venda',
+  
+  // Motivo de perda
   'motivo de perda': 'motivo_perda',
   'motivo_perda': 'motivo_perda',
-  // UTM
+  
+  // UTM completo
   'lead: utm_source': 'utm_source',
   'utm_source': 'utm_source',
+  'utm source': 'utm_source',
   'lead: utm_medium': 'utm_medium',
   'utm_medium': 'utm_medium',
+  'utm medium': 'utm_medium',
   'lead: utm_campaign': 'utm_campaign',
   'utm_campaign': 'utm_campaign',
+  'utm campaign': 'utm_campaign',
+  'lead: utm_content': 'utm_content',
+  'utm_content': 'utm_content',
+  'utm content': 'utm_content',
+  'lead: utm_term': 'utm_term',
+  'utm_term': 'utm_term',
+  'utm term': 'utm_term',
+  
   // Fontes
   'lead: fonte': 'lead_fonte',
   'lead_fonte': 'lead_fonte',
@@ -134,6 +207,7 @@ function mapRowToNegocio(row: Record<string, string>, userId: string): Partial<N
     
     if (dbColumn) {
       switch (dbColumn) {
+        // Campos booleanos
         case 'mql':
         case 'sql_qualificado':
         case 'reuniao_agendada':
@@ -142,12 +216,48 @@ function mapRowToNegocio(row: Record<string, string>, userId: string): Partial<N
         case 'venda_aprovada':
           (mapped as any)[dbColumn] = parseBoolean(value);
           break;
+        
+        // Campos numéricos
         case 'total':
           mapped.total = parseNumber(value);
           break;
+        case 'custo':
+          mapped.custo = parseNumber(value);
+          break;
+        
+        // Campos de data
         case 'data_inicio':
           mapped.data_inicio = parseDate(value);
           break;
+        case 'data_agendamento':
+          mapped.data_agendamento = parseDate(value);
+          break;
+        case 'data_reuniao_realizada':
+          mapped.data_reuniao_realizada = parseDate(value);
+          break;
+        case 'data_mql':
+          mapped.data_mql = parseDate(value);
+          break;
+        case 'data_sql':
+          mapped.data_sql = parseDate(value);
+          break;
+        case 'data_venda':
+          mapped.data_venda = parseDate(value);
+          break;
+        case 'data_noshow':
+          mapped.data_noshow = parseDate(value);
+          break;
+        case 'data_prevista':
+          mapped.data_prevista = parseDate(value);
+          break;
+        case 'primeiro_contato':
+          mapped.primeiro_contato = parseDate(value);
+          break;
+        case 'data_movimentacao':
+          mapped.data_movimentacao = parseDate(value);
+          break;
+        
+        // Campos de texto
         default:
           (mapped as any)[dbColumn] = value?.trim() || null;
       }
