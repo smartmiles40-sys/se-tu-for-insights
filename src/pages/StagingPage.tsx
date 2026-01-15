@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StagingTable } from '@/components/staging/StagingTable';
-import { StagingFilters } from '@/components/staging/StagingFilters';
+import { StagingFilters, SourceFilter } from '@/components/staging/StagingFilters';
 import { StagingActions } from '@/components/staging/StagingActions';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
 import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -11,6 +11,7 @@ import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
 export default function StagingPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StagingStatus | undefined>('pendente');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { data: allData, isLoading } = useStagingNegocios();
@@ -25,6 +26,10 @@ export default function StagingPage() {
       result = result.filter(d => d.status === statusFilter);
     }
     
+    if (sourceFilter !== 'all') {
+      result = result.filter(d => d.source === sourceFilter);
+    }
+    
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(d => 
@@ -35,18 +40,32 @@ export default function StagingPage() {
     }
     
     return result;
-  }, [allData, statusFilter, search]);
+  }, [allData, statusFilter, sourceFilter, search]);
 
-  // Calculate counts for filters
+  // Calculate counts for filters (consider source filter)
   const counts = useMemo(() => {
     if (!allData) return { pendente: 0, aprovado: 0, rejeitado: 0 };
     
+    let filtered = allData;
+    if (sourceFilter !== 'all') {
+      filtered = allData.filter(d => d.source === sourceFilter);
+    }
+    
     return {
-      pendente: allData.filter(d => d.status === 'pendente').length,
-      aprovado: allData.filter(d => d.status === 'aprovado').length,
-      rejeitado: allData.filter(d => d.status === 'rejeitado').length,
+      pendente: filtered.filter(d => d.status === 'pendente').length,
+      aprovado: filtered.filter(d => d.status === 'aprovado').length,
+      rejeitado: filtered.filter(d => d.status === 'rejeitado').length,
     };
-  }, [allData]);
+  }, [allData, sourceFilter]);
+
+  // Check if selected items are all pending (for showing approve/reject buttons)
+  const selectedArePending = useMemo(() => {
+    if (!allData || selectedIds.length === 0) return false;
+    return selectedIds.every(id => {
+      const record = allData.find(d => d.id === id);
+      return record?.status === 'pendente';
+    });
+  }, [allData, selectedIds]);
 
   return (
     <DashboardLayout>
@@ -59,7 +78,7 @@ export default function StagingPage() {
               Gerenciar Dados
             </h1>
             <p className="text-muted-foreground mt-1">
-              Dados recebidos do n8n são sincronizados automaticamente com o dashboard. Exclua registros problemáticos aqui.
+              Revise e aprove dados importados via arquivo ou recebidos do n8n antes de entrarem no dashboard.
             </p>
           </div>
 
@@ -114,12 +133,13 @@ export default function StagingPage() {
               <div>
                 <CardTitle>Registros</CardTitle>
                 <CardDescription>
-                  Clique em uma célula para editar. Selecione registros para excluir do dashboard.
+                  Clique em uma célula para editar. Selecione registros pendentes para aprovar, rejeitar ou excluir.
                 </CardDescription>
               </div>
               <StagingActions
                 selectedIds={selectedIds}
                 onClearSelection={() => setSelectedIds([])}
+                showApproveReject={selectedArePending}
               />
             </div>
           </CardHeader>
@@ -129,6 +149,8 @@ export default function StagingPage() {
               onSearchChange={setSearch}
               statusFilter={statusFilter}
               onStatusChange={setStatusFilter}
+              sourceFilter={sourceFilter}
+              onSourceChange={setSourceFilter}
               counts={counts}
             />
 

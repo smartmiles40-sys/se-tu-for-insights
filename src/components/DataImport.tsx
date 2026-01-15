@@ -1,14 +1,16 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import { useImportNegocios, Negocio } from '@/hooks/useNegocios';
+import { Negocio } from '@/hooks/useNegocios';
+import { useImportToStaging, StagingNegocioInsert } from '@/hooks/useStagingNegocios';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 
 // Mapeamento das colunas do CSV para o banco (mais flexível)
 const columnMapping: Record<string, keyof Negocio> = {
@@ -259,10 +261,8 @@ function parseDate(value: string | number | undefined | null): string | null {
   return null;
 }
 
-function mapRowToNegocio(row: Record<string, string>, userId: string): Partial<Negocio> {
-  const mapped: Partial<Negocio> = {
-    imported_by: userId,
-  };
+function mapRowToStaging(row: Record<string, string>): StagingNegocioInsert {
+  const mapped: StagingNegocioInsert = {};
 
   for (const [csvColumn, value] of Object.entries(row)) {
     const normalizedColumn = csvColumn.toLowerCase().trim();
@@ -345,7 +345,8 @@ export function DataImport() {
   const [status, setStatus] = useState<'idle' | 'parsing' | 'importing' | 'success' | 'error'>('idle');
   
   const { user } = useAuth();
-  const importMutation = useImportNegocios();
+  const navigate = useNavigate();
+  const importMutation = useImportToStaging();
   const { toast } = useToast();
 
   const processFile = useCallback(async (file: File) => {
@@ -448,8 +449,8 @@ export function DataImport() {
         });
       }
       
-      const negocios = data.map((row, index) => {
-        const mapped = mapRowToNegocio(row, user.id);
+      const stagingRecords = data.map((row, index) => {
+        const mapped = mapRowToStaging(row);
         
         // Debug first 3 rows
         if (index < 3) {
@@ -464,11 +465,11 @@ export function DataImport() {
         return mapped;
       });
       
-      console.log('Mapped negocios sample:', negocios.slice(0, 3));
+      console.log('Mapped staging records sample:', stagingRecords.slice(0, 3));
       
       setProgress(60);
 
-      await importMutation.mutateAsync(negocios);
+      await importMutation.mutateAsync(stagingRecords);
       
       setProgress(100);
       setStatus('success');
@@ -500,7 +501,7 @@ export function DataImport() {
           </CardTitle>
           <CardDescription>
             Faça upload de um arquivo CSV ou Excel com os dados do CRM. 
-            Os dados existentes serão substituídos.
+            Os dados serão enviados para revisão antes de entrar no dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -511,11 +512,18 @@ export function DataImport() {
                 Importação concluída!
               </h3>
               <p className="text-muted-foreground mb-6">
-                Os dados foram importados com sucesso.
+                Os dados foram enviados para a área de revisão. 
+                Aprove os registros para que apareçam no dashboard.
               </p>
-              <Button onClick={resetImport} variant="outline">
-                Importar outro arquivo
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={resetImport} variant="outline">
+                  Importar outro arquivo
+                </Button>
+                <Button onClick={() => navigate('/staging')} className="gap-2">
+                  Revisar Dados
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ) : (
             <>
