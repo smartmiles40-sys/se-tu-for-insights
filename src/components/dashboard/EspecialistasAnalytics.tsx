@@ -13,6 +13,7 @@ import {
   Cell,
   ReferenceLine
 } from 'recharts';
+import { isComercial } from '@/lib/pipelines';
 
 interface EspecialistasAnalyticsProps {
   negocios: Negocio[];
@@ -37,10 +38,12 @@ export function EspecialistasAnalytics({ negocios, filters }: EspecialistasAnaly
   };
 
   const { especialistaStats, mediaConversao, mediaFaturamento } = useMemo(() => {
-    const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v))];
+    // Especialistas Analytics: apenas Comercial 1 - Se tu for eu vou
+    const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
+    const vendedores = [...new Set(negociosComercial.map(n => n.vendedor).filter((v): v is string => !!v))];
     
     const stats = vendedores.map(vendedor => {
-      const vendedorNegocios = negocios.filter(n => n.vendedor === vendedor);
+      const vendedorNegocios = negociosComercial.filter(n => n.vendedor === vendedor);
       
       // Reuniões: por data_reuniao_realizada
       const reunioesRecebidas = vendedorNegocios.filter(n => 
