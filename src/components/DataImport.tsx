@@ -178,8 +178,7 @@ function parseDate(value: string | number | undefined | null): string | null {
   if (value === null || value === undefined || value === '') return null;
   
   // Handle Excel serial date numbers (days since 1899-12-30)
-  if (typeof value === 'number') {
-    // Excel dates are stored as days since Dec 30, 1899
+  if (typeof value === 'number' && value > 40000 && value < 60000) {
     const excelEpoch = new Date(1899, 11, 30);
     const date = new Date(excelEpoch.getTime() + value * 86400000);
     const year = date.getFullYear();
@@ -188,31 +187,49 @@ function parseDate(value: string | number | undefined | null): string | null {
     return `${year}-${month}-${day}`;
   }
   
-  // Try different date formats
-  const dateStr = value.toString().trim();
+  const dateStr = String(value).trim();
   
-  // DD/MM/YYYY
-  const brMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (brMatch) {
-    const [, day, month, year] = brMatch;
+  // Format: DD/MM/YYYY or MM/DD/YYYY - detect automatically
+  const slashMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const [, first, second, year] = slashMatch;
+    const firstNum = parseInt(first);
+    const secondNum = parseInt(second);
+    
+    let day: string, month: string;
+    
+    // If first number > 12, it must be day (Brazilian DD/MM/YYYY)
+    // If second number > 12, it must be day (American MM/DD/YYYY)
+    // Ambiguous case: assume Brazilian format DD/MM/YYYY
+    if (firstNum > 12) {
+      // Definitely DD/MM/YYYY (Brazilian)
+      day = first;
+      month = second;
+    } else if (secondNum > 12) {
+      // Definitely MM/DD/YYYY (American) - swap
+      day = second;
+      month = first;
+    } else {
+      // Ambiguous: assume Brazilian DD/MM/YYYY
+      day = first;
+      month = second;
+    }
+    
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
   
-  // YYYY-MM-DD
+  // Format: YYYY-MM-DD (ISO)
   const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
     return dateStr.substring(0, 10);
   }
   
-  // Check if it's a number string (Excel serial date)
+  // Excel serial date as string
   const numValue = parseFloat(dateStr);
   if (!isNaN(numValue) && numValue > 40000 && numValue < 60000) {
     const excelEpoch = new Date(1899, 11, 30);
     const date = new Date(excelEpoch.getTime() + numValue * 86400000);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
   
   return null;
@@ -318,11 +335,11 @@ export function DataImport() {
         });
         data = result.data as Record<string, string>[];
       } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-        // Parse Excel
+        // Parse Excel with raw values to preserve date formats
         const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
+        const workbook = XLSX.read(buffer, { type: 'array', raw: true, cellDates: false });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { defval: '' });
+        data = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { defval: '', raw: false });
       } else {
         throw new Error('Formato de arquivo não suportado. Use CSV ou Excel.');
       }
@@ -380,19 +397,44 @@ export function DataImport() {
         data = result.data as Record<string, string>[];
       } else {
         const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
+        const workbook = XLSX.read(buffer, { type: 'array', raw: true, cellDates: false });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { defval: '' });
+        data = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { defval: '', raw: false });
       }
 
       setProgress(30);
 
-      console.log('Parsed data sample:', data.slice(0, 2));
+      console.log('Parsed data sample:', data.slice(0, 3));
       console.log('Column names:', Object.keys(data[0] || {}));
       
-      const negocios = data.map(row => mapRowToNegocio(row, user.id));
+      // Find record 17309 for debugging
+      const testRecord = data.find(row => row['ID'] === '17309' || row['id'] === '17309');
+      if (testRecord) {
+        console.log('Record 17309 raw data:', {
+          id: testRecord['ID'] || testRecord['id'],
+          data_inicio: testRecord['Data de início'] || testRecord['data de início'],
+          data_venda: testRecord['Data da venda realizada'] || testRecord['data da venda realizada'],
+          total: testRecord['Total'] || testRecord['total']
+        });
+      }
       
-      console.log('Mapped negocios sample:', negocios.slice(0, 2));
+      const negocios = data.map((row, index) => {
+        const mapped = mapRowToNegocio(row, user.id);
+        
+        // Debug first 3 rows
+        if (index < 3) {
+          console.log(`Row ${index} mapping:`, {
+            raw_data_inicio: row['Data de início'],
+            mapped_data_inicio: mapped.data_inicio,
+            raw_total: row['Total'],
+            mapped_total: mapped.total
+          });
+        }
+        
+        return mapped;
+      });
+      
+      console.log('Mapped negocios sample:', negocios.slice(0, 3));
       
       setProgress(60);
 
