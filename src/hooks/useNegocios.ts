@@ -65,11 +65,25 @@ export function useNegocios(filters?: NegocioFilters) {
         .select('*')
         .order('data_inicio', { ascending: false });
 
-      if (filters?.dataInicio) {
-        query = query.gte('data_inicio', filters.dataInicio);
-      }
-      if (filters?.dataFim) {
-        query = query.lte('data_inicio', filters.dataFim);
+      // Filter by date range - include records where:
+      // - data_inicio is in range, OR
+      // - data_venda is in range (for sales that happened in the period)
+      // - data_reuniao_realizada is in range (for meetings in the period)
+      if (filters?.dataInicio && filters?.dataFim) {
+        query = query.or(
+          `data_inicio.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio}`
+        );
+        query = query.or(
+          `data_inicio.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim}`
+        );
+      } else if (filters?.dataInicio) {
+        query = query.or(
+          `data_inicio.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio}`
+        );
+      } else if (filters?.dataFim) {
+        query = query.or(
+          `data_inicio.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim}`
+        );
       }
       if (filters?.sdr) {
         query = query.eq('sdr', filters.sdr);
