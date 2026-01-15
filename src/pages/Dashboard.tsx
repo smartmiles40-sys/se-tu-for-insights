@@ -94,9 +94,9 @@ export default function Dashboard() {
       isInPeriod(n.primeiro_contato)
     ).length;
 
-    // REUNIÕES AGENDADAS: contar por data_agendamento no período
+    // REUNIÕES AGENDADAS: contar apenas pela presença de data_agendamento no período
     const reunioesAgendadas = negociosValidos.filter(n => 
-      n.reuniao_agendada === true && isInPeriod(n.data_agendamento)
+      isInPeriod(n.data_agendamento)
     ).length;
 
     // REUNIÕES REALIZADAS: contar por data_reuniao_realizada no período
