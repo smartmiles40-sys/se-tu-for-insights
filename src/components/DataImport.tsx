@@ -280,12 +280,18 @@ function mapRowToNegocio(row: Record<string, string>, userId: string): Partial<N
           (mapped as any)[dbColumn] = parseBoolean(value);
           break;
         
-        // Campos numéricos
+        // Campos numéricos - nunca sobrescrever valor maior com zero
         case 'total':
-          mapped.total = parseNumber(value);
+          const parsedTotal = parseNumber(value);
+          if (parsedTotal > (mapped.total || 0)) {
+            mapped.total = parsedTotal;
+          }
           break;
         case 'custo':
-          mapped.custo = parseNumber(value);
+          const parsedCusto = parseNumber(value);
+          if (parsedCusto > (mapped.custo || 0)) {
+            mapped.custo = parsedCusto;
+          }
           break;
         
         // Campos de data
