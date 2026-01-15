@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   Cell 
 } from 'recharts';
+import { isPreVendas } from '@/lib/pipelines';
 
 interface SDRAnalyticsProps {
   negocios: Negocio[];
@@ -39,10 +40,12 @@ export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
   };
 
   const sdrStats = useMemo((): SDRStats[] => {
-    const sdrs = [...new Set(negocios.map(n => n.sdr).filter((s): s is string => !!s))];
+    // SDR Analytics: apenas Pré-Vendas - Comercial
+    const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
+    const sdrs = [...new Set(negociosPreVendas.map(n => n.sdr).filter((s): s is string => !!s))];
     
     return sdrs.map(sdr => {
-      const sdrNegocios = negocios.filter(n => n.sdr === sdr);
+      const sdrNegocios = negociosPreVendas.filter(n => n.sdr === sdr);
       
       // Leads: por primeiro_contato
       const leadsRecebidos = sdrNegocios.filter(n => isInPeriod(n.primeiro_contato)).length;
@@ -52,7 +55,7 @@ export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
         n.reuniao_agendada && isInPeriod(n.data_agendamento || n.primeiro_contato)
       ).length;
       
-      // Reuniões realizadas: por data_reuniao_realizada
+      // Reuniões realizadas: por data_reuniao_realizada (no Pré-Vendas)
       const reunioesRealizadas = sdrNegocios.filter(n => 
         n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
       ).length;
@@ -68,9 +71,9 @@ export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
       const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
       const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
       
-      // Faturamento: por data_venda
-      const faturamentoOriginado = sdrNegocios
-        .filter(n => n.venda_aprovada && isInPeriod(n.data_venda))
+      // Faturamento originado: vendas que vieram deste SDR (pode verificar em qualquer pipeline)
+      const faturamentoOriginado = negocios
+        .filter(n => n.sdr === sdr && n.venda_aprovada && isInPeriod(n.data_venda))
         .reduce((sum, n) => sum + (n.total || 0), 0);
       
       return {

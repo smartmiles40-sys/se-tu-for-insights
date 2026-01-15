@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
+import { isPreVendas, isComercial } from '@/lib/pipelines';
 
 interface RankingTableProps {
   negocios: Negocio[];
@@ -19,9 +20,11 @@ export function RankingTable({ negocios, type, limit = 5, filters }: RankingTabl
 
   const rankingData = useMemo(() => {
     if (type === 'sdr') {
+      // SDR Ranking: apenas Pré-Vendas - Comercial
+      const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
       const sdrMap: Record<string, { name: string; agendamentos: number; leads: number; receita: number }> = {};
       
-      negocios.forEach(n => {
+      negociosPreVendas.forEach(n => {
         const sdr = n.sdr || 'Sem SDR';
         
         // Leads: por primeiro_contato
@@ -39,9 +42,12 @@ export function RankingTable({ negocios, type, limit = 5, filters }: RankingTabl
           }
           sdrMap[sdr].agendamentos += 1;
         }
-        
-        // Receita: por data_venda
-        if (n.venda_aprovada && isInPeriod(n.data_venda)) {
+      });
+      
+      // Receita originada pelo SDR: verificar em todos negócios
+      negocios.forEach(n => {
+        if (n.venda_aprovada && isInPeriod(n.data_venda) && n.sdr) {
+          const sdr = n.sdr;
           if (!sdrMap[sdr]) {
             sdrMap[sdr] = { name: sdr, agendamentos: 0, leads: 0, receita: 0 };
           }
@@ -57,9 +63,11 @@ export function RankingTable({ negocios, type, limit = 5, filters }: RankingTabl
         .sort((a, b) => b.receita - a.receita)
         .slice(0, limit);
     } else {
+      // Especialista Ranking: apenas Comercial 1 - Se tu for eu vou
+      const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
       const espMap: Record<string, { name: string; vendas: number; reunioes: number; receita: number }> = {};
       
-      negocios.forEach(n => {
+      negociosComercial.forEach(n => {
         const esp = n.vendedor || 'Sem Especialista';
         
         // Reuniões: por data_reuniao_realizada

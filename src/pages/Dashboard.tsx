@@ -16,6 +16,7 @@ import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PIPELINE_PRE_VENDAS, PIPELINE_COMERCIAL, isPipelineValido, isPreVendas, isComercial } from '@/lib/pipelines';
 
 export default function Dashboard() {
   // Default filters: current month (1st day to today)
@@ -73,42 +74,46 @@ export default function Dashboard() {
       };
     }
 
-    // FILTRO INTELIGENTE POR MÉTRICA:
-    // - Leads: filtrar por primeiro_contato
-    // - Faturamento/Vendas: filtrar por data_venda
-    // - Reuniões: filtrar por data_reuniao_realizada
+    // REGRA DE NEGÓCIO: Filtrar por pipeline
+    // - Pré-Vendas - Comercial: Leads, Agendamentos (SDR)
+    // - Comercial 1 - Se tu for eu vou: Faturamento, Vendas, Reuniões Realizadas (Especialistas)
 
-    // LEADS: count by primeiro_contato
-    const leadsNoPeriodo = negocios.filter(n => isInPeriod(n.primeiro_contato));
+    // Separar negócios por pipeline
+    const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
+    const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
+
+    // LEADS: apenas Pré-Vendas, por primeiro_contato
+    const leadsNoPeriodo = negociosPreVendas.filter(n => isInPeriod(n.primeiro_contato));
     const totalLeads = leadsNoPeriodo.length;
 
-    // AGENDAMENTOS: count by data_agendamento (or primeiro_contato if no agendamento date)
-    const agendamentosNoPeriodo = negocios.filter(n => 
+    // AGENDAMENTOS: apenas Pré-Vendas, por data_agendamento
+    const agendamentosNoPeriodo = negociosPreVendas.filter(n => 
       n.reuniao_agendada && isInPeriod(n.data_agendamento || n.primeiro_contato)
     );
     const reunioesAgendadas = agendamentosNoPeriodo.length;
 
-    // REUNIÕES REALIZADAS: count by data_reuniao_realizada
-    const reunioesNoPeriodo = negocios.filter(n => 
+    // REUNIÕES REALIZADAS: apenas Comercial 1, por data_reuniao_realizada
+    const reunioesNoPeriodo = negociosComercial.filter(n => 
       n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
     );
     const reunioesRealizadas = reunioesNoPeriodo.length;
 
-    // VENDAS E FATURAMENTO DO MÊS: count by data_venda
-    const vendasNoPeriodo = negocios.filter(n => 
+    // VENDAS E FATURAMENTO: apenas Comercial 1, por data_venda
+    const vendasNoPeriodo = negociosComercial.filter(n => 
       n.venda_aprovada && isInPeriod(n.data_venda)
     );
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
 
-    // ANÁLISE DE COHORT: Dos leads que entraram no período, quantos converteram?
-    // (mesmo que a venda tenha sido em mês posterior)
+    // ANÁLISE DE COHORT: Dos leads do Pré-Vendas que entraram no período,
+    // quantos converteram? (pode ter venda no Comercial 1 com mesmo crm_id/nome)
+    // Por simplicidade, verificamos venda_aprovada nos próprios leads
     const vendasDosLeadsDoPeriodo = leadsNoPeriodo.filter(n => n.venda_aprovada).length;
     const taxaConversaoLeadsDoPeriodo = totalLeads > 0 
       ? (vendasDosLeadsDoPeriodo / totalLeads) * 100 
       : 0;
 
-    // TEMPO MÉDIO DE FECHAMENTO: diferença entre primeiro_contato e data_venda
+    // TEMPO MÉDIO DE FECHAMENTO: apenas Comercial 1
     const vendasComDatas = vendasNoPeriodo.filter(n => n.primeiro_contato && n.data_venda);
     let tempoMedioFechamento = 0;
     if (vendasComDatas.length > 0) {
@@ -124,7 +129,7 @@ export default function Dashboard() {
       tempoMedioFechamento = Math.round(totalDias / vendasComDatas.length);
     }
 
-    // NO-SHOWS: agendamentos no período que não compareceram
+    // NO-SHOWS: agendamentos do Pré-Vendas que não viraram reunião realizada
     const noShows = agendamentosNoPeriodo.filter(n => !n.reuniao_realizada).length;
 
     // Taxas calculadas
@@ -133,11 +138,11 @@ export default function Dashboard() {
     const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
     const taxaConversaoGeral = reunioesRealizadas > 0 ? (vendasRealizadas / reunioesRealizadas) * 100 : 0;
 
-    // Monthly data for sparklines - cada métrica usa sua própria data
+    // Monthly data for sparklines - cada pipeline contribui para sua métrica
     const monthlyMap: Record<string, { receita: number; vendas: number; leads: number; reunioes: number }> = {};
     
-    negocios.forEach(n => {
-      // Leads por primeiro_contato
+    // Leads: apenas Pré-Vendas
+    negociosPreVendas.forEach(n => {
       if (n.primeiro_contato) {
         try {
           const date = parseISO(n.primeiro_contato);
@@ -148,8 +153,10 @@ export default function Dashboard() {
           monthlyMap[monthKey].leads += 1;
         } catch (e) {}
       }
-      
-      // Vendas e receita por data_venda
+    });
+    
+    // Vendas, receita e reuniões: apenas Comercial 1
+    negociosComercial.forEach(n => {
       if (n.venda_aprovada && n.data_venda) {
         try {
           const date = parseISO(n.data_venda);
@@ -162,7 +169,6 @@ export default function Dashboard() {
         } catch (e) {}
       }
 
-      // Reuniões por data_reuniao_realizada
       if (n.reuniao_realizada && n.data_reuniao_realizada) {
         try {
           const date = parseISO(n.data_reuniao_realizada);

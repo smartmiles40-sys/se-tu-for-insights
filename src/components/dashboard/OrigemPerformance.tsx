@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { isPreVendas, isComercial } from '@/lib/pipelines';
 
 interface OrigemPerformanceProps {
   negocios: Negocio[];
@@ -18,20 +19,28 @@ export function OrigemPerformance({ negocios, filters }: OrigemPerformanceProps)
   };
 
   const data = useMemo(() => {
+    // Separar por pipeline
+    const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
+    const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
+    
     const origemMap: Record<string, { origem: string; leads: number; vendas: number; receita: number }> = {};
     
-    negocios.forEach(n => {
+    // Leads: apenas Pré-Vendas, por primeiro_contato
+    negociosPreVendas.forEach(n => {
       const origem = n.lead_fonte || n.utm_source || 'Direto';
       
-      // Leads: por primeiro_contato
       if (isInPeriod(n.primeiro_contato)) {
         if (!origemMap[origem]) {
           origemMap[origem] = { origem, leads: 0, vendas: 0, receita: 0 };
         }
         origemMap[origem].leads += 1;
       }
+    });
+    
+    // Vendas e receita: apenas Comercial 1, por data_venda
+    negociosComercial.forEach(n => {
+      const origem = n.lead_fonte || n.utm_source || 'Direto';
       
-      // Vendas e receita: por data_venda
       if (n.venda_aprovada && isInPeriod(n.data_venda)) {
         if (!origemMap[origem]) {
           origemMap[origem] = { origem, leads: 0, vendas: 0, receita: 0 };
