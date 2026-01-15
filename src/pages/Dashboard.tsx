@@ -211,6 +211,7 @@ export default function Dashboard() {
       vendasRealizadas, 
       reunioesRealizadas, 
       reunioesAgendadas,
+      noShows,
       taxaAgendamento, 
       taxaNoShow, 
       taxaShowUp, 
@@ -331,7 +332,8 @@ export default function Dashboard() {
                   <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaAgendamento.toFixed(1)}%
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">Meta: ≥50%</div>
+                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesAgendadas)} / {formatNumber(executiveStats.totalLeads)}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≥50%</div>
                 </div>
                 
                 <div className="bi-card">
@@ -342,7 +344,8 @@ export default function Dashboard() {
                   <div className={`text-3xl font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaNoShow.toFixed(1)}%
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">Meta: ≤20%</div>
+                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.noShows)} / {formatNumber(executiveStats.reunioesAgendadas)}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≤20%</div>
                 </div>
                 
                 <div className="bi-card">
@@ -353,7 +356,8 @@ export default function Dashboard() {
                   <div className={`text-3xl font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`}>
                     {executiveStats.taxaShowUp.toFixed(1)}%
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">Meta: ≥80%</div>
+                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesRealizadas)} / {formatNumber(executiveStats.reunioesAgendadas)}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≥80%</div>
                 </div>
 
                 <div className="bi-card">
@@ -364,7 +368,8 @@ export default function Dashboard() {
                   <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaConversaoGeral.toFixed(1)}%
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">Meta: ≥25%</div>
+                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasRealizadas)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
                 </div>
               </div>
 
