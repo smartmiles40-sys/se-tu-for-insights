@@ -174,25 +174,49 @@ function parseNumber(value: string | undefined | null): number {
   return isNaN(num) ? 0 : num;
 }
 
+// Validate that a date string is valid for PostgreSQL (year >= 1 and <= 9999)
+function isValidDate(dateStr: string): boolean {
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const year = parseInt(match[1]);
+  const month = parseInt(match[2]);
+  const day = parseInt(match[3]);
+  // PostgreSQL date range: 4713 BC to 5874897 AD, but let's be practical
+  return year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31;
+}
+
 function parseDate(value: string | number | undefined | null): string | null {
   if (value === null || value === undefined || value === '') return null;
   
   // Handle Excel serial date numbers (days since 1899-12-30)
-  if (typeof value === 'number' && value > 40000 && value < 60000) {
+  // Valid Excel dates are typically between 1 (1900-01-01) and ~60000 (2064)
+  if (typeof value === 'number') {
+    // Reject invalid serial numbers (0 or negative would give dates before 1900)
+    if (value < 1 || value > 60000) return null;
+    
     const excelEpoch = new Date(1899, 11, 30);
     const date = new Date(excelEpoch.getTime() + value * 86400000);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const result = `${year}-${month}-${day}`;
+    return isValidDate(result) ? result : null;
   }
   
   const dateStr = String(value).trim();
+  
+  // Skip empty or zero-like values
+  if (dateStr === '0' || dateStr === '00/00/0000' || dateStr.includes('0000')) return null;
   
   // Format: DD/MM/YYYY or MM/DD/YYYY - detect automatically
   const slashMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (slashMatch) {
     const [, first, second, year] = slashMatch;
+    const yearNum = parseInt(year);
+    
+    // Reject obviously invalid years
+    if (yearNum < 1900 || yearNum > 2100) return null;
+    
     const firstNum = parseInt(first);
     const secondNum = parseInt(second);
     
@@ -202,34 +226,34 @@ function parseDate(value: string | number | undefined | null): string | null {
     // If second number > 12, it must be day (American MM/DD/YYYY)
     // Ambiguous case: assume Brazilian format DD/MM/YYYY
     if (firstNum > 12) {
-      // Definitely DD/MM/YYYY (Brazilian)
       day = first;
       month = second;
     } else if (secondNum > 12) {
-      // Definitely MM/DD/YYYY (American) - swap
       day = second;
       month = first;
     } else {
-      // Ambiguous: assume Brazilian DD/MM/YYYY
       day = first;
       month = second;
     }
     
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const result = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return isValidDate(result) ? result : null;
   }
   
   // Format: YYYY-MM-DD (ISO)
   const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
-    return dateStr.substring(0, 10);
+    const result = dateStr.substring(0, 10);
+    return isValidDate(result) ? result : null;
   }
   
   // Excel serial date as string
   const numValue = parseFloat(dateStr);
-  if (!isNaN(numValue) && numValue > 40000 && numValue < 60000) {
+  if (!isNaN(numValue) && numValue >= 1 && numValue < 60000) {
     const excelEpoch = new Date(1899, 11, 30);
     const date = new Date(excelEpoch.getTime() + numValue * 86400000);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const result = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return isValidDate(result) ? result : null;
   }
   
   return null;
