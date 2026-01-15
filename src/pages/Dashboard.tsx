@@ -66,6 +66,7 @@ export default function Dashboard() {
         taxaShowUp: 0,
         taxaConversaoGeral: 0,
         totalLeads: 0,
+        noShows: 0,
         monthlyData: [],
         // Métricas de cohort
         vendasDosLeadsDoPeriodo: 0,
@@ -84,49 +85,57 @@ export default function Dashboard() {
     const negociosValidos = negocios.filter(n => isPipelineValido(n.pipeline));
 
     // ========================================
-    // CÁLCULOS USANDO APENAS COLUNAS BOOLEANAS
-    // Cada linha visível = 1 lead
-    // Contagem direta, sem interpretar textos/fases/datas
+    // CÁLCULOS COM FILTRO DE DATA POR MÉTRICA
+    // Cada métrica usa sua própria data relevante
     // ========================================
 
-    // TOTAL LEADS: todas as linhas visíveis com pipeline válido
-    const totalLeads = negociosValidos.length;
+    // TOTAL LEADS: contar por primeiro_contato no período
+    const totalLeads = negociosValidos.filter(n => 
+      isInPeriod(n.primeiro_contato)
+    ).length;
 
-    // REUNIÕES AGENDADAS: COUNT(reuniao_agendada = true)
-    const reunioesAgendadas = negociosValidos.filter(n => n.reuniao_agendada === true).length;
+    // REUNIÕES AGENDADAS: contar por data_agendamento no período
+    const reunioesAgendadas = negociosValidos.filter(n => 
+      n.reuniao_agendada === true && isInPeriod(n.data_agendamento)
+    ).length;
 
-    // REUNIÕES REALIZADAS: COUNT(reuniao_realizada = true)
-    const reunioesRealizadas = negociosValidos.filter(n => n.reuniao_realizada === true).length;
+    // REUNIÕES REALIZADAS: contar por data_reuniao_realizada no período
+    const reunioesRealizadas = negociosValidos.filter(n => 
+      n.reuniao_realizada === true && isInPeriod(n.data_reuniao_realizada)
+    ).length;
 
-    // NO-SHOWS: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
-    const noShows = negociosValidos.filter(n => n.data_noshow !== null && n.data_noshow !== undefined).length;
+    // NO-SHOWS: contar por data_noshow no período
+    const noShows = negociosValidos.filter(n => 
+      isInPeriod(n.data_noshow)
+    ).length;
 
-    // VENDAS: COUNT(venda_aprovada = true) - apenas pipeline Comercial para faturamento
-    const vendasRealizadas = negociosComercial.filter(n => n.venda_aprovada === true).length;
-    const receitaTotal = negociosComercial
-      .filter(n => n.venda_aprovada === true)
-      .reduce((sum, n) => sum + (n.total || 0), 0);
+    // VENDAS: contar por data_venda no período (apenas pipeline Comercial)
+    const vendasNoPeriodo = negociosComercial.filter(n => 
+      n.venda_aprovada === true && isInPeriod(n.data_venda)
+    );
+    const vendasRealizadas = vendasNoPeriodo.length;
+    const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
 
     // ========================================
     // TAXAS - Fórmulas definidas pelo usuário
     // ========================================
 
-    // 1️⃣ % Agendamento = COUNT(reuniao_agendada = true) / COUNT(total leads)
+    // 1️⃣ % Agendamento = reuniões agendadas / total leads (no período)
     const taxaAgendamento = totalLeads > 0 
       ? (reunioesAgendadas / totalLeads) * 100 
       : 0;
 
-    // 2️⃣ % No-show = COUNT(no_show = true) / COUNT(reuniao_agendada = true)
+    // 2️⃣ % No-show = no-shows / reuniões agendadas (no período)
     const taxaNoShow = reunioesAgendadas > 0 
       ? (noShows / reunioesAgendadas) * 100 
       : 0;
 
-    // 3️⃣ % Show-up = COUNT(reuniao_realizada = true) / COUNT(reuniao_agendada = true)
+    // 3️⃣ % Show-up = reuniões realizadas / reuniões agendadas (no período)
     const taxaShowUp = reunioesAgendadas > 0 
       ? (reunioesRealizadas / reunioesAgendadas) * 100 
       : 0;
 
-    // Taxa de conversão: vendas / reuniões realizadas
+    // Taxa de conversão: vendas / reuniões realizadas (no período)
     const taxaConversaoGeral = reunioesRealizadas > 0 
       ? (vendasRealizadas / reunioesRealizadas) * 100 
       : 0;
