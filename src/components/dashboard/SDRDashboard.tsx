@@ -34,7 +34,8 @@ export function SDRDashboard({ negocios }: SDRDashboardProps) {
       const negociosRecebidos = sdrNegocios.length;
       const reunioesAgendadas = sdrNegocios.filter(n => n.reuniao_agendada).length;
       const reunioesRealizadas = sdrNegocios.filter(n => n.reuniao_realizada).length;
-      const noShows = sdrNegocios.filter(n => n.no_show).length;
+      // No-show: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
+      const noShows = sdrNegocios.filter(n => n.data_noshow !== null && n.data_noshow !== undefined).length;
       const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
       const taxaConversao = negociosRecebidos > 0 ? (reunioesAgendadas / negociosRecebidos) * 100 : 0;
       

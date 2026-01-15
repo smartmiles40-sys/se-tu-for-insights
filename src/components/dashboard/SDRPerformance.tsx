@@ -29,8 +29,8 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
       const reunioesAgendadas = sdrNegocios.filter(n => n.reuniao_agendada).length;
       const reunioesRealizadas = sdrNegocios.filter(n => n.reuniao_realizada).length;
       
-      // No-show: agendada mas não realizada
-      const noShows = sdrNegocios.filter(n => n.reuniao_agendada && !n.reuniao_realizada).length;
+      // No-show: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
+      const noShows = sdrNegocios.filter(n => n.data_noshow !== null && n.data_noshow !== undefined).length;
       
       const taxaAgendamento = leadsRecebidos > 0 ? (reunioesAgendadas / leadsRecebidos) * 100 : 0;
       const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;

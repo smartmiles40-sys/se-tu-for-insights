@@ -22,7 +22,8 @@ export function CriticalRatesPanel({ negocios }: CriticalRatesPanelProps) {
     const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada).length;
     const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
     const vendas = negocios.filter(n => n.venda_aprovada).length;
-    const noShows = negocios.filter(n => n.reuniao_agendada && !n.reuniao_realizada).length;
+    // No-show: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
+    const noShows = negocios.filter(n => n.data_noshow !== null && n.data_noshow !== undefined).length;
 
     return {
       agendamento: totalLeads > 0 ? (reunioesAgendadas / totalLeads) * 100 : 0,
