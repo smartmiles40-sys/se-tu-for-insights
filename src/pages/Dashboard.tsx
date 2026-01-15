@@ -83,39 +83,64 @@ export default function Dashboard() {
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
     const negociosValidos = negocios.filter(n => isPipelineValido(n.pipeline));
 
-    // LEADS: ambos pipelines (Pré-Vendas e Comercial), por primeiro_contato
-    const leadsNoPeriodo = negociosValidos.filter(n => isInPeriod(n.primeiro_contato));
-    const totalLeads = leadsNoPeriodo.length;
+    // ========================================
+    // CÁLCULOS USANDO APENAS COLUNAS BOOLEANAS
+    // Cada linha visível = 1 lead
+    // Contagem direta, sem interpretar textos/fases/datas
+    // ========================================
 
-    // AGENDAMENTOS: apenas Pré-Vendas, por data_agendamento
-    const agendamentosNoPeriodo = negociosPreVendas.filter(n => 
-      n.reuniao_agendada && isInPeriod(n.data_agendamento || n.primeiro_contato)
-    );
-    const reunioesAgendadas = agendamentosNoPeriodo.length;
+    // TOTAL LEADS: todas as linhas visíveis com pipeline válido
+    const totalLeads = negociosValidos.length;
 
-    // REUNIÕES REALIZADAS: apenas Comercial 1, por data_reuniao_realizada
-    const reunioesNoPeriodo = negociosComercial.filter(n => 
-      n.reuniao_realizada && isInPeriod(n.data_reuniao_realizada)
-    );
-    const reunioesRealizadas = reunioesNoPeriodo.length;
+    // REUNIÕES AGENDADAS: COUNT(reuniao_agendada = true)
+    const reunioesAgendadas = negociosValidos.filter(n => n.reuniao_agendada === true).length;
 
-    // VENDAS E FATURAMENTO: apenas Comercial 1, por data_venda
-    const vendasNoPeriodo = negociosComercial.filter(n => 
-      n.venda_aprovada && isInPeriod(n.data_venda)
-    );
-    const vendasRealizadas = vendasNoPeriodo.length;
-    const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
+    // REUNIÕES REALIZADAS: COUNT(reuniao_realizada = true)
+    const reunioesRealizadas = negociosValidos.filter(n => n.reuniao_realizada === true).length;
 
-    // ANÁLISE DE COHORT: Dos leads do Pré-Vendas que entraram no período,
-    // quantos converteram? (pode ter venda no Comercial 1 com mesmo crm_id/nome)
-    // Por simplicidade, verificamos venda_aprovada nos próprios leads
-    const vendasDosLeadsDoPeriodo = leadsNoPeriodo.filter(n => n.venda_aprovada).length;
+    // NO-SHOWS: COUNT(no_show = true)
+    const noShows = negociosValidos.filter(n => n.no_show === true).length;
+
+    // VENDAS: COUNT(venda_aprovada = true) - apenas pipeline Comercial para faturamento
+    const vendasRealizadas = negociosComercial.filter(n => n.venda_aprovada === true).length;
+    const receitaTotal = negociosComercial
+      .filter(n => n.venda_aprovada === true)
+      .reduce((sum, n) => sum + (n.total || 0), 0);
+
+    // ========================================
+    // TAXAS - Fórmulas definidas pelo usuário
+    // ========================================
+
+    // 1️⃣ % Agendamento = COUNT(reuniao_agendada = true) / COUNT(total leads)
+    const taxaAgendamento = totalLeads > 0 
+      ? (reunioesAgendadas / totalLeads) * 100 
+      : 0;
+
+    // 2️⃣ % No-show = COUNT(no_show = true) / COUNT(reuniao_agendada = true)
+    const taxaNoShow = reunioesAgendadas > 0 
+      ? (noShows / reunioesAgendadas) * 100 
+      : 0;
+
+    // 3️⃣ % Show-up = COUNT(reuniao_realizada = true) / COUNT(reuniao_agendada = true)
+    const taxaShowUp = reunioesAgendadas > 0 
+      ? (reunioesRealizadas / reunioesAgendadas) * 100 
+      : 0;
+
+    // Taxa de conversão: vendas / reuniões realizadas
+    const taxaConversaoGeral = reunioesRealizadas > 0 
+      ? (vendasRealizadas / reunioesRealizadas) * 100 
+      : 0;
+
+    // ANÁLISE DE COHORT simplificada
+    const vendasDosLeadsDoPeriodo = negociosValidos.filter(n => n.venda_aprovada === true).length;
     const taxaConversaoLeadsDoPeriodo = totalLeads > 0 
       ? (vendasDosLeadsDoPeriodo / totalLeads) * 100 
       : 0;
 
-    // TEMPO MÉDIO DE FECHAMENTO: apenas Comercial 1
-    const vendasComDatas = vendasNoPeriodo.filter(n => n.primeiro_contato && n.data_venda);
+    // TEMPO MÉDIO DE FECHAMENTO: apenas Comercial com vendas
+    const vendasComDatas = negociosComercial.filter(n => 
+      n.venda_aprovada === true && n.primeiro_contato && n.data_venda
+    );
     let tempoMedioFechamento = 0;
     if (vendasComDatas.length > 0) {
       const totalDias = vendasComDatas.reduce((sum, n) => {
@@ -129,15 +154,6 @@ export default function Dashboard() {
       }, 0);
       tempoMedioFechamento = Math.round(totalDias / vendasComDatas.length);
     }
-
-    // NO-SHOWS: agendamentos do Pré-Vendas que não viraram reunião realizada
-    const noShows = agendamentosNoPeriodo.filter(n => !n.reuniao_realizada).length;
-
-    // Taxas calculadas
-    const taxaAgendamento = totalLeads > 0 ? (reunioesAgendadas / totalLeads) * 100 : 0;
-    const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
-    const taxaShowUp = reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0;
-    const taxaConversaoGeral = reunioesRealizadas > 0 ? (vendasRealizadas / reunioesRealizadas) * 100 : 0;
 
     // Monthly data for sparklines - cada pipeline contribui para sua métrica
     const monthlyMap: Record<string, { receita: number; vendas: number; leads: number; reunioes: number }> = {};
