@@ -5,14 +5,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StagingTable } from '@/components/staging/StagingTable';
 import { StagingFilters, SourceFilter } from '@/components/staging/StagingFilters';
 import { StagingActions } from '@/components/staging/StagingActions';
+import { StagingPagination } from '@/components/staging/StagingPagination';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
 import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
+
+const PAGE_SIZE = 50;
 
 export default function StagingPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StagingStatus | undefined>('pendente');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: allData, isLoading } = useStagingNegocios();
   
@@ -42,6 +46,18 @@ export default function StagingPage() {
     return result;
   }, [allData, statusFilter, sourceFilter, search]);
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredData.slice(start, start + PAGE_SIZE);
+  }, [filteredData, currentPage]);
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [statusFilter, sourceFilter, search]);
+
   // Calculate counts for filters (consider source filter)
   const counts = useMemo(() => {
     if (!allData) return { pendente: 0, aprovado: 0, rejeitado: 0 };
@@ -66,6 +82,11 @@ export default function StagingPage() {
       return record?.status === 'pendente';
     });
   }, [allData, selectedIds]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedIds([]);
+  };
 
   return (
     <DashboardLayout>
@@ -161,13 +182,22 @@ export default function StagingPage() {
                 ))}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <StagingTable
-                  data={filteredData}
-                  selectedIds={selectedIds}
-                  onSelectionChange={setSelectedIds}
+              <>
+                <div className="overflow-x-auto">
+                  <StagingTable
+                    data={paginatedData}
+                    selectedIds={selectedIds}
+                    onSelectionChange={setSelectedIds}
+                  />
+                </div>
+                <StagingPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredData.length}
+                  pageSize={PAGE_SIZE}
+                  onPageChange={handlePageChange}
                 />
-              </div>
+              </>
             )}
           </CardContent>
         </Card>
