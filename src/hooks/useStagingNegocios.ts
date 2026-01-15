@@ -276,3 +276,92 @@ export function useDeleteStaging() {
     },
   });
 }
+
+// Interface for staging import data (subset of StagingNegocio for inserts)
+export interface StagingNegocioInsert {
+  nome?: string | null;
+  pipeline?: string | null;
+  contato_fonte?: string | null;
+  vendedor?: string | null;
+  sdr?: string | null;
+  data_inicio?: string | null;
+  mql?: boolean;
+  sql_qualificado?: boolean;
+  reuniao_agendada?: boolean;
+  reuniao_realizada?: boolean;
+  no_show?: boolean;
+  venda_aprovada?: boolean;
+  total?: number;
+  custo?: number;
+  tipo_venda?: string | null;
+  motivo_perda?: string | null;
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_content?: string | null;
+  utm_term?: string | null;
+  lead_fonte?: string | null;
+  crm_id?: string | null;
+  fase?: string | null;
+  quem_vendeu?: string | null;
+  responsavel_reuniao?: string | null;
+  info_etapa?: string | null;
+  data_agendamento?: string | null;
+  data_reuniao_realizada?: string | null;
+  data_mql?: string | null;
+  data_sql?: string | null;
+  data_venda?: string | null;
+  data_noshow?: string | null;
+  data_prevista?: string | null;
+  primeiro_contato?: string | null;
+  data_movimentacao?: string | null;
+  source?: string;
+  status?: StagingStatus;
+}
+
+export function useImportToStaging() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (records: StagingNegocioInsert[]) => {
+      // Generate a batch_id for this import
+      const batch_id = crypto.randomUUID();
+      
+      // Prepare records with staging-specific fields
+      const stagingRecords = records.map(record => ({
+        ...record,
+        batch_id,
+        source: 'import_arquivo',
+        status: 'pendente' as StagingStatus,
+      }));
+
+      // Insert in batches of 100
+      const batchSize = 100;
+      let inserted = 0;
+
+      for (let i = 0; i < stagingRecords.length; i += batchSize) {
+        const batch = stagingRecords.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from('staging_negocios')
+          .insert(batch);
+
+        if (error) {
+          console.error('Error inserting batch:', error);
+          throw error;
+        }
+        inserted += batch.length;
+      }
+
+      return { count: inserted, batch_id };
+    },
+    onSuccess: ({ count }) => {
+      queryClient.invalidateQueries({ queryKey: ['staging-negocios'] });
+      queryClient.invalidateQueries({ queryKey: ['staging-negocios-count'] });
+      toast.success(`${count} registro(s) importados para revisão!`);
+    },
+    onError: (error) => {
+      console.error('Error importing to staging:', error);
+      toast.error('Erro ao importar registros');
+    },
+  });
+}
