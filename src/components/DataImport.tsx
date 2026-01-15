@@ -174,8 +174,19 @@ function parseNumber(value: string | undefined | null): number {
   return isNaN(num) ? 0 : num;
 }
 
-function parseDate(value: string | undefined | null): string | null {
-  if (!value) return null;
+function parseDate(value: string | number | undefined | null): string | null {
+  if (value === null || value === undefined || value === '') return null;
+  
+  // Handle Excel serial date numbers (days since 1899-12-30)
+  if (typeof value === 'number') {
+    // Excel dates are stored as days since Dec 30, 1899
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + value * 86400000);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   
   // Try different date formats
   const dateStr = value.toString().trim();
@@ -191,6 +202,17 @@ function parseDate(value: string | undefined | null): string | null {
   const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
     return dateStr.substring(0, 10);
+  }
+  
+  // Check if it's a number string (Excel serial date)
+  const numValue = parseFloat(dateStr);
+  if (!isNaN(numValue) && numValue > 40000 && numValue < 60000) {
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + numValue * 86400000);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
   
   return null;
@@ -259,7 +281,9 @@ function mapRowToNegocio(row: Record<string, string>, userId: string): Partial<N
         
         // Campos de texto
         default:
-          (mapped as any)[dbColumn] = value?.trim() || null;
+          // Convert to string first since Excel may return numbers
+          const strValue = value !== null && value !== undefined ? String(value).trim() : null;
+          (mapped as any)[dbColumn] = strValue || null;
       }
     }
   }
