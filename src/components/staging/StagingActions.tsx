@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Trash2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useDeleteStaging, useApproveStaging, useRejectStaging } from '@/hooks/useStagingNegocios';
 
 interface StagingActionsProps {
@@ -48,6 +48,13 @@ export function StagingActions({ selectedIds, onClearSelection, showApproveRejec
         <span className="text-sm text-muted-foreground mr-2">
           {selectedIds.length} selecionado(s)
         </span>
+      )}
+
+      {isLoading && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Processando...
+        </div>
       )}
 
       {/* Approve Selected */}
@@ -131,6 +138,11 @@ export function StagingActions({ selectedIds, onClearSelection, showApproveRejec
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Os {selectedIds.length} registro(s) selecionado(s) serão 
               permanentemente removidos do staging E do dashboard principal.
+              {selectedIds.length > 50 && (
+                <span className="block mt-2 font-medium">
+                  ⚠️ Exclusão de muitos registros pode levar alguns segundos.
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -256,18 +256,28 @@ export function useDeleteStaging() {
 
   return useMutation({
     mutationFn: async (ids: string[]) => {
-      const { error } = await supabase
-        .from('staging_negocios')
-        .delete()
-        .in('id', ids);
+      // Process in smaller batches to avoid timeouts
+      const batchSize = 50;
+      let deleted = 0;
+      
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from('staging_negocios')
+          .delete()
+          .in('id', batch);
 
-      if (error) throw error;
-      return ids.length;
+        if (error) throw error;
+        deleted += batch.length;
+      }
+      
+      return deleted;
     },
     onSuccess: (count) => {
+      // Batch invalidations together
       queryClient.invalidateQueries({ queryKey: ['staging-negocios'] });
       queryClient.invalidateQueries({ queryKey: ['staging-negocios-count'] });
-      queryClient.invalidateQueries({ queryKey: ['negocios'] }); // Also invalidate negocios since trigger deletes from there
+      queryClient.invalidateQueries({ queryKey: ['negocios'] });
       toast.success(`${count} registro(s) excluído(s)`);
     },
     onError: (error) => {
