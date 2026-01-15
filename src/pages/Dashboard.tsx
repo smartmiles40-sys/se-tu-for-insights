@@ -81,9 +81,10 @@ export default function Dashboard() {
     // Separar negócios por pipeline
     const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
+    const negociosValidos = negocios.filter(n => isPipelineValido(n.pipeline));
 
-    // LEADS: apenas Pré-Vendas, por primeiro_contato
-    const leadsNoPeriodo = negociosPreVendas.filter(n => isInPeriod(n.primeiro_contato));
+    // LEADS: ambos pipelines (Pré-Vendas e Comercial), por primeiro_contato
+    const leadsNoPeriodo = negociosValidos.filter(n => isInPeriod(n.primeiro_contato));
     const totalLeads = leadsNoPeriodo.length;
 
     // AGENDAMENTOS: apenas Pré-Vendas, por data_agendamento
@@ -141,8 +142,8 @@ export default function Dashboard() {
     // Monthly data for sparklines - cada pipeline contribui para sua métrica
     const monthlyMap: Record<string, { receita: number; vendas: number; leads: number; reunioes: number }> = {};
     
-    // Leads: apenas Pré-Vendas
-    negociosPreVendas.forEach(n => {
+    // Leads: ambos pipelines (Pré-Vendas e Comercial)
+    negociosValidos.forEach(n => {
       if (n.primeiro_contato) {
         try {
           const date = parseISO(n.primeiro_contato);
