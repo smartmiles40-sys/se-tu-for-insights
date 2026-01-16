@@ -125,14 +125,17 @@ export default function Dashboard() {
       ? (reunioesAgendadas / totalLeads) * 100 
       : 0;
 
-    // 2️⃣ % No-show = no-shows / reuniões agendadas (no período)
-    const taxaNoShow = reunioesAgendadas > 0 
-      ? (noShows / reunioesAgendadas) * 100 
+    // 2️⃣ % No-show e % Show-up: calculados apenas sobre agendamentos com resultado definido
+    // (reuniões que já foram realizadas OU tiveram no-show)
+    const agendamentosComResultado = noShows + reunioesRealizadas;
+    
+    const taxaNoShow = agendamentosComResultado > 0 
+      ? (noShows / agendamentosComResultado) * 100 
       : 0;
 
-    // 3️⃣ % Show-up = reuniões realizadas / reuniões agendadas (no período)
-    const taxaShowUp = reunioesAgendadas > 0 
-      ? (reunioesRealizadas / reunioesAgendadas) * 100 
+    // 3️⃣ % Show-up = reuniões realizadas / (no-shows + realizadas)
+    const taxaShowUp = agendamentosComResultado > 0 
+      ? (reunioesRealizadas / agendamentosComResultado) * 100 
       : 0;
 
     // Taxa de conversão: vendas / reuniões realizadas (no período)
