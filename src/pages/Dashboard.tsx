@@ -95,10 +95,11 @@ export default function Dashboard() {
 
     // ========================================
     // 1️⃣ % AGENDAMENTO
-    // COUNT(reuniao_agendada = true) / COUNT(todos os leads)
+    // COUNT(data_agendamento IS NOT NULL) / COUNT(todos os leads)
+    // Exige data_agendamento preenchida para ser considerado agendamento
     // ========================================
     const totalLeads = negocios.length;
-    const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada === true).length;
+    const reunioesAgendadas = negocios.filter(n => n.data_agendamento !== null).length;
     const taxaAgendamento = totalLeads > 0 
       ? (reunioesAgendadas / totalLeads) * 100 
       : 0;
