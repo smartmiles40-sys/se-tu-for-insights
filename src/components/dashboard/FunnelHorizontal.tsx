@@ -34,19 +34,22 @@ export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
     const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
     
-    // Leads e MQL: apenas Pré-Vendas, por primeiro_contato
+    // Leads: Pré-Vendas, por primeiro_contato
     const leads = negociosPreVendas.filter(n => isInPeriod(n.primeiro_contato)).length;
-    const mql = negociosPreVendas.filter(n => n.mql && isInPeriod(n.primeiro_contato)).length;
     
-    // SQL: Pré-Vendas (agendamentos), por data_agendamento
-    const sql = negociosPreVendas.filter(n => 
-      (n.sql_qualificado || n.reuniao_agendada) && 
-      isInPeriod(n.data_agendamento || n.primeiro_contato)
+    // MQL: contado pela data_mql (data de preenchimento)
+    const mql = negociosPreVendas.filter(n => 
+      n.data_mql !== null && isInPeriod(n.data_mql)
     ).length;
     
-    // Vendas: apenas Comercial 1, por data_venda
+    // SQL: contado pela data_sql (data de preenchimento)
+    const sql = negociosPreVendas.filter(n => 
+      n.data_sql !== null && isInPeriod(n.data_sql)
+    ).length;
+    
+    // Vendas: Comercial, por data_venda
     const vendas = negociosComercial.filter(n => 
-      n.venda_aprovada && isInPeriod(n.data_venda)
+      n.data_venda !== null && isInPeriod(n.data_venda)
     ).length;
 
     const leadsToMqlRate = leads > 0 ? (mql / leads) * 100 : 0;
