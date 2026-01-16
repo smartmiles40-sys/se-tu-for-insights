@@ -326,7 +326,7 @@ export default function Dashboard() {
                   sparklineData={sparklineLeads}
                 />
                 <KPICardWithSparkline
-                  title="Reuniões"
+                  title="Reuniões Realizadas"
                   value={formatNumber(executiveStats.reunioesRealizadas)}
                   icon={Calendar}
                   color="magenta"
