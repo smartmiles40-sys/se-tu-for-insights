@@ -18,11 +18,13 @@ const FUNNEL_COLORS = [
 export function SalesFunnel({ negocios }: SalesFunnelProps) {
   const funnelData = useMemo(() => {
     const total = negocios.length;
-    const mql = negocios.filter(n => n.mql).length;
-    const sql = negocios.filter(n => n.sql_qualificado).length;
-    const agendadas = negocios.filter(n => n.reuniao_agendada).length;
-    const realizadas = negocios.filter(n => n.reuniao_realizada).length;
-    const vendas = negocios.filter(n => n.venda_aprovada).length;
+    // MQL e SQL contados pela data de preenchimento
+    const mql = negocios.filter(n => n.data_mql !== null).length;
+    const sql = negocios.filter(n => n.data_sql !== null).length;
+    // Agendadas contadas pela data de agendamento
+    const agendadas = negocios.filter(n => n.data_agendamento !== null).length;
+    const realizadas = negocios.filter(n => n.data_reuniao_realizada !== null).length;
+    const vendas = negocios.filter(n => n.data_venda !== null).length;
 
     return [
       { name: 'Total Negócios', value: total, fill: FUNNEL_COLORS[0] },
