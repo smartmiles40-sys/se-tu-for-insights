@@ -69,21 +69,24 @@ export function useNegocios(filters?: NegocioFilters) {
       // - primeiro_contato (for leads count)
       // - data_venda (for sales/revenue)
       // - data_reuniao_realizada (for meetings)
+      // - data_agendamento (for scheduled meetings)
+      // - data_mql (for MQL)
+      // - data_sql (for SQL)
       // This allows intelligent filtering per metric
       if (filters?.dataInicio && filters?.dataFim) {
         query = query.or(
-          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio}`
+          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio},data_mql.gte.${filters.dataInicio},data_sql.gte.${filters.dataInicio}`
         );
         query = query.or(
-          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim}`
+          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim},data_mql.lte.${filters.dataFim},data_sql.lte.${filters.dataFim}`
         );
       } else if (filters?.dataInicio) {
         query = query.or(
-          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio}`
+          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio},data_mql.gte.${filters.dataInicio},data_sql.gte.${filters.dataInicio}`
         );
       } else if (filters?.dataFim) {
         query = query.or(
-          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim}`
+          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim},data_mql.lte.${filters.dataFim},data_sql.lte.${filters.dataFim}`
         );
       }
       if (filters?.sdr) {
