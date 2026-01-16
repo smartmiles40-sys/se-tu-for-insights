@@ -106,38 +106,31 @@ export default function Dashboard() {
 
     // ========================================
     // 2️⃣ % NO-SHOW e 3️⃣ % SHOW-UP
-    // Base: reuniao_agendada = true AND data_agendamento < hoje
-    // E (data_reuniao_realizada IS NOT NULL OR data_noshow IS NOT NULL)
+    // No-Shows: contados pela data_noshow no período
+    // Realizadas: contadas pela data_reuniao_realizada no período
     // ========================================
     
-    // Reuniões passadas (já deveriam ter acontecido)
-    const reunioesPassadas = negocios.filter(n => 
-      n.reuniao_agendada === true && 
-      n.data_agendamento !== null && 
-      n.data_agendamento < hojeStr
-    );
+    // No-Shows: negócios com data_noshow preenchida no período selecionado
+    const noShows = negocios.filter(n => 
+      n.data_noshow !== null && isInPeriod(n.data_noshow)
+    ).length;
 
-    // BASE COM RESULTADO DEFINIDO (regra de consistência)
-    // Exclui reuniões sem data_reuniao_realizada E sem data_noshow
-    const baseComResultado = reunioesPassadas.filter(n => 
-      n.data_reuniao_realizada !== null || n.data_noshow !== null
-    );
+    // Reuniões Realizadas: negócios com data_reuniao_realizada no período
+    const reunioesRealizadas = negocios.filter(n => 
+      n.data_reuniao_realizada !== null && isInPeriod(n.data_reuniao_realizada)
+    ).length;
 
-    // Contagens
-    const noShows = baseComResultado.filter(n => n.data_noshow !== null).length;
-    const reunioesRealizadas = baseComResultado.filter(n => n.data_reuniao_realizada !== null).length;
-
-    // Denominador único para No-Show e Show-Up
-    const denominadorTaxas = baseComResultado.length;
+    // Base com resultado = No-Shows + Realizadas (para cálculo de taxas)
+    const baseComResultado = noShows + reunioesRealizadas;
 
     // % No-Show = no-shows / base com resultado
-    const taxaNoShow = denominadorTaxas > 0 
-      ? (noShows / denominadorTaxas) * 100 
+    const taxaNoShow = baseComResultado > 0 
+      ? (noShows / baseComResultado) * 100 
       : 0;
 
     // % Show-Up = realizadas / base com resultado
-    const taxaShowUp = denominadorTaxas > 0 
-      ? (reunioesRealizadas / denominadorTaxas) * 100 
+    const taxaShowUp = baseComResultado > 0 
+      ? (reunioesRealizadas / baseComResultado) * 100 
       : 0;
 
     // ========================================
@@ -235,7 +228,7 @@ export default function Dashboard() {
       reunioesRealizadas, 
       reunioesAgendadas,
       noShows,
-      baseComResultado: denominadorTaxas,
+      baseComResultado,
       taxaAgendamento, 
       taxaNoShow, 
       taxaShowUp, 
