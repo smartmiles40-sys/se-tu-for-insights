@@ -67,6 +67,7 @@ export default function Dashboard() {
         taxaConversaoGeral: 0,
         totalLeads: 0,
         noShows: 0,
+        baseComResultado: 0,
         monthlyData: [],
         // Métricas de cohort
         vendasDosLeadsDoPeriodo: 0,
@@ -75,76 +76,85 @@ export default function Dashboard() {
       };
     }
 
-    // REGRA DE NEGÓCIO: Filtrar por pipeline
-    // - Pré-Vendas - Comercial: Leads, Agendamentos (SDR)
-    // - Comercial 1 - Se tu for eu vou: Faturamento, Vendas, Reuniões Realizadas (Especialistas)
+    // ========================================
+    // REGRAS DE CÁLCULO - Campos utilizados:
+    // - reuniao_agendada (boolean)
+    // - data_agendamento (date)
+    // - data_reuniao_realizada (date)
+    // - data_noshow (date)
+    // - data_venda (date)
+    // ========================================
 
-    // Separar negócios por pipeline
-    const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
+    // Separar negócios por pipeline (apenas para faturamento/vendas)
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
-    const negociosValidos = negocios.filter(n => isPipelineValido(n.pipeline));
+
+    // UNIVERSO BASE: Reuniões que já deveriam ter acontecido
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const hojeStr = hoje.toISOString().split('T')[0];
 
     // ========================================
-    // CÁLCULOS COM FILTRO DE DATA POR MÉTRICA
-    // Cada métrica usa sua própria data relevante
+    // 1️⃣ % AGENDAMENTO
+    // COUNT(reuniao_agendada = true) / COUNT(todos os leads)
     // ========================================
+    const totalLeads = negocios.length;
+    const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada === true).length;
+    const taxaAgendamento = totalLeads > 0 
+      ? (reunioesAgendadas / totalLeads) * 100 
+      : 0;
 
-    // TOTAL LEADS: contar por primeiro_contato no período
-    const totalLeads = negociosValidos.filter(n => 
-      isInPeriod(n.primeiro_contato)
-    ).length;
+    // ========================================
+    // 2️⃣ % NO-SHOW e 3️⃣ % SHOW-UP
+    // Base: reuniao_agendada = true AND data_agendamento < hoje
+    // E (data_reuniao_realizada IS NOT NULL OR data_noshow IS NOT NULL)
+    // ========================================
+    
+    // Reuniões passadas (já deveriam ter acontecido)
+    const reunioesPassadas = negocios.filter(n => 
+      n.reuniao_agendada === true && 
+      n.data_agendamento !== null && 
+      n.data_agendamento < hojeStr
+    );
 
-    // REUNIÕES AGENDADAS: contar apenas pela presença de data_agendamento no período
-    const reunioesAgendadas = negociosValidos.filter(n => 
-      isInPeriod(n.data_agendamento)
-    ).length;
+    // BASE COM RESULTADO DEFINIDO (regra de consistência)
+    // Exclui reuniões sem data_reuniao_realizada E sem data_noshow
+    const baseComResultado = reunioesPassadas.filter(n => 
+      n.data_reuniao_realizada !== null || n.data_noshow !== null
+    );
 
-    // REUNIÕES REALIZADAS: contar apenas pela presença de data_reuniao_realizada no período
-    const reunioesRealizadas = negociosValidos.filter(n => 
-      isInPeriod(n.data_reuniao_realizada)
-    ).length;
+    // Contagens
+    const noShows = baseComResultado.filter(n => n.data_noshow !== null).length;
+    const reunioesRealizadas = baseComResultado.filter(n => n.data_reuniao_realizada !== null).length;
 
-    // NO-SHOWS: contar por data_noshow no período
-    const noShows = negociosValidos.filter(n => 
-      isInPeriod(n.data_noshow)
-    ).length;
+    // Denominador único para No-Show e Show-Up
+    const denominadorTaxas = baseComResultado.length;
 
-    // VENDAS: contar por data_venda no período (apenas pipeline Comercial)
+    // % No-Show = no-shows / base com resultado
+    const taxaNoShow = denominadorTaxas > 0 
+      ? (noShows / denominadorTaxas) * 100 
+      : 0;
+
+    // % Show-Up = realizadas / base com resultado
+    const taxaShowUp = denominadorTaxas > 0 
+      ? (reunioesRealizadas / denominadorTaxas) * 100 
+      : 0;
+
+    // ========================================
+    // VENDAS E FATURAMENTO (pipeline Comercial)
+    // ========================================
     const vendasNoPeriodo = negociosComercial.filter(n => 
       n.venda_aprovada === true && isInPeriod(n.data_venda)
     );
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
 
-    // ========================================
-    // TAXAS - Fórmulas definidas pelo usuário
-    // ========================================
-
-    // 1️⃣ % Agendamento = reuniões agendadas / total leads (no período)
-    const taxaAgendamento = totalLeads > 0 
-      ? (reunioesAgendadas / totalLeads) * 100 
-      : 0;
-
-    // 2️⃣ % No-show e % Show-up: calculados apenas sobre agendamentos com resultado definido
-    // (reuniões que já foram realizadas OU tiveram no-show)
-    const agendamentosComResultado = noShows + reunioesRealizadas;
-    
-    const taxaNoShow = agendamentosComResultado > 0 
-      ? (noShows / agendamentosComResultado) * 100 
-      : 0;
-
-    // 3️⃣ % Show-up = reuniões realizadas / (no-shows + realizadas)
-    const taxaShowUp = agendamentosComResultado > 0 
-      ? (reunioesRealizadas / agendamentosComResultado) * 100 
-      : 0;
-
-    // Taxa de conversão: vendas / reuniões realizadas (no período)
+    // Taxa de conversão: vendas / reuniões realizadas
     const taxaConversaoGeral = reunioesRealizadas > 0 
       ? (vendasRealizadas / reunioesRealizadas) * 100 
       : 0;
 
     // ANÁLISE DE COHORT simplificada
-    const vendasDosLeadsDoPeriodo = negociosValidos.filter(n => n.venda_aprovada === true).length;
+    const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
     const taxaConversaoLeadsDoPeriodo = totalLeads > 0 
       ? (vendasDosLeadsDoPeriodo / totalLeads) * 100 
       : 0;
@@ -170,8 +180,8 @@ export default function Dashboard() {
     // Monthly data for sparklines - cada pipeline contribui para sua métrica
     const monthlyMap: Record<string, { receita: number; vendas: number; leads: number; reunioes: number }> = {};
     
-    // Leads: ambos pipelines (Pré-Vendas e Comercial)
-    negociosValidos.forEach(n => {
+    // Leads: todos os negócios
+    negocios.forEach(n => {
       if (n.primeiro_contato) {
         try {
           const date = parseISO(n.primeiro_contato);
@@ -224,6 +234,7 @@ export default function Dashboard() {
       reunioesRealizadas, 
       reunioesAgendadas,
       noShows,
+      baseComResultado: denominadorTaxas,
       taxaAgendamento, 
       taxaNoShow, 
       taxaShowUp, 
@@ -356,7 +367,7 @@ export default function Dashboard() {
                   <div className={`text-3xl font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {executiveStats.taxaNoShow.toFixed(1)}%
                   </div>
-                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.noShows)} / {formatNumber(executiveStats.reunioesAgendadas)}</div>
+                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.noShows)} / {formatNumber(executiveStats.baseComResultado)}</div>
                   <div className="text-xs text-slate-500 mt-0.5">Meta: ≤20%</div>
                 </div>
                 
@@ -368,7 +379,7 @@ export default function Dashboard() {
                   <div className={`text-3xl font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`}>
                     {executiveStats.taxaShowUp.toFixed(1)}%
                   </div>
-                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesRealizadas)} / {formatNumber(executiveStats.reunioesAgendadas)}</div>
+                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesRealizadas)} / {formatNumber(executiveStats.baseComResultado)}</div>
                   <div className="text-xs text-slate-500 mt-0.5">Meta: ≥80%</div>
                 </div>
 
