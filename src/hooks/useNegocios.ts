@@ -53,7 +53,7 @@ export interface NegocioFilters {
   pipeline?: string;
   utmSource?: string;
   leadFonte?: string;
-  tipoVenda?: string;
+  tiposVenda?: string[];
 }
 
 export function useNegocios(filters?: NegocioFilters) {
@@ -104,9 +104,9 @@ export function useNegocios(filters?: NegocioFilters) {
       if (filters?.leadFonte) {
         query = query.eq('lead_fonte', filters.leadFonte);
       }
-      if (filters?.tipoVenda) {
-        query = query.eq('tipo_venda', filters.tipoVenda);
-      }
+    if (filters?.tiposVenda && filters.tiposVenda.length > 0) {
+      query = query.in('tipo_venda', filters.tiposVenda);
+    }
 
       const { data, error } = await query;
 

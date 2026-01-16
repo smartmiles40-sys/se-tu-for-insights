@@ -8,7 +8,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X, User } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CalendarIcon, X, User, Package } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,10 @@ interface GlobalFiltersProps {
 }
 
 export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFiltersProps) {
-  const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
+  const hasFilters = Object.entries(filters).some(([_, v]) => {
+    if (Array.isArray(v)) return v.length > 0;
+    return v !== undefined && v !== '';
+  });
 
   const responsaveis = [...new Set([...options.sdrs, ...options.vendedores])].sort();
 
@@ -204,6 +208,69 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
             ))}
           </SelectContent>
         </Select>
+      )}
+
+      {/* Tipo de Venda - Multi-select */}
+      {options.tiposVenda.length > 0 && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'h-8 min-w-[140px] justify-start bg-slate-800 border-slate-600 hover:bg-slate-700 text-sm',
+                filters.tiposVenda && filters.tiposVenda.length > 0 && 'border-primary/50'
+              )}
+            >
+              <Package className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
+              {filters.tiposVenda && filters.tiposVenda.length > 0
+                ? `${filters.tiposVenda.length} tipo${filters.tiposVenda.length > 1 ? 's' : ''}`
+                : 'Tipo de Venda'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-3 bg-slate-800 border-slate-600" align="start">
+            <div className="space-y-2">
+              <div className="text-xs text-slate-400 font-medium mb-2">Selecione os tipos:</div>
+              {options.tiposVenda.map((tipo) => (
+                <div key={tipo} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`tipo-${tipo}`}
+                    checked={filters.tiposVenda?.includes(tipo) || false}
+                    onCheckedChange={(checked) => {
+                      const current = filters.tiposVenda || [];
+                      if (checked) {
+                        onFiltersChange({ ...filters, tiposVenda: [...current, tipo] });
+                      } else {
+                        const updated = current.filter(t => t !== tipo);
+                        onFiltersChange({ 
+                          ...filters, 
+                          tiposVenda: updated.length > 0 ? updated : undefined 
+                        });
+                      }
+                    }}
+                    className="border-slate-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <label 
+                    htmlFor={`tipo-${tipo}`} 
+                    className="text-sm text-slate-300 cursor-pointer flex-1"
+                  >
+                    {tipo}
+                  </label>
+                </div>
+              ))}
+              {filters.tiposVenda && filters.tiposVenda.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onFiltersChange({ ...filters, tiposVenda: undefined })}
+                  className="w-full mt-2 h-7 text-xs text-slate-400 hover:text-red-400"
+                >
+                  Limpar seleção
+                </Button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
 
       {/* Limpar */}
