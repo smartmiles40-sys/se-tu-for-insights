@@ -7,6 +7,7 @@ import { RankingTable } from '@/components/dashboard/RankingTable';
 import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
 import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
 import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
+import { AgentRevenueReport } from '@/components/dashboard/AgentRevenueReport';
 import { MetaProgress } from '@/components/dashboard/MetaProgress';
 import { MetaProgressCompact } from '@/components/dashboard/MetaProgressCompact';
 import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
@@ -295,6 +296,7 @@ export default function Dashboard() {
                 <TabsTrigger value="home" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">HOME</TabsTrigger>
                 <TabsTrigger value="sdr" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">SDRS</TabsTrigger>
                 <TabsTrigger value="especialistas" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">ESPECIALISTAS</TabsTrigger>
+                <TabsTrigger value="faturamento" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">FATURAMENTO</TabsTrigger>
               </TabsList>
               <MetaProgressCompact meta={metaGlobal} realizado={realizadoData} />
             </div>
@@ -496,6 +498,10 @@ export default function Dashboard() {
 
             <TabsContent value="especialistas">
               <EspecialistasAnalytics negocios={negocios} filters={filters} />
+            </TabsContent>
+
+            <TabsContent value="faturamento">
+              <AgentRevenueReport negocios={negocios} filters={filters} />
             </TabsContent>
           </Tabs>
         )}
