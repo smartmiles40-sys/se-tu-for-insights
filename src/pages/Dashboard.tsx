@@ -107,19 +107,16 @@ export default function Dashboard() {
 
     // ========================================
     // 2️⃣ % NO-SHOW e 3️⃣ % SHOW-UP
-    // No-Shows: contados pela data_noshow no período
-    // Realizadas: contadas pela data_reuniao_realizada no período
+    // No-Shows: contados pelo booleano no_show
+    // Realizadas: contadas pelo booleano reuniao_realizada
     // ========================================
     
-    // No-Shows: negócios com data_noshow preenchida no período selecionado
-    const noShows = negocios.filter(n => 
-      n.data_noshow !== null && isInPeriod(n.data_noshow)
-    ).length;
+    // No-Shows: negócios com no_show = true
+    const noShows = negocios.filter(n => n.no_show === true).length;
 
-    // Reuniões Realizadas: negócios com data_reuniao_realizada no período
-    const reunioesRealizadas = negocios.filter(n => 
-      n.data_reuniao_realizada !== null && isInPeriod(n.data_reuniao_realizada)
-    ).length;
+    // Reuniões Realizadas: negócios com reuniao_realizada = true
+    // (usa o booleano pois data_reuniao_realizada frequentemente não está preenchida)
+    const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada === true).length;
 
     // Base com resultado = No-Shows + Realizadas (para cálculo de taxas)
     const baseComResultado = noShows + reunioesRealizadas;
