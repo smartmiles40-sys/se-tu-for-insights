@@ -15,7 +15,6 @@ import {
   Pie,
   Legend
 } from 'recharts';
-import { isPreVendas, isComercial } from '@/lib/pipelines';
 
 interface AgentRevenueReportProps {
   negocios: Negocio[];
@@ -41,48 +40,34 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
   const { allAgents, sdrTotal, especialistaTotal, grandTotal } = useMemo(() => {
     const agents: AgentStats[] = [];
 
-    // SDRs: faturamento originado por vendas que passaram pelo SDR
-    const negociosPreVendas = negocios.filter(n => isPreVendas(n.pipeline));
-    const sdrs = [...new Set(negociosPreVendas.map(n => n.sdr).filter((s): s is string => !!s))];
-    
-    sdrs.forEach(sdr => {
-      const vendasSDR = negocios.filter(n => 
-        n.sdr === sdr && 
-        n.venda_aprovada && 
-        isInPeriod(n.data_venda)
-      );
-      const faturamento = vendasSDR.reduce((sum, n) => sum + (n.total || 0), 0);
-      
-      if (vendasSDR.length > 0 || faturamento > 0) {
-        agents.push({
-          nome: sdr,
-          tipo: 'SDR',
-          vendas: vendasSDR.length,
-          faturamento,
-          ticketMedio: vendasSDR.length > 0 ? faturamento / vendasSDR.length : 0,
-        });
-      }
-    });
+    // Buscar TODOS os vendedores únicos (quem fechou a venda - campo vendedor ou quem_vendeu)
+    const vendedores = [...new Set(
+      negocios
+        .map(n => n.vendedor || n.quem_vendeu)
+        .filter((v): v is string => !!v && v.trim() !== '')
+    )];
 
-    // Especialistas: faturamento direto por vendas realizadas
-    const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
-    const vendedores = [...new Set(negociosComercial.map(n => n.vendedor).filter((v): v is string => !!v))];
-    
+    // Para cada vendedor, calcular vendas e faturamento
     vendedores.forEach(vendedor => {
-      const vendasEsp = negociosComercial.filter(n => 
-        n.vendedor === vendedor && 
+      const vendasAgente = negocios.filter(n => 
+        (n.vendedor === vendedor || n.quem_vendeu === vendedor) && 
         n.venda_aprovada && 
         isInPeriod(n.data_venda)
       );
-      const faturamento = vendasEsp.reduce((sum, n) => sum + (n.total || 0), 0);
       
-      if (vendasEsp.length > 0 || faturamento > 0) {
+      const vendas = vendasAgente.length;
+      const faturamento = vendasAgente.reduce((sum, n) => sum + (n.total || 0), 0);
+      
+      if (vendas > 0 || faturamento > 0) {
+        // Determinar se é SDR ou Especialista baseado no nome
+        const isSDR = vendedor.toLowerCase().includes('sdr');
+        
         agents.push({
           nome: vendedor,
-          tipo: 'Especialista',
-          vendas: vendasEsp.length,
+          tipo: isSDR ? 'SDR' : 'Especialista',
+          vendas,
           faturamento,
-          ticketMedio: vendasEsp.length > 0 ? faturamento / vendasEsp.length : 0,
+          ticketMedio: vendas > 0 ? faturamento / vendas : 0,
         });
       }
     });
