@@ -265,6 +265,12 @@ export default function Dashboard() {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value);
+  const formatCurrencyDecimal = (value: number) => new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
   const formatCompactCurrency = (value: number) => new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -385,19 +391,19 @@ export default function Dashboard() {
                         <div>
                           <div className="text-xs text-slate-400 uppercase">CPL</div>
                         </div>
-                        <div className="text-base font-bold text-cyan-400">{formatCurrency(2.98)}</div>
+                        <div className="text-base font-bold text-cyan-400">{formatCurrencyDecimal(2.98)}</div>
                       </div>
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
                         </div>
-                        <div className="text-base font-bold text-purple-400">{formatCurrency(0)}</div>
+                        <div className="text-base font-bold text-purple-400">{formatCurrencyDecimal(0)}</div>
                       </div>
                       <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
                         </div>
-                        <div className="text-base font-bold text-blue-400">{formatCurrency(61.73)}</div>
+                        <div className="text-base font-bold text-blue-400">{formatCurrencyDecimal(61.73)}</div>
                       </div>
                     </div>
                   </div>
