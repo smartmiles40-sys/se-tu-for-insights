@@ -9,7 +9,7 @@ import { StagingPagination } from '@/components/staging/StagingPagination';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
 import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 200;
 
 export default function StagingPage() {
   const [search, setSearch] = useState('');
