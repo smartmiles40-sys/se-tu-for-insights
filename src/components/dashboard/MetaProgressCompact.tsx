@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-
 interface MetaProgressCompactProps {
   meta: {
     meta_faturamento_minimo?: number | null;
@@ -10,34 +9,33 @@ interface MetaProgressCompactProps {
     faturamento?: number;
   };
 }
-
-export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProps) {
+export function MetaProgressCompact({
+  meta,
+  realizado
+}: MetaProgressCompactProps) {
   const data = useMemo(() => {
     const faturamento = realizado.faturamento || 0;
     const metaMinimo = meta?.meta_faturamento_minimo || 0;
     const metaSatisfatorio = meta?.meta_faturamento_satisfatorio || 0;
     const metaExcelente = meta?.meta_faturamento_excelente || 0;
-    const progresso = metaExcelente > 0 ? (faturamento / metaExcelente) * 100 : 0;
-
+    const progresso = metaExcelente > 0 ? faturamento / metaExcelente * 100 : 0;
     const formatCurrency = (value: number) => {
-      return new Intl.NumberFormat('pt-BR', { 
-        style: 'currency', 
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
         currency: 'BRL',
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        maximumFractionDigits: 0
       }).format(value);
     };
-
     return {
       realizado: formatCurrency(faturamento),
       metaMinimo: formatCurrency(metaMinimo),
       metaSatisfatorio: formatCurrency(metaSatisfatorio),
       metaExcelente: formatCurrency(metaExcelente),
       progresso: `${progresso.toFixed(1)}%`,
-      progressoNum: progresso,
+      progressoNum: progresso
     };
   }, [meta, realizado]);
-
   if (!meta) {
     return null;
   }
@@ -49,9 +47,7 @@ export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProp
     if (progress >= 50) return 'text-yellow-400';
     return 'text-orange-400';
   };
-
-  return (
-    <div className="flex items-center gap-6 text-sm">
+  return <div className="flex items-center gap-6 text-sm">
       <div className="flex flex-col items-start">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Realizado</span>
         <span className="text-base font-bold text-cyan-400">{data.realizado}</span>
@@ -61,7 +57,7 @@ export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProp
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1">
           <span className="text-red-400">◉</span> Meta Mínima
         </span>
-        <span className="text-base font-bold text-red-400">{data.metaMinimo}</span>
+        <span className="text-base font-bold text-[#ec0909]">{data.metaMinimo}</span>
       </div>
       
       <div className="flex flex-col items-start">
@@ -82,6 +78,5 @@ export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProp
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Progresso</span>
         <span className={`text-base font-bold ${getProgressColor(data.progressoNum)}`}>{data.progresso}</span>
       </div>
-    </div>
-  );
+    </div>;
 }
