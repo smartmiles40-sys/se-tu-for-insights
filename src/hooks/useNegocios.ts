@@ -225,12 +225,12 @@ export function useNegociosStats(negocios: Negocio[] | undefined) {
   };
 }
 
-// Normaliza nomes removendo sufixos como "- SDR", "- Especialista", etc.
+// Normaliza nomes removendo sufixos como "- SDR", "- Especialista", "- Coordenador", etc.
 function normalizeName(name: string | null): string | null {
   if (!name) return null;
-  // Remove sufixos comuns como " - SDR", " - Especialista", " - Vendedor", etc.
+  // Remove sufixos comuns como " - SDR", " - Especialista", " - Coordenador", etc.
   const normalized = name
-    .replace(/\s*-\s*(SDR|Especialista|Vendedor|Consultor|Sales|Rep)$/i, '')
+    .replace(/\s*-\s*(SDR|Especialista|Vendedor|Consultor|Coordenador|Sales|Rep|Manager|Gerente)$/i, '')
     .trim();
   return normalized || null;
 }
