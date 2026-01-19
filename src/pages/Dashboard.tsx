@@ -100,11 +100,15 @@ export default function Dashboard() {
 
     // ========================================
     // 1️⃣ % AGENDAMENTO
-    // COUNT(data_agendamento IS NOT NULL) / COUNT(leads com primeiro_contato)
+    // COUNT(data_agendamento IS NOT NULL) / COUNT(leads com primeiro_contato no período)
     // Exige data_agendamento preenchida para ser considerado agendamento
     // ========================================
-    // Total Leads: apenas registros com primeiro_contato preenchido
-    const totalLeads = negocios.filter(n => n.primeiro_contato !== null).length;
+    // Total Leads: apenas pipelines válidos com primeiro_contato preenchido E dentro do período
+    const totalLeads = negocios.filter(n => 
+      isPipelineValido(n.pipeline) && 
+      n.primeiro_contato !== null && 
+      isInPeriod(n.primeiro_contato)
+    ).length;
     const reunioesAgendadas = negocios.filter(n => n.data_agendamento !== null).length;
     const taxaAgendamento = totalLeads > 0 ? reunioesAgendadas / totalLeads * 100 : 0;
 
