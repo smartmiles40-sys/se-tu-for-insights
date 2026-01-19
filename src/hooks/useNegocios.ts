@@ -90,10 +90,12 @@ export function useNegocios(filters?: NegocioFilters) {
         );
       }
       if (filters?.sdr) {
-        query = query.eq('sdr', filters.sdr);
+        // Filtra por nome normalizado (correspondência parcial no início)
+        query = query.ilike('sdr', `${filters.sdr}%`);
       }
       if (filters?.vendedor) {
-        query = query.eq('vendedor', filters.vendedor);
+        // Filtra por nome normalizado (correspondência parcial no início)
+        query = query.ilike('vendedor', `${filters.vendedor}%`);
       }
       if (filters?.pipeline) {
         query = query.eq('pipeline', filters.pipeline);
@@ -223,6 +225,16 @@ export function useNegociosStats(negocios: Negocio[] | undefined) {
   };
 }
 
+// Normaliza nomes removendo sufixos como "- SDR", "- Especialista", etc.
+function normalizeName(name: string | null): string | null {
+  if (!name) return null;
+  // Remove sufixos comuns como " - SDR", " - Especialista", " - Vendedor", etc.
+  const normalized = name
+    .replace(/\s*-\s*(SDR|Especialista|Vendedor|Consultor|Sales|Rep)$/i, '')
+    .trim();
+  return normalized || null;
+}
+
 export function useFilterOptions(negocios: Negocio[] | undefined) {
   if (!negocios) {
     return {
@@ -238,9 +250,13 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
   const unique = (arr: (string | null)[]) => 
     [...new Set(arr.filter((v): v is string => v !== null && v !== ''))].sort();
 
+  // Normaliza nomes de SDRs e vendedores para evitar duplicações
+  const normalizedSdrs = negocios.map(n => normalizeName(n.sdr));
+  const normalizedVendedores = negocios.map(n => normalizeName(n.vendedor));
+
   return {
-    sdrs: unique(negocios.map(n => n.sdr)),
-    vendedores: unique(negocios.map(n => n.vendedor)),
+    sdrs: unique(normalizedSdrs),
+    vendedores: unique(normalizedVendedores),
     pipelines: unique(negocios.map(n => n.pipeline)),
     utmSources: unique(negocios.map(n => n.utm_source)),
     leadFontes: unique(negocios.map(n => n.lead_fonte)),
