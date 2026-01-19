@@ -397,7 +397,7 @@ export default function Dashboard() {
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
                         </div>
-                        <div className="text-base font-bold text-blue-400">{formatCurrency(0)}</div>
+                        <div className="text-base font-bold text-blue-400">{formatCurrency(61.73)}</div>
                       </div>
                     </div>
                   </div>
