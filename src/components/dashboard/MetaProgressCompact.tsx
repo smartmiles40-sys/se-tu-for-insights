@@ -14,6 +14,8 @@ interface MetaProgressCompactProps {
 export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProps) {
   const data = useMemo(() => {
     const faturamento = realizado.faturamento || 0;
+    const metaMinimo = meta?.meta_faturamento_minimo || 0;
+    const metaSatisfatorio = meta?.meta_faturamento_satisfatorio || 0;
     const metaExcelente = meta?.meta_faturamento_excelente || 0;
     const progresso = metaExcelente > 0 ? (faturamento / metaExcelente) * 100 : 0;
 
@@ -28,6 +30,8 @@ export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProp
 
     return {
       realizado: formatCurrency(faturamento),
+      metaMinimo: formatCurrency(metaMinimo),
+      metaSatisfatorio: formatCurrency(metaSatisfatorio),
       metaExcelente: formatCurrency(metaExcelente),
       progresso: `${progresso.toFixed(1)}%`,
       progressoNum: progresso,
@@ -51,6 +55,20 @@ export function MetaProgressCompact({ meta, realizado }: MetaProgressCompactProp
       <div className="flex flex-col items-start">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Realizado</span>
         <span className="text-base font-bold text-cyan-400">{data.realizado}</span>
+      </div>
+      
+      <div className="flex flex-col items-start">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1">
+          <span className="text-red-400">◉</span> Meta Mínima
+        </span>
+        <span className="text-base font-bold text-red-400">{data.metaMinimo}</span>
+      </div>
+      
+      <div className="flex flex-col items-start">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1">
+          <span className="text-yellow-400">◉</span> Meta Satisfatória
+        </span>
+        <span className="text-base font-bold text-yellow-400">{data.metaSatisfatorio}</span>
       </div>
       
       <div className="flex flex-col items-start">
