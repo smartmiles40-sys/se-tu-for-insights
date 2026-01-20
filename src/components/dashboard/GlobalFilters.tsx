@@ -97,11 +97,10 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
           <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
             <Calendar
               mode="single"
-              selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
+              selected={filters.dataInicio ? new Date(filters.dataInicio + 'T12:00:00') : undefined}
               onSelect={(date) => {
                 if (date) {
-                  const firstDay = startOfMonth(date);
-                  updateFilter('dataInicio', format(firstDay, 'yyyy-MM-dd'));
+                  updateFilter('dataInicio', format(date, 'yyyy-MM-dd'));
                 } else {
                   updateFilter('dataInicio', undefined);
                 }
@@ -135,11 +134,10 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
           <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
             <Calendar
               mode="single"
-              selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
+              selected={filters.dataFim ? new Date(filters.dataFim + 'T12:00:00') : undefined}
               onSelect={(date) => {
                 if (date) {
-                  const lastDay = endOfMonth(date);
-                  updateFilter('dataFim', format(lastDay, 'yyyy-MM-dd'));
+                  updateFilter('dataFim', format(date, 'yyyy-MM-dd'));
                 } else {
                   updateFilter('dataFim', undefined);
                 }
