@@ -105,7 +105,7 @@ export default function Dashboard() {
     // ========================================
     // Total Leads: apenas pipelines válidos com primeiro_contato preenchido E dentro do período
     const totalLeads = negocios.filter(n => isPipelineValido(n.pipeline) && n.primeiro_contato !== null && isInPeriod(n.primeiro_contato)).length;
-    const reunioesAgendadas = negocios.filter(n => n.data_agendamento !== null && isInPeriod(n.data_agendamento)).length;
+    const reunioesAgendadas = negocios.filter(n => isPipelineValido(n.pipeline) && n.data_agendamento !== null && isInPeriod(n.data_agendamento)).length;
     const taxaAgendamento = totalLeads > 0 ? reunioesAgendadas / totalLeads * 100 : 0;
 
     // ========================================
