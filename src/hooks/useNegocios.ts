@@ -49,7 +49,7 @@ export interface NegocioFilters {
   dataInicio?: string;
   dataFim?: string;
   sdr?: string;
-  vendedor?: string;
+  vendedores?: string[];
   pipeline?: string;
   utmSource?: string;
   leadFonte?: string;
@@ -93,9 +93,12 @@ export function useNegocios(filters?: NegocioFilters) {
         // Filtra por nome normalizado (correspondência parcial no início)
         query = query.ilike('sdr', `${filters.sdr}%`);
       }
-      if (filters?.vendedor) {
-        // Filtra por nome normalizado (correspondência parcial no início)
-        query = query.ilike('vendedor', `${filters.vendedor}%`);
+      // Filter by vendedores (multiple selection, based on responsavel_reuniao)
+      if (filters?.vendedores && filters.vendedores.length > 0) {
+        const orConditions = filters.vendedores
+          .map(v => `responsavel_reuniao.ilike.%${v}%`)
+          .join(',');
+        query = query.or(orConditions);
       }
       if (filters?.pipeline) {
         query = query.eq('pipeline', filters.pipeline);
@@ -250,13 +253,18 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
   const unique = (arr: (string | null)[]) => 
     [...new Set(arr.filter((v): v is string => v !== null && v !== ''))].sort();
 
-  // Normaliza nomes de SDRs e vendedores para evitar duplicações
+  // Normaliza nomes de SDRs para evitar duplicações
   const normalizedSdrs = negocios.map(n => normalizeName(n.sdr));
-  const normalizedVendedores = negocios.map(n => normalizeName(n.vendedor));
+  
+  // Get unique vendedores from responsavel_reuniao (normalized, excluding "Não se aplica")
+  const normalizedVendedores = negocios.map(n => normalizeName(n.responsavel_reuniao));
+  const uniqueVendedores = [...new Set(normalizedVendedores)]
+    .filter((v): v is string => v !== null && v.trim() !== '' && v.toLowerCase() !== 'não se aplica')
+    .sort();
 
   return {
     sdrs: unique(normalizedSdrs),
-    vendedores: unique(normalizedVendedores),
+    vendedores: uniqueVendedores,
     pipelines: unique(negocios.map(n => n.pipeline)),
     utmSources: unique(negocios.map(n => n.utm_source)),
     leadFontes: unique(negocios.map(n => n.lead_fonte)),
