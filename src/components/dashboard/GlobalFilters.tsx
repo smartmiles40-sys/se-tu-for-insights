@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, X, User, Package } from 'lucide-react';
+import { CalendarIcon, X, ChevronDown, User } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -29,48 +29,52 @@ interface GlobalFiltersProps {
 }
 
 export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFiltersProps) {
-  const hasFilters = Object.entries(filters).some(([_, v]) => {
-    if (Array.isArray(v)) return v.length > 0;
+  const hasFilters = Object.entries(filters).some(([key, v]) => {
+    if (key === 'vendedores' || key === 'tiposVenda') {
+      return Array.isArray(v) && v.length > 0;
+    }
     return v !== undefined && v !== '';
   });
-
-  const responsaveis = [...new Set([...options.sdrs, ...options.vendedores])].sort();
 
   const clearFilters = () => {
     onFiltersChange({});
   };
 
-  const updateFilter = (key: keyof NegocioFilters, value: string | undefined) => {
-    onFiltersChange({
-      ...filters,
-      [key]: value === 'all' ? undefined : value,
-    });
-  };
-
-  const handleResponsavelChange = (value: string) => {
-    if (value === 'all') {
+  const updateFilter = (key: keyof NegocioFilters, value: string | string[] | undefined) => {
+    if (key === 'vendedores' || key === 'tiposVenda') {
       onFiltersChange({
         ...filters,
-        sdr: undefined,
-        vendedor: undefined,
+        [key]: Array.isArray(value) && value.length === 0 ? undefined : value,
       });
     } else {
-      const isSDR = options.sdrs.includes(value);
-      const isVendedor = options.vendedores.includes(value);
-      
       onFiltersChange({
         ...filters,
-        sdr: isSDR ? value : undefined,
-        vendedor: isVendedor ? value : undefined,
+        [key]: value === 'all' ? undefined : value,
       });
     }
   };
 
-  const currentResponsavel = filters.sdr || filters.vendedor || 'all';
+  const handleVendedorToggle = (vendedor: string, checked: boolean) => {
+    const current = filters.vendedores || [];
+    if (checked) {
+      updateFilter('vendedores', [...current, vendedor]);
+    } else {
+      updateFilter('vendedores', current.filter(v => v !== vendedor));
+    }
+  };
+
+  const handleTipoVendaToggle = (tipo: string, checked: boolean) => {
+    const current = filters.tiposVenda || [];
+    if (checked) {
+      updateFilter('tiposVenda', [...current, tipo]);
+    } else {
+      updateFilter('tiposVenda', current.filter(t => t !== tipo));
+    }
+  };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-      {/* Período */}
+    <div className="flex flex-wrap items-center gap-2 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-border/50">
+      {/* Date Range */}
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>
@@ -78,19 +82,19 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
               variant="outline"
               size="sm"
               className={cn(
-                'h-8 w-[110px] justify-start text-left font-normal bg-slate-800 border-slate-600 hover:bg-slate-700',
-                !filters.dataInicio && 'text-slate-400'
+                'w-[130px] justify-start text-left font-normal h-8',
+                !filters.dataInicio && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
               {filters.dataInicio ? (
-                format(new Date(filters.dataInicio + 'T12:00:00'), 'dd/MM/yy', { locale: ptBR })
+                format(new Date(filters.dataInicio), 'dd/MM/yyyy', { locale: ptBR })
               ) : (
-                <span>De</span>
+                <span className="text-xs">Data início</span>
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-600" align="start">
+          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
             <Calendar
               mode="single"
               selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
@@ -103,12 +107,12 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
                 }
               }}
               locale={ptBR}
-              className="bg-slate-800 pointer-events-auto"
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
 
-        <span className="text-slate-500 text-sm">até</span>
+        <span className="text-muted-foreground text-xs">até</span>
 
         <Popover>
           <PopoverTrigger asChild>
@@ -116,19 +120,19 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
               variant="outline"
               size="sm"
               className={cn(
-                'h-8 w-[110px] justify-start text-left font-normal bg-slate-800 border-slate-600 hover:bg-slate-700',
-                !filters.dataFim && 'text-slate-400'
+                'w-[130px] justify-start text-left font-normal h-8',
+                !filters.dataFim && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
               {filters.dataFim ? (
-                format(new Date(filters.dataFim + 'T12:00:00'), 'dd/MM/yy', { locale: ptBR })
+                format(new Date(filters.dataFim), 'dd/MM/yyyy', { locale: ptBR })
               ) : (
-                <span>Até</span>
+                <span className="text-xs">Data fim</span>
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-600" align="start">
+          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
             <Calendar
               mode="single"
               selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
@@ -141,45 +145,67 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
                 }
               }}
               locale={ptBR}
-              className="bg-slate-800 pointer-events-auto"
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
       </div>
 
-      <div className="h-5 w-px bg-slate-600" />
-
-      {/* Responsável */}
-      {responsaveis.length > 0 && (
-        <Select
-          value={currentResponsavel}
-          onValueChange={handleResponsavelChange}
-        >
-          <SelectTrigger className="h-8 w-[150px] bg-slate-800 border-slate-600 text-sm">
-            <User className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
-            <SelectValue placeholder="Responsável" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-600">
-            <SelectItem value="all">Todos</SelectItem>
-            {responsaveis.map((r) => (
-              <SelectItem key={r} value={r}>
-                {r}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Vendedor Multi-Select */}
+      {options.vendedores.length > 0 && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'h-8 justify-between min-w-[140px]',
+                filters.vendedores && filters.vendedores.length > 0 && 'border-primary/50'
+              )}
+            >
+              <div className="flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" />
+                <span className="text-xs">
+                  {filters.vendedores && filters.vendedores.length > 0
+                    ? `${filters.vendedores.length} vendedor(es)`
+                    : 'Vendedor'}
+                </span>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2 bg-popover border-border z-50" align="start">
+            <div className="space-y-2">
+              {options.vendedores.map((vendedor) => (
+                <div key={vendedor} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`vendedor-${vendedor}`}
+                    checked={filters.vendedores?.includes(vendedor) || false}
+                    onCheckedChange={(checked) => handleVendedorToggle(vendedor, checked === true)}
+                  />
+                  <label
+                    htmlFor={`vendedor-${vendedor}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {vendedor}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
 
-      {/* Pipeline */}
+      {/* Pipeline Filter */}
       {options.pipelines.length > 0 && (
         <Select
           value={filters.pipeline || 'all'}
           onValueChange={(v) => updateFilter('pipeline', v)}
         >
-          <SelectTrigger className="h-8 w-[140px] bg-slate-800 border-slate-600 text-sm">
+          <SelectTrigger className="w-[140px] h-8 text-xs">
             <SelectValue placeholder="Pipeline" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-600">
+          <SelectContent className="bg-popover border-border z-50">
             <SelectItem value="all">Todos Pipelines</SelectItem>
             {options.pipelines.map((p) => (
               <SelectItem key={p} value={p}>
@@ -190,27 +216,27 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
         </Select>
       )}
 
-      {/* Origem */}
+      {/* Lead Fonte Filter */}
       {options.leadFontes.length > 0 && (
         <Select
           value={filters.leadFonte || 'all'}
           onValueChange={(v) => updateFilter('leadFonte', v)}
         >
-          <SelectTrigger className="h-8 w-[140px] bg-slate-800 border-slate-600 text-sm">
-            <SelectValue placeholder="Origem" />
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue placeholder="Fonte Lead" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-600">
-            <SelectItem value="all">Todas Origens</SelectItem>
-            {options.leadFontes.map((l) => (
-              <SelectItem key={l} value={l}>
-                {l}
+          <SelectContent className="bg-popover border-border z-50">
+            <SelectItem value="all">Todas Fontes</SelectItem>
+            {options.leadFontes.map((f) => (
+              <SelectItem key={f} value={f}>
+                {f}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       )}
 
-      {/* Tipo de Venda - Multi-select */}
+      {/* Tipo de Venda Multi-Select */}
       {options.tiposVenda.length > 0 && (
         <Popover>
           <PopoverTrigger asChild>
@@ -218,71 +244,50 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
               variant="outline"
               size="sm"
               className={cn(
-                'h-8 min-w-[140px] justify-start bg-slate-800 border-slate-600 hover:bg-slate-700 text-sm',
+                'h-8 justify-between min-w-[140px]',
                 filters.tiposVenda && filters.tiposVenda.length > 0 && 'border-primary/50'
               )}
             >
-              <Package className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
-              {filters.tiposVenda && filters.tiposVenda.length > 0
-                ? `${filters.tiposVenda.length} tipo${filters.tiposVenda.length > 1 ? 's' : ''}`
-                : 'Tipo de Venda'}
+              <span className="text-xs">
+                {filters.tiposVenda && filters.tiposVenda.length > 0
+                  ? `${filters.tiposVenda.length} tipo(s)`
+                  : 'Tipo de Venda'}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-56 p-3 bg-slate-800 border-slate-600" align="start">
+          <PopoverContent className="w-56 p-2 bg-popover border-border z-50" align="start">
             <div className="space-y-2">
-              <div className="text-xs text-slate-400 font-medium mb-2">Selecione os tipos:</div>
               {options.tiposVenda.map((tipo) => (
                 <div key={tipo} className="flex items-center space-x-2">
                   <Checkbox
                     id={`tipo-${tipo}`}
                     checked={filters.tiposVenda?.includes(tipo) || false}
-                    onCheckedChange={(checked) => {
-                      const current = filters.tiposVenda || [];
-                      if (checked) {
-                        onFiltersChange({ ...filters, tiposVenda: [...current, tipo] });
-                      } else {
-                        const updated = current.filter(t => t !== tipo);
-                        onFiltersChange({ 
-                          ...filters, 
-                          tiposVenda: updated.length > 0 ? updated : undefined 
-                        });
-                      }
-                    }}
-                    className="border-slate-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    onCheckedChange={(checked) => handleTipoVendaToggle(tipo, checked === true)}
                   />
-                  <label 
-                    htmlFor={`tipo-${tipo}`} 
-                    className="text-sm text-slate-300 cursor-pointer flex-1"
+                  <label
+                    htmlFor={`tipo-${tipo}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                   >
                     {tipo}
                   </label>
                 </div>
               ))}
-              {filters.tiposVenda && filters.tiposVenda.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onFiltersChange({ ...filters, tiposVenda: undefined })}
-                  className="w-full mt-2 h-7 text-xs text-slate-400 hover:text-red-400"
-                >
-                  Limpar seleção
-                </Button>
-              )}
             </div>
           </PopoverContent>
         </Popover>
       )}
 
-      {/* Limpar */}
+      {/* Clear Filters */}
       {hasFilters && (
         <Button
           variant="ghost"
           size="sm"
           onClick={clearFilters}
-          className="h-8 text-slate-400 hover:text-red-400"
+          className="h-8 text-muted-foreground hover:text-destructive"
         >
           <X className="h-3.5 w-3.5 mr-1" />
-          Limpar
+          <span className="text-xs">Limpar</span>
         </Button>
       )}
     </div>

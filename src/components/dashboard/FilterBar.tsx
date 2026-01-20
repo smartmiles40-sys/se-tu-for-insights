@@ -8,7 +8,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CalendarIcon, X, ChevronDown, User } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -28,17 +29,38 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps) {
-  const hasFilters = Object.values(filters).some(v => v !== undefined && v !== '');
+  const hasFilters = Object.entries(filters).some(([key, v]) => {
+    if (key === 'vendedores' || key === 'tiposVenda') {
+      return Array.isArray(v) && v.length > 0;
+    }
+    return v !== undefined && v !== '';
+  });
 
   const clearFilters = () => {
     onFiltersChange({});
   };
 
-  const updateFilter = (key: keyof NegocioFilters, value: string | undefined) => {
-    onFiltersChange({
-      ...filters,
-      [key]: value === 'all' ? undefined : value,
-    });
+  const updateFilter = (key: keyof NegocioFilters, value: string | string[] | undefined) => {
+    if (key === 'vendedores' || key === 'tiposVenda') {
+      onFiltersChange({
+        ...filters,
+        [key]: Array.isArray(value) && value.length === 0 ? undefined : value,
+      });
+    } else {
+      onFiltersChange({
+        ...filters,
+        [key]: value === 'all' ? undefined : value,
+      });
+    }
+  };
+
+  const handleVendedorToggle = (vendedor: string, checked: boolean) => {
+    const current = filters.vendedores || [];
+    if (checked) {
+      updateFilter('vendedores', [...current, vendedor]);
+    } else {
+      updateFilter('vendedores', current.filter(v => v !== vendedor));
+    }
   };
 
   return (
@@ -62,7 +84,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
             <Calendar
               mode="single"
               selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
@@ -99,7 +121,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
             <Calendar
               mode="single"
               selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
@@ -127,7 +149,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="SDR" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover border-border z-50">
             <SelectItem value="all">Todos SDRs</SelectItem>
             {options.sdrs.map((sdr) => (
               <SelectItem key={sdr} value={sdr}>
@@ -138,24 +160,48 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
         </Select>
       )}
 
-      {/* Vendedor Filter */}
+      {/* Vendedor Multi-Select */}
       {options.vendedores.length > 0 && (
-        <Select
-          value={filters.vendedor || 'all'}
-          onValueChange={(v) => updateFilter('vendedor', v)}
-        >
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Vendedor" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos Vendedores</SelectItem>
-            {options.vendedores.map((v) => (
-              <SelectItem key={v} value={v}>
-                {v}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                'w-[160px] justify-between',
+                filters.vendedores && filters.vendedores.length > 0 && 'border-primary/50'
+              )}
+            >
+              <div className="flex items-center gap-1.5">
+                <User className="h-4 w-4" />
+                <span>
+                  {filters.vendedores && filters.vendedores.length > 0
+                    ? `${filters.vendedores.length} vendedor(es)`
+                    : 'Vendedor'}
+                </span>
+              </div>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2 bg-popover border-border z-50" align="start">
+            <div className="space-y-2">
+              {options.vendedores.map((vendedor) => (
+                <div key={vendedor} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`filter-vendedor-${vendedor}`}
+                    checked={filters.vendedores?.includes(vendedor) || false}
+                    onCheckedChange={(checked) => handleVendedorToggle(vendedor, checked === true)}
+                  />
+                  <label
+                    htmlFor={`filter-vendedor-${vendedor}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {vendedor}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
 
       {/* Pipeline Filter */}
@@ -167,7 +213,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Pipeline" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover border-border z-50">
             <SelectItem value="all">Todos Pipelines</SelectItem>
             {options.pipelines.map((p) => (
               <SelectItem key={p} value={p}>
@@ -187,7 +233,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="UTM Source" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover border-border z-50">
             <SelectItem value="all">Todas Origens</SelectItem>
             {options.utmSources.map((u) => (
               <SelectItem key={u} value={u}>
