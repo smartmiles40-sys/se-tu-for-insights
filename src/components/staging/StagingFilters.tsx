@@ -2,9 +2,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, FileUp, Webhook, X } from 'lucide-react';
+import { Search, Filter, FileUp, Webhook, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { StagingStatus } from '@/hooks/useStagingNegocios';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export type SourceFilter = 'all' | 'import_arquivo' | 'n8n';
 
@@ -12,12 +14,22 @@ export interface AdvancedFilters {
   pipeline?: string;
   vendedor?: string;
   sdr?: string;
+  quemVendeu?: string;
+  responsavelReuniao?: string;
+  fase?: string;
+  tipoVenda?: string;
+  fonte?: string;
 }
 
 interface FilterOptions {
   pipelines: string[];
   vendedores: string[];
   sdrs: string[];
+  quemVendeu: string[];
+  responsavelReuniao: string[];
+  fases: string[];
+  tiposVenda: string[];
+  fontes: string[];
 }
 
 interface StagingFiltersProps {
@@ -46,9 +58,11 @@ export function StagingFilters({
   onSourceChange,
   advancedFilters = {},
   onAdvancedFiltersChange,
-  filterOptions = { pipelines: [], vendedores: [], sdrs: [] },
+  filterOptions = { pipelines: [], vendedores: [], sdrs: [], quemVendeu: [], responsavelReuniao: [], fases: [], tiposVenda: [], fontes: [] },
   counts,
 }: StagingFiltersProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const statusOptions: { value: StagingStatus | undefined; label: string; count: number }[] = [
     { value: undefined, label: 'Todos', count: counts.pendente + counts.aprovado + counts.rejeitado },
     { value: 'pendente', label: 'Pendentes', count: counts.pendente },
@@ -62,13 +76,46 @@ export function StagingFilters({
     { value: 'n8n', label: 'n8n', icon: <Webhook className="h-3 w-3" /> },
   ];
 
-  const hasActiveFilters = advancedFilters.pipeline || advancedFilters.vendedor || advancedFilters.sdr;
+  const activeFiltersCount = Object.values(advancedFilters).filter(Boolean).length;
+  const hasActiveFilters = activeFiltersCount > 0;
 
   const handleClearFilters = () => {
     if (onAdvancedFiltersChange) {
       onAdvancedFiltersChange({});
     }
   };
+
+  const FilterSelect = ({ 
+    label, 
+    value, 
+    options, 
+    onChange 
+  }: { 
+    label: string; 
+    value?: string; 
+    options: string[]; 
+    onChange: (value: string | undefined) => void;
+  }) => (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs text-muted-foreground">{label}</label>
+      <Select
+        value={value || 'all'}
+        onValueChange={(val) => onChange(val === 'all' ? undefined : val)}
+      >
+        <SelectTrigger className="w-[160px] h-8 text-xs">
+          <SelectValue placeholder={`Todos`} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -111,9 +158,8 @@ export function StagingFilters({
         </div>
       </div>
 
-      {/* Source and Advanced Filters Row */}
+      {/* Source Filter */}
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-        {/* Source Filter */}
         {onSourceChange && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Origem:</span>
@@ -132,93 +178,105 @@ export function StagingFilters({
           </div>
         )}
 
-        {/* Advanced Filters */}
+        {/* Toggle Advanced Filters */}
         {onAdvancedFiltersChange && (
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Pipeline Filter */}
-            <Select
-              value={advancedFilters.pipeline || 'all'}
-              onValueChange={(value) => 
-                onAdvancedFiltersChange({
-                  ...advancedFilters,
-                  pipeline: value === 'all' ? undefined : value
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px] h-8">
-                <SelectValue placeholder="Pipeline" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos Pipelines</SelectItem>
-                {filterOptions.pipelines.map((pipeline) => (
-                  <SelectItem key={pipeline} value={pipeline}>
-                    {pipeline}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Vendedor Filter */}
-            <Select
-              value={advancedFilters.vendedor || 'all'}
-              onValueChange={(value) => 
-                onAdvancedFiltersChange({
-                  ...advancedFilters,
-                  vendedor: value === 'all' ? undefined : value
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px] h-8">
-                <SelectValue placeholder="Vendedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos Vendedores</SelectItem>
-                {filterOptions.vendedores.map((vendedor) => (
-                  <SelectItem key={vendedor} value={vendedor}>
-                    {vendedor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* SDR Filter */}
-            <Select
-              value={advancedFilters.sdr || 'all'}
-              onValueChange={(value) => 
-                onAdvancedFiltersChange({
-                  ...advancedFilters,
-                  sdr: value === 'all' ? undefined : value
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px] h-8">
-                <SelectValue placeholder="SDR" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos SDRs</SelectItem>
-                {filterOptions.sdrs.map((sdr) => (
-                  <SelectItem key={sdr} value={sdr}>
-                    {sdr}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Clear Filters Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="gap-2"
+          >
+            <Filter className="h-3.5 w-3.5" />
+            Filtros Avançados
             {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearFilters}
-                className="h-8 gap-1 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3 w-3" />
-                Limpar filtros
-              </Button>
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                {activeFiltersCount}
+              </Badge>
             )}
-          </div>
+            {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </Button>
         )}
       </div>
+
+      {/* Advanced Filters - Collapsible */}
+      {onAdvancedFiltersChange && (
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <CollapsibleContent>
+            <div className="p-4 border rounded-lg bg-muted/30 space-y-4">
+              {/* Row 1: Pipeline, Vendedor, SDR, Quem Vendeu */}
+              <div className="flex flex-wrap gap-4">
+                <FilterSelect
+                  label="Pipeline"
+                  value={advancedFilters.pipeline}
+                  options={filterOptions.pipelines}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, pipeline: val })}
+                />
+                <FilterSelect
+                  label="Vendedor"
+                  value={advancedFilters.vendedor}
+                  options={filterOptions.vendedores}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, vendedor: val })}
+                />
+                <FilterSelect
+                  label="SDR"
+                  value={advancedFilters.sdr}
+                  options={filterOptions.sdrs}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, sdr: val })}
+                />
+                <FilterSelect
+                  label="Quem Vendeu"
+                  value={advancedFilters.quemVendeu}
+                  options={filterOptions.quemVendeu}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, quemVendeu: val })}
+                />
+              </div>
+
+              {/* Row 2: Resp. Reunião, Fase, Tipo Venda, Fonte */}
+              <div className="flex flex-wrap gap-4">
+                <FilterSelect
+                  label="Resp. Reunião"
+                  value={advancedFilters.responsavelReuniao}
+                  options={filterOptions.responsavelReuniao}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, responsavelReuniao: val })}
+                />
+                <FilterSelect
+                  label="Fase"
+                  value={advancedFilters.fase}
+                  options={filterOptions.fases}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, fase: val })}
+                />
+                <FilterSelect
+                  label="Tipo Venda"
+                  value={advancedFilters.tipoVenda}
+                  options={filterOptions.tiposVenda}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, tipoVenda: val })}
+                />
+                <FilterSelect
+                  label="Fonte"
+                  value={advancedFilters.fonte}
+                  options={filterOptions.fontes}
+                  onChange={(val) => onAdvancedFiltersChange({ ...advancedFilters, fonte: val })}
+                />
+              </div>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearFilters}
+                    className="gap-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                    Limpar todos os filtros
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
   );
 }

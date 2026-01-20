@@ -23,16 +23,35 @@ export default function StagingPage() {
   
   // Extract unique filter options from data
   const filterOptions = useMemo(() => {
-    if (!allData) return { pipelines: [], vendedores: [], sdrs: [] };
+    if (!allData) return { 
+      pipelines: [], 
+      vendedores: [], 
+      sdrs: [], 
+      quemVendeu: [], 
+      responsavelReuniao: [], 
+      fases: [], 
+      tiposVenda: [], 
+      fontes: [] 
+    };
     
     const pipelines = [...new Set(allData.map(d => d.pipeline).filter(Boolean))] as string[];
     const vendedores = [...new Set(allData.map(d => d.vendedor).filter(Boolean))] as string[];
     const sdrs = [...new Set(allData.map(d => d.sdr).filter(Boolean))] as string[];
+    const quemVendeu = [...new Set(allData.map(d => d.quem_vendeu).filter(Boolean))] as string[];
+    const responsavelReuniao = [...new Set(allData.map(d => d.responsavel_reuniao).filter(Boolean))] as string[];
+    const fases = [...new Set(allData.map(d => d.fase).filter(Boolean))] as string[];
+    const tiposVenda = [...new Set(allData.map(d => d.tipo_venda).filter(Boolean))] as string[];
+    const fontes = [...new Set(allData.map(d => d.lead_fonte).filter(Boolean))] as string[];
     
     return {
       pipelines: pipelines.sort(),
       vendedores: vendedores.sort(),
       sdrs: sdrs.sort(),
+      quemVendeu: quemVendeu.sort(),
+      responsavelReuniao: responsavelReuniao.sort(),
+      fases: fases.sort(),
+      tiposVenda: tiposVenda.sort(),
+      fontes: fontes.sort(),
     };
   }, [allData]);
   
@@ -70,6 +89,26 @@ export default function StagingPage() {
     
     if (advancedFilters.sdr) {
       result = result.filter(d => d.sdr === advancedFilters.sdr);
+    }
+    
+    if (advancedFilters.quemVendeu) {
+      result = result.filter(d => d.quem_vendeu === advancedFilters.quemVendeu);
+    }
+    
+    if (advancedFilters.responsavelReuniao) {
+      result = result.filter(d => d.responsavel_reuniao === advancedFilters.responsavelReuniao);
+    }
+    
+    if (advancedFilters.fase) {
+      result = result.filter(d => d.fase === advancedFilters.fase);
+    }
+    
+    if (advancedFilters.tipoVenda) {
+      result = result.filter(d => d.tipo_venda === advancedFilters.tipoVenda);
+    }
+    
+    if (advancedFilters.fonte) {
+      result = result.filter(d => d.lead_fonte === advancedFilters.fonte);
     }
     
     return result;
