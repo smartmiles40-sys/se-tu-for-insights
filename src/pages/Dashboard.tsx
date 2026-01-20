@@ -399,7 +399,7 @@ export default function Dashboard() {
                         <div>
                           <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
                         </div>
-                        <div className="text-base font-bold text-blue-400">{formatCurrencyDecimal(61.73)}</div>
+                        <div className="text-base font-bold text-blue-400">{formatCurrencyDecimal(55.92)}</div>
                       </div>
                     </div>
                   </div>
