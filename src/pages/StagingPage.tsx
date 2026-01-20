@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StagingTable } from '@/components/staging/StagingTable';
-import { StagingFilters, SourceFilter } from '@/components/staging/StagingFilters';
+import { StagingFilters, SourceFilter, AdvancedFilters } from '@/components/staging/StagingFilters';
 import { StagingActions } from '@/components/staging/StagingActions';
 import { StagingPagination } from '@/components/staging/StagingPagination';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
@@ -15,10 +15,26 @@ export default function StagingPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StagingStatus | undefined>('pendente');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: allData, isLoading } = useStagingNegocios();
+  
+  // Extract unique filter options from data
+  const filterOptions = useMemo(() => {
+    if (!allData) return { pipelines: [], vendedores: [], sdrs: [] };
+    
+    const pipelines = [...new Set(allData.map(d => d.pipeline).filter(Boolean))] as string[];
+    const vendedores = [...new Set(allData.map(d => d.vendedor).filter(Boolean))] as string[];
+    const sdrs = [...new Set(allData.map(d => d.sdr).filter(Boolean))] as string[];
+    
+    return {
+      pipelines: pipelines.sort(),
+      vendedores: vendedores.sort(),
+      sdrs: sdrs.sort(),
+    };
+  }, [allData]);
   
   // Filter data based on current filters
   const filteredData = useMemo(() => {
@@ -43,8 +59,21 @@ export default function StagingPage() {
       );
     }
     
+    // Advanced filters
+    if (advancedFilters.pipeline) {
+      result = result.filter(d => d.pipeline === advancedFilters.pipeline);
+    }
+    
+    if (advancedFilters.vendedor) {
+      result = result.filter(d => d.vendedor === advancedFilters.vendedor);
+    }
+    
+    if (advancedFilters.sdr) {
+      result = result.filter(d => d.sdr === advancedFilters.sdr);
+    }
+    
     return result;
-  }, [allData, statusFilter, sourceFilter, search]);
+  }, [allData, statusFilter, sourceFilter, search, advancedFilters]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
@@ -56,7 +85,7 @@ export default function StagingPage() {
   // Reset page when filters change
   useMemo(() => {
     setCurrentPage(1);
-  }, [statusFilter, sourceFilter, search]);
+  }, [statusFilter, sourceFilter, search, advancedFilters]);
 
   // Calculate counts for filters (consider source filter)
   const counts = useMemo(() => {
@@ -172,6 +201,9 @@ export default function StagingPage() {
               onStatusChange={setStatusFilter}
               sourceFilter={sourceFilter}
               onSourceChange={setSourceFilter}
+              advancedFilters={advancedFilters}
+              onAdvancedFiltersChange={setAdvancedFilters}
+              filterOptions={filterOptions}
               counts={counts}
             />
 
