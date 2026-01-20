@@ -109,7 +109,11 @@ export default function Dashboard() {
       n.primeiro_contato !== null && 
       isInPeriod(n.primeiro_contato)
     ).length;
-    const reunioesAgendadas = negocios.filter(n => n.data_agendamento !== null && isInPeriod(n.data_agendamento)).length;
+    const reunioesAgendadas = negocios.filter(n => 
+      isPipelineValido(n.pipeline) && 
+      n.data_agendamento !== null && 
+      isInPeriod(n.data_agendamento)
+    ).length;
     const taxaAgendamento = totalLeads > 0 ? reunioesAgendadas / totalLeads * 100 : 0;
 
     // ========================================
