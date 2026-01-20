@@ -238,6 +238,9 @@ function normalizeName(name: string | null): string | null {
   return normalized || null;
 }
 
+// Pipelines permitidos para filtro de Tipo de Venda
+const PIPELINES_TIPO_VENDA = ['Comercial 1 - Se tu for eu vou', 'Processo Pós Venda'];
+
 export function useFilterOptions(negocios: Negocio[] | undefined) {
   if (!negocios) {
     return {
@@ -262,12 +265,17 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
     .filter((v): v is string => v !== null && v.trim() !== '' && v.toLowerCase() !== 'não se aplica')
     .sort();
 
+  // Filtrar tipos de venda apenas das pipelines Comercial 1 e Pós-Venda
+  const tiposVendaFromValidPipelines = negocios
+    .filter(n => n.pipeline && PIPELINES_TIPO_VENDA.includes(n.pipeline))
+    .map(n => n.tipo_venda);
+
   return {
     sdrs: unique(normalizedSdrs),
     vendedores: uniqueVendedores,
     pipelines: unique(negocios.map(n => n.pipeline)),
     utmSources: unique(negocios.map(n => n.utm_source)),
     leadFontes: unique(negocios.map(n => n.lead_fonte)),
-    tiposVenda: unique(negocios.map(n => n.tipo_venda)),
+    tiposVenda: unique(tiposVendaFromValidPipelines),
   };
 }
