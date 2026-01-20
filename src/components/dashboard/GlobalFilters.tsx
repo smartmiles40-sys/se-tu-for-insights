@@ -191,6 +191,17 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
                   </label>
                 </div>
               ))}
+              {filters.vendedores && filters.vendedores.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => updateFilter('vendedores', [])}
+                  className="w-full mt-2 text-muted-foreground hover:text-destructive text-xs h-7"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Limpar seleção
+                </Button>
+              )}
             </div>
           </PopoverContent>
         </Popover>

@@ -199,6 +199,17 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
                   </label>
                 </div>
               ))}
+              {filters.vendedores && filters.vendedores.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => updateFilter('vendedores', [])}
+                  className="w-full mt-2 text-muted-foreground hover:text-destructive text-xs h-7"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Limpar seleção
+                </Button>
+              )}
             </div>
           </PopoverContent>
         </Popover>
