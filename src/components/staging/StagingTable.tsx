@@ -13,11 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { StagingNegocio, useUpdateStagingNegocio } from '@/hooks/useStagingNegocios';
+import { formatBrazilDate } from '@/lib/dateUtils';
 
 interface StagingTableProps {
   data: StagingNegocio[];
@@ -144,8 +144,8 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
   }) => {
     const [open, setOpen] = useState(false);
 
-    const handleDateSelect = async (date: Date | undefined) => {
-      const dateValue = date ? format(date, 'yyyy-MM-dd') : null;
+  const handleDateSelect = async (date: Date | undefined) => {
+      const dateValue = date ? formatBrazilDate(date, 'yyyy-MM-dd') : null;
       await updateMutation.mutateAsync({
         id,
         updates: { [field]: dateValue },
@@ -195,7 +195,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+      return formatBrazilDate(dateString, 'dd/MM/yyyy');
     } catch {
       return dateString;
     }
@@ -324,7 +324,7 @@ export function StagingTable({ data, selectedIds, onSelectionChange }: StagingTa
                   <EditableDateCell id={row.id} field="data_venda" value={row.data_venda} />
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {format(new Date(row.imported_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                  {formatBrazilDate(row.imported_at, "dd/MM 'às' HH:mm")}
                 </TableCell>
               </TableRow>
             ))

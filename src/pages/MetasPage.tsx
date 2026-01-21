@@ -10,6 +10,7 @@ import { useMetas, useUpsertMeta } from '@/hooks/useMetas';
 import { useColaboradores } from '@/hooks/useColaboradores';
 import { Loader2, Target, Users, UserCheck, Save, TrendingUp, DollarSign, Calendar, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
 
 const meses = [
   { value: 1, label: 'Janeiro' },
@@ -73,9 +74,9 @@ const defaultIndividualMeta: IndividualMeta = {
 };
 
 export default function MetasPage() {
-  const today = new Date();
-  const [selectedMes, setSelectedMes] = useState(today.getMonth() + 1);
-  const [selectedAno, setSelectedAno] = useState(today.getFullYear());
+  // Use Brazil timezone for consistent date handling
+  const [selectedMes, setSelectedMes] = useState(getCurrentMonthBrazil());
+  const [selectedAno, setSelectedAno] = useState(getCurrentYearBrazil());
 
   const { data: metas, isLoading: loadingMetas } = useMetas(selectedMes, selectedAno);
   const { data: sdrs, isLoading: loadingSDRs } = useColaboradores('sdr');
