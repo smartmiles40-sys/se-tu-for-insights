@@ -23,7 +23,7 @@ interface AgentRevenueReportProps {
 
 interface AgentStats {
   nome: string;
-  tipo: "SDR" | "Especialista teste";
+  tipo: "SDR" | "Especialista";
   vendas: number;
   faturamento: number;
   ticketMedio: number;
