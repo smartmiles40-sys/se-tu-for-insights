@@ -18,27 +18,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PIPELINE_PRE_VENDAS, PIPELINE_COMERCIAL, isPipelineValido, isPreVendas, isComercial } from '@/lib/pipelines';
+import { getTodayBrazil, getFirstDayOfMonthBrazil, getBrazilDateParts, getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
 export default function Dashboard() {
-  // Default filters: current month (1st day to today)
+  // Default filters: current month (1st day to today) using Brazil timezone
   const getDefaultFilters = (): NegocioFilters => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth(); // 0-indexed
-    const day = today.getDate();
-
-    // Use ISO format directly to avoid timezone issues
-    const firstDayOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-    const todayFormatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return {
-      dataInicio: firstDayOfMonth,
-      dataFim: todayFormatted
+      dataInicio: getFirstDayOfMonthBrazil(),
+      dataFim: getTodayBrazil()
     };
   };
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
 
-  // Get current month/year for meta - parse directly from string to avoid timezone issues
-  const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : new Date().getMonth() + 1;
-  const currentYear = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[0]) : new Date().getFullYear();
+  // Get current month/year for meta - parse from filter string or use Brazil timezone
+  const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : getCurrentMonthBrazil();
+  const currentYear = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[0]) : getCurrentYearBrazil();
   const {
     data: allNegocios,
     isLoading: loadingAll
@@ -94,9 +87,8 @@ export default function Dashboard() {
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
 
     // UNIVERSO BASE: Reuniões que já deveriam ter acontecido
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    const hojeStr = hoje.toISOString().split('T')[0];
+    // Use Brazil timezone for consistent date handling
+    const hojeStr = getTodayBrazil();
 
     // ========================================
     // 1️⃣ % AGENDAMENTO
