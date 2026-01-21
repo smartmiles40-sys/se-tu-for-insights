@@ -1,20 +1,20 @@
-import { useMemo } from 'react';
-import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
-import { cn } from '@/lib/utils';
-import { Users, TrendingUp, DollarSign, Award, UserCheck, Briefcase } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import { useMemo } from "react";
+import { Negocio, NegocioFilters } from "@/hooks/useNegocios";
+import { cn } from "@/lib/utils";
+import { Users, TrendingUp, DollarSign, Award, UserCheck, Briefcase } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell,
   PieChart,
   Pie,
-  Legend
-} from 'recharts';
+  Legend,
+} from "recharts";
 
 interface AgentRevenueReportProps {
   negocios: Negocio[];
@@ -23,7 +23,7 @@ interface AgentRevenueReportProps {
 
 interface AgentStats {
   nome: string;
-  tipo: 'SDR' | 'Especialista';
+  tipo: "SDR" | "Especialista teste";
   vendas: number;
   faturamento: number;
   ticketMedio: number;
@@ -41,30 +41,26 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
     const agents: AgentStats[] = [];
 
     // Buscar TODOS os vendedores únicos (quem fechou a venda - campo vendedor ou quem_vendeu)
-    const vendedores = [...new Set(
-      negocios
-        .map(n => n.vendedor || n.quem_vendeu)
-        .filter((v): v is string => !!v && v.trim() !== '')
-    )];
+    const vendedores = [
+      ...new Set(negocios.map((n) => n.vendedor || n.quem_vendeu).filter((v): v is string => !!v && v.trim() !== "")),
+    ];
 
     // Para cada vendedor, calcular vendas e faturamento
-    vendedores.forEach(vendedor => {
-      const vendasAgente = negocios.filter(n => 
-        (n.vendedor === vendedor || n.quem_vendeu === vendedor) && 
-        n.venda_aprovada && 
-        isInPeriod(n.data_venda)
+    vendedores.forEach((vendedor) => {
+      const vendasAgente = negocios.filter(
+        (n) => (n.vendedor === vendedor || n.quem_vendeu === vendedor) && n.venda_aprovada && isInPeriod(n.data_venda),
       );
-      
+
       const vendas = vendasAgente.length;
       const faturamento = vendasAgente.reduce((sum, n) => sum + (n.total || 0), 0);
-      
+
       if (vendas > 0 || faturamento > 0) {
         // Determinar se é SDR ou Especialista baseado no nome
-        const isSDR = vendedor.toLowerCase().includes('sdr');
-        
+        const isSDR = vendedor.toLowerCase().includes("sdr");
+
         agents.push({
           nome: vendedor,
-          tipo: isSDR ? 'SDR' : 'Especialista',
+          tipo: isSDR ? "SDR" : "Especialista",
           vendas,
           faturamento,
           ticketMedio: vendas > 0 ? faturamento / vendas : 0,
@@ -76,8 +72,8 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
     agents.sort((a, b) => b.faturamento - a.faturamento);
 
     // Calculate totals
-    const sdrStats = agents.filter(a => a.tipo === 'SDR');
-    const espStats = agents.filter(a => a.tipo === 'Especialista');
+    const sdrStats = agents.filter((a) => a.tipo === "SDR");
+    const espStats = agents.filter((a) => a.tipo === "Especialista");
 
     return {
       allAgents: agents,
@@ -100,14 +96,13 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
   }, [negocios, filters]);
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
       minimumFractionDigits: 0,
     }).format(value);
 
-  const formatNumber = (value: number) =>
-    new Intl.NumberFormat('pt-BR').format(value);
+  const formatNumber = (value: number) => new Intl.NumberFormat("pt-BR").format(value);
 
   if (allAgents.length === 0) {
     return (
@@ -115,24 +110,22 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
         <div className="noc-panel-header">
           <h3 className="noc-panel-title">Relatório de Faturamento — Agentes</h3>
         </div>
-        <p className="text-muted-foreground text-center py-8">
-          Nenhum dado de faturamento disponível
-        </p>
+        <p className="text-muted-foreground text-center py-8">Nenhum dado de faturamento disponível</p>
       </div>
     );
   }
 
   // Chart data
-  const chartData = allAgents.slice(0, 10).map(a => ({
-    nome: a.nome.length > 12 ? a.nome.substring(0, 12) + '...' : a.nome,
+  const chartData = allAgents.slice(0, 10).map((a) => ({
+    nome: a.nome.length > 12 ? a.nome.substring(0, 12) + "..." : a.nome,
     faturamento: a.faturamento,
     tipo: a.tipo,
   }));
 
   const pieData = [
-    { name: 'SDRs', value: sdrTotal.faturamento, fill: 'hsl(var(--primary))' },
-    { name: 'Especialistas', value: especialistaTotal.faturamento, fill: 'hsl(var(--success))' },
-  ].filter(d => d.value > 0);
+    { name: "SDRs", value: sdrTotal.faturamento, fill: "hsl(var(--primary))" },
+    { name: "Especialistas", value: especialistaTotal.faturamento, fill: "hsl(var(--success))" },
+  ].filter((d) => d.value > 0);
 
   return (
     <div className="space-y-6">
@@ -229,15 +222,15 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis 
-                  type="number" 
+                <XAxis
+                  type="number"
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={10}
                   tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`}
                 />
-                <YAxis 
-                  type="category" 
-                  dataKey="nome" 
+                <YAxis
+                  type="category"
+                  dataKey="nome"
                   stroke="hsl(var(--muted-foreground))"
                   fontSize={10}
                   width={100}
@@ -245,17 +238,17 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: '8px',
+                    backgroundColor: "hsl(var(--card))",
+                    borderColor: "hsl(var(--border))",
+                    borderRadius: "8px",
                   }}
-                  formatter={(value: number) => [formatCurrency(value), 'Faturamento']}
+                  formatter={(value: number) => [formatCurrency(value), "Faturamento"]}
                 />
                 <Bar dataKey="faturamento" radius={[0, 4, 4, 0]}>
                   {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.tipo === 'SDR' ? 'hsl(var(--primary))' : 'hsl(var(--success))'} 
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.tipo === "SDR" ? "hsl(var(--primary))" : "hsl(var(--success))"}
                     />
                   ))}
                 </Bar>
@@ -299,11 +292,11 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: '8px',
+                    backgroundColor: "hsl(var(--card))",
+                    borderColor: "hsl(var(--border))",
+                    borderRadius: "8px",
                   }}
-                  formatter={(value: number) => [formatCurrency(value), 'Faturamento']}
+                  formatter={(value: number) => [formatCurrency(value), "Faturamento"]}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -345,59 +338,48 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
             </thead>
             <tbody>
               {allAgents.map((agent, index) => {
-                const percentTotal = grandTotal.faturamento > 0 
-                  ? (agent.faturamento / grandTotal.faturamento) * 100 
-                  : 0;
-                
+                const percentTotal =
+                  grandTotal.faturamento > 0 ? (agent.faturamento / grandTotal.faturamento) * 100 : 0;
+
                 return (
-                  <tr 
-                    key={`${agent.tipo}-${agent.nome}`} 
+                  <tr
+                    key={`${agent.tipo}-${agent.nome}`}
                     className={cn(
-                      'border-b border-border/50 transition-colors hover:bg-muted/30',
-                      index === 0 && 'bg-success/10'
+                      "border-b border-border/50 transition-colors hover:bg-muted/30",
+                      index === 0 && "bg-success/10",
                     )}
                   >
-                    <td className="py-3 px-4 text-muted-foreground">
-                      {index + 1}
-                    </td>
+                    <td className="py-3 px-4 text-muted-foreground">{index + 1}</td>
                     <td className="py-3 px-4">
                       <span className="font-medium">{agent.nome}</span>
                       {index === 0 && (
-                        <span className="ml-2 text-xs bg-success/20 text-success px-2 py-0.5 rounded-full">
-                          Top
-                        </span>
+                        <span className="ml-2 text-xs bg-success/20 text-success px-2 py-0.5 rounded-full">Top</span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className={cn(
-                        'text-xs px-2 py-1 rounded-full',
-                        agent.tipo === 'SDR' 
-                          ? 'bg-primary/20 text-primary' 
-                          : 'bg-success/20 text-success'
-                      )}>
+                      <span
+                        className={cn(
+                          "text-xs px-2 py-1 rounded-full",
+                          agent.tipo === "SDR" ? "bg-primary/20 text-primary" : "bg-success/20 text-success",
+                        )}
+                      >
                         {agent.tipo}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right font-medium">
-                      {formatNumber(agent.vendas)}
-                    </td>
+                    <td className="py-3 px-4 text-right font-medium">{formatNumber(agent.vendas)}</td>
                     <td className="py-3 px-4 text-right font-semibold text-success">
                       {formatCurrency(agent.faturamento)}
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      {formatCurrency(agent.ticketMedio)}
-                    </td>
+                    <td className="py-3 px-4 text-right">{formatCurrency(agent.ticketMedio)}</td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <div className="w-16 bg-muted rounded-full h-2">
-                          <div 
-                            className="bg-primary h-2 rounded-full" 
+                          <div
+                            className="bg-primary h-2 rounded-full"
                             style={{ width: `${Math.min(percentTotal, 100)}%` }}
                           />
                         </div>
-                        <span className="text-sm text-muted-foreground w-12">
-                          {percentTotal.toFixed(1)}%
-                        </span>
+                        <span className="text-sm text-muted-foreground w-12">{percentTotal.toFixed(1)}%</span>
                       </div>
                     </td>
                   </tr>
