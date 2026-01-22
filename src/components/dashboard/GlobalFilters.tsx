@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, X, ChevronDown, User } from 'lucide-react';
+import { CalendarIcon, X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
+import { NavLink, useLocation } from 'react-router-dom';
 
 interface GlobalFiltersProps {
   filters: NegocioFilters;
@@ -72,8 +73,38 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
     }
   };
 
+  const location = useLocation();
+  
+  const navLinks = [
+    { path: '/sdr', label: 'SDRs', icon: Users },
+    { path: '/especialistas', label: 'Especialistas', icon: UserCheck },
+    { path: '/marketing', label: 'Marketing', icon: Megaphone },
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-2 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-border/50">
+      {/* Navigation Links */}
+      <div className="flex items-center gap-1 mr-2 border-r border-border/50 pr-3">
+        {navLinks.map((link) => {
+          const isActive = location.pathname === link.path;
+          return (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <link.icon className="h-3.5 w-3.5" />
+              <span>{link.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+
       {/* Date Range */}
       <div className="flex items-center gap-2">
         <Popover>
