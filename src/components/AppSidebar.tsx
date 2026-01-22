@@ -13,12 +13,19 @@ import {
   Megaphone,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LogOut,
   Menu,
   FileSpreadsheet,
   Target,
   Settings,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useStagingPendingCount } from '@/hooks/useStagingNegocios';
 import { Badge } from '@/components/ui/badge';
 
@@ -101,26 +108,55 @@ export function AppSidebar() {
           </Button>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation Dropdown */}
         <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+          {(() => {
+            const currentNavItem = navItems.find(item => location.pathname === item.path) || navItems[0];
+            const CurrentIcon = currentNavItem.icon;
+            
             return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                  isActive
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                )}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="font-medium">{item.label}</span>}
-              </NavLink>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'w-full justify-between text-sidebar-foreground hover:bg-sidebar-accent',
+                      'bg-sidebar-primary text-sidebar-primary-foreground'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <CurrentIcon className="h-5 w-5 flex-shrink-0" />
+                      {!collapsed && <span className="font-medium">{currentNavItem.label}</span>}
+                    </div>
+                    {!collapsed && <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="start" 
+                  className="w-56 bg-popover border border-border z-50"
+                  sideOffset={4}
+                >
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <DropdownMenuItem key={item.path} asChild>
+                        <NavLink
+                          to={item.path}
+                          className={cn(
+                            'flex items-center gap-3 w-full cursor-pointer',
+                            isActive && 'bg-accent text-accent-foreground'
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </NavLink>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
             );
-          })}
+          })()}
         </nav>
 
         {/* User Section */}
