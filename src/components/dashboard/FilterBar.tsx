@@ -80,6 +80,28 @@ export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePi
 
   return (
     <div className="filter-bar">
+      {/* Navigation Links - Before date filters */}
+      <div className="flex items-center gap-1 mr-2 border-r border-border/50 pr-3">
+        {navLinks.map((link) => {
+          const isActive = location.pathname === link.path;
+          return (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+              )}
+            >
+              <link.icon className="h-3.5 w-3.5" />
+              <span>{link.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+
       {/* Date Range */}
       <div className="flex items-center gap-2">
         <Popover>
@@ -153,28 +175,6 @@ export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePi
             />
           </PopoverContent>
         </Popover>
-      </div>
-
-      {/* Navigation Links - After date filters */}
-      <div className="flex items-center gap-1 ml-2 border-l border-border/50 pl-3">
-        {navLinks.map((link) => {
-          const isActive = location.pathname === link.path;
-          return (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <link.icon className="h-3.5 w-3.5" />
-              <span>{link.label}</span>
-            </NavLink>
-          );
-        })}
       </div>
 
       {/* SDR Filter */}
