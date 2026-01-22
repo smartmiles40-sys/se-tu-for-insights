@@ -344,32 +344,39 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
           <CardContent>
             {origemLeads.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={origemLeads.slice(0, 8)}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="leads"
-                    nameKey="fonte"
-                    label={({ fonte, percent }) => `${fonte.substring(0, 15)}${fonte.length > 15 ? '...' : ''} (${(percent * 100).toFixed(0)}%)`}
-                    labelLine={false}
-                  >
-                    {origemLeads.slice(0, 8).map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
+                <BarChart data={origemLeads.slice(0, 8)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="fonte" 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                    tickLine={{ stroke: 'hsl(var(--border))' }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    tickLine={{ stroke: 'hsl(var(--border))' }}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--popover))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
                     }}
-                    formatter={(value: number, name: string) => [formatNumber(value), name]}
+                    formatter={(value: number) => [formatNumber(value), 'Leads']}
                   />
-                </PieChart>
+                  <Bar 
+                    dataKey="leads" 
+                    radius={[4, 4, 0, 0]}
+                    name="Leads"
+                  >
+                    {origemLeads.slice(0, 8).map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             ) : (
               <p className="text-muted-foreground text-center py-8">Nenhum dado de origem disponível</p>
