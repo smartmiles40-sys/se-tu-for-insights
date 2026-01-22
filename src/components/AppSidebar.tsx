@@ -8,6 +8,9 @@ import logoStfev from '@/assets/logo-stfev.png';
 import {
   LayoutDashboard,
   Upload,
+  Users,
+  UserCheck,
+  Megaphone,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -21,6 +24,9 @@ import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/sdr', label: 'SDRs', icon: Users },
+  { path: '/especialistas', label: 'Especialistas', icon: UserCheck },
+  { path: '/marketing', label: 'Marketing', icon: Megaphone },
 ];
 
 const dataItems = [

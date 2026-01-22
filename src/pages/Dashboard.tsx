@@ -5,16 +5,12 @@ import { KPICardWithSparkline } from '@/components/dashboard/KPICardWithSparklin
 import { FunnelHorizontal } from '@/components/dashboard/FunnelHorizontal';
 import { RankingTable } from '@/components/dashboard/RankingTable';
 import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
-import { SDRAnalytics } from '@/components/dashboard/SDRAnalytics';
-import { EspecialistasAnalytics } from '@/components/dashboard/EspecialistasAnalytics';
-import { AgentRevenueReport } from '@/components/dashboard/AgentRevenueReport';
 import { MetaProgress } from '@/components/dashboard/MetaProgress';
 import { MetaProgressCompact } from '@/components/dashboard/MetaProgressCompact';
 import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PIPELINE_PRE_VENDAS, PIPELINE_COMERCIAL, isPipelineValido, isPreVendas, isComercial } from '@/lib/pipelines';
@@ -289,185 +285,166 @@ export default function Dashboard() {
             <p className="text-slate-400 max-w-md mx-auto">
               Importe os dados do CRM através da opção "Importar Dados" no menu lateral.
             </p>
-          </div> : <Tabs defaultValue="home" className="w-full">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-              <TabsList className="inline-flex h-10 items-center justify-center rounded-lg bg-slate-800/50 p-1">
-                <TabsTrigger value="home" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">HOME</TabsTrigger>
-                <TabsTrigger value="sdr" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">SDRS</TabsTrigger>
-                <TabsTrigger value="especialistas" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">ESPECIALISTAS</TabsTrigger>
-                <TabsTrigger value="faturamento" className="rounded-md px-6 py-1.5 text-sm font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white">FATURAMENTO</TabsTrigger>
-              </TabsList>
+          </div> : <>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-end gap-4 mb-4">
               <MetaProgressCompact meta={metaGlobal} realizado={realizadoData} />
             </div>
 
-            <TabsContent value="home" className="space-y-4 mt-0">
-              {/* KPIs Row 1 - Main metrics with sparklines */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <KPICardWithSparkline title="Faturamento" value={formatCurrency(executiveStats.receitaTotal)} icon={DollarSign} color="cyan" sparklineData={sparklineReceita} />
-                <KPICardWithSparkline title="Vendas" value={formatNumber(executiveStats.vendasRealizadas)} icon={Target} color="yellow" sparklineData={sparklineVendas} />
-                <KPICardWithSparkline title="Total Leads" value={formatNumber(executiveStats.totalLeads)} icon={Users} color="orange" sparklineData={sparklineLeads} />
-                <KPICardWithSparkline title="Reuniões realizadas / Propostas enviadas" value={formatNumber(executiveStats.reunioesRealizadas)} icon={Calendar} color="magenta" sparklineData={sparklineReunioes} />
-                <KPICardWithSparkline title="Ticket Médio" value={formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)} icon={TrendingUp} color="green" sparklineData={sparklineVendas} />
+            {/* KPIs Row 1 - Main metrics with sparklines */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <KPICardWithSparkline title="Faturamento" value={formatCurrency(executiveStats.receitaTotal)} icon={DollarSign} color="cyan" sparklineData={sparklineReceita} />
+              <KPICardWithSparkline title="Vendas" value={formatNumber(executiveStats.vendasRealizadas)} icon={Target} color="yellow" sparklineData={sparklineVendas} />
+              <KPICardWithSparkline title="Total Leads" value={formatNumber(executiveStats.totalLeads)} icon={Users} color="orange" sparklineData={sparklineLeads} />
+              <KPICardWithSparkline title="Reuniões realizadas / Propostas enviadas" value={formatNumber(executiveStats.reunioesRealizadas)} icon={Calendar} color="magenta" sparklineData={sparklineReunioes} />
+              <KPICardWithSparkline title="Ticket Médio" value={formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)} icon={TrendingUp} color="green" sparklineData={sparklineVendas} />
+            </div>
+
+            {/* KPIs Row 2 - Rates */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              <div className="bi-card">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-400 uppercase tracking-wider">% Agendamento</span>
+                  <TrendingUp className="h-4 w-4 text-slate-500" />
+                </div>
+                <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {executiveStats.taxaAgendamento.toFixed(1)}%
+                </div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesAgendadas)} / {formatNumber(executiveStats.totalLeads)}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Meta: ≥15%</div>
+              </div>
+              
+              <div className="bi-card">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-400 uppercase tracking-wider">% No-Show</span>
+                  <XCircle className="h-4 w-4 text-slate-500" />
+                </div>
+                <div className={`text-3xl font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {executiveStats.taxaNoShow.toFixed(1)}%
+                </div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.noShows)} / {formatNumber(executiveStats.baseComResultado)}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Meta: ≤20%</div>
+              </div>
+              
+              <div className="bi-card">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-400 uppercase tracking-wider">% Show-Up</span>
+                  <Users className="h-4 w-4 text-slate-500" />
+                </div>
+                <div className={`text-3xl font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`}>
+                  {executiveStats.taxaShowUp.toFixed(1)}%
+                </div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesRealizadas)} / {formatNumber(executiveStats.baseComResultado)}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Meta: ≥80%</div>
               </div>
 
-              {/* KPIs Row 2 - Rates */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bi-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Agendamento</span>
-                    <TrendingUp className="h-4 w-4 text-slate-500" />
-                  </div>
-                  <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {executiveStats.taxaAgendamento.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesAgendadas)} / {formatNumber(executiveStats.totalLeads)}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≥15%</div>
+              <div className="bi-card">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-400 uppercase tracking-wider">% Conversão Vendas</span>
+                  <Target className="h-4 w-4 text-slate-500" />
                 </div>
-                
-                <div className="bi-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">% No-Show</span>
-                    <XCircle className="h-4 w-4 text-slate-500" />
-                  </div>
-                  <div className={`text-3xl font-bold ${executiveStats.taxaNoShow <= 15 ? 'text-emerald-400' : executiveStats.taxaNoShow <= 25 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {executiveStats.taxaNoShow.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.noShows)} / {formatNumber(executiveStats.baseComResultado)}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≤20%</div>
+                <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {executiveStats.taxaConversaoGeral.toFixed(1)}%
                 </div>
-                
-                <div className="bi-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Show-Up</span>
-                    <Users className="h-4 w-4 text-slate-500" />
-                  </div>
-                  <div className={`text-3xl font-bold ${executiveStats.taxaShowUp >= 80 ? 'text-emerald-400' : executiveStats.taxaShowUp >= 60 ? 'text-yellow-400' : 'text-orange-400'}`}>
-                    {executiveStats.taxaShowUp.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesRealizadas)} / {formatNumber(executiveStats.baseComResultado)}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≥80%</div>
-                </div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasRealizadas)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
+              </div>
+            </div>
 
-                <div className="bi-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider">% Conversão Vendas</span>
-                    <Target className="h-4 w-4 text-slate-500" />
-                  </div>
-                  <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {executiveStats.taxaConversaoGeral.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasRealizadas)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
-                  <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
-                </div>
+            {/* Main Grid - Funnel Left, Indicators Right */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch mt-4">
+              {/* Funnel - 2 columns */}
+              <div className="lg:col-span-2 h-full">
+                <FunnelHorizontal negocios={negocios} filters={filters} />
               </div>
 
-
-              {/* Main Grid - Funnel Left, Indicators Right */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-                {/* Funnel - 2 columns */}
-                <div className="lg:col-span-2 h-full">
-                  <FunnelHorizontal negocios={negocios} filters={filters} />
-                </div>
-
-                {/* Indicadores - 1 column, stacked */}
-                <div className="flex flex-col gap-2 h-full">
-                  {/* Indicadores de Custo */}
-                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                    <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
-                    <div className="space-y-2 flex-1 flex flex-col justify-around">
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">CPL</div>
-                        </div>
-                        <div className="text-base font-bold text-cyan-400">{formatCurrencyDecimal(2.98)}</div>
+              {/* Indicadores - 1 column, stacked */}
+              <div className="flex flex-col gap-2 h-full">
+                {/* Indicadores de Custo */}
+                <div className="bi-card py-3 px-3 flex-1 flex flex-col">
+                  <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
+                  <div className="space-y-2 flex-1 flex flex-col justify-around">
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">CPL</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
-                        </div>
-                        <div className="text-base font-bold text-purple-400">{formatCurrencyDecimal(0)}</div>
+                      <div className="text-base font-bold text-cyan-400">{formatCurrencyDecimal(2.98)}</div>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
-                        </div>
-                        <div className="text-base font-bold text-blue-400">{formatCurrencyDecimal(55.92)}</div>
+                      <div className="text-base font-bold text-purple-400">{formatCurrencyDecimal(0)}</div>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
                       </div>
+                      <div className="text-base font-bold text-blue-400">{formatCurrencyDecimal(55.92)}</div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Indicadores de Performance */}
-                  <div className="bi-card py-3 px-3 flex-1 flex flex-col">
-                    <h3 className="bi-card-title mb-2 text-sm">Análise de Cohort</h3>
-                    <div className="space-y-2 flex-1 flex flex-col justify-around">
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Vendas dos Leads</div>
-                          <div className="text-[10px] text-slate-500">Leads do período que converteram</div>
-                        </div>
-                        <div className="text-base font-bold text-emerald-400">{executiveStats.vendasDosLeadsDoPeriodo}</div>
+                {/* Indicadores de Performance */}
+                <div className="bi-card py-3 px-3 flex-1 flex flex-col">
+                  <h3 className="bi-card-title mb-2 text-sm">Análise de Cohort</h3>
+                  <div className="space-y-2 flex-1 flex flex-col justify-around">
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">Vendas dos Leads</div>
+                        <div className="text-[10px] text-slate-500">Leads do período que converteram</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">% Conv. Leads</div>
-                          <div className="text-[10px] text-slate-500">Taxa de conversão do cohort</div>
-                        </div>
-                        <div className={`text-base font-bold ${executiveStats.taxaConversaoLeadsDoPeriodo >= 10 ? 'text-emerald-400' : executiveStats.taxaConversaoLeadsDoPeriodo >= 5 ? 'text-yellow-400' : 'text-orange-400'}`}>
-                          {executiveStats.taxaConversaoLeadsDoPeriodo.toFixed(1)}%
-                        </div>
+                      <div className="text-base font-bold text-emerald-400">{executiveStats.vendasDosLeadsDoPeriodo}</div>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">% Conv. Leads</div>
+                        <div className="text-[10px] text-slate-500">Taxa de conversão do cohort</div>
                       </div>
-                      <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div>
-                          <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
-                          <div className="text-[10px] text-slate-500">Dias até fechamento</div>
-                        </div>
-                        <div className="text-base font-bold text-pink-400">{executiveStats.tempoMedioFechamento}d</div>
+                      <div className={`text-base font-bold ${executiveStats.taxaConversaoLeadsDoPeriodo >= 10 ? 'text-emerald-400' : executiveStats.taxaConversaoLeadsDoPeriodo >= 5 ? 'text-yellow-400' : 'text-orange-400'}`}>
+                        {executiveStats.taxaConversaoLeadsDoPeriodo.toFixed(1)}%
                       </div>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">Tempo Médio</div>
+                        <div className="text-[10px] text-slate-500">Dias até fechamento</div>
+                      </div>
+                      <div className="text-base font-bold text-pink-400">{executiveStats.tempoMedioFechamento}d</div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Second Row - Meta x Realizado and Origem */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Meta x Realizado */}
-                <div className="bi-card">
-                  <h3 className="bi-card-title mb-3 flex items-center gap-2">
-                    <Target className="h-4 w-4 text-primary" />
-                    Meta x Realizado
-                  </h3>
-                  <MetaProgress meta={metaGlobal} realizado={realizadoData} />
-                </div>
-                
-                {/* Origem Performance */}
-                <OrigemPerformance negocios={negocios} filters={filters} />
+            {/* Second Row - Meta x Realizado and Origem */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+              {/* Meta x Realizado */}
+              <div className="bi-card">
+                <h3 className="bi-card-title mb-3 flex items-center gap-2">
+                  <Target className="h-4 w-4 text-primary" />
+                  Meta x Realizado
+                </h3>
+                <MetaProgress meta={metaGlobal} realizado={realizadoData} />
               </div>
+              
+              {/* Origem Performance */}
+              <OrigemPerformance negocios={negocios} filters={filters} />
+            </div>
 
-              {/* Rankings Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Ranking Especialistas */}
-                <RankingTable negocios={negocios} type="especialista" limit={4} filters={filters} />
+            {/* Rankings Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+              {/* Ranking Especialistas */}
+              <RankingTable negocios={negocios} type="especialista" limit={4} filters={filters} />
 
-                {/* Ranking SDRs */}
-                <RankingTable negocios={negocios} type="sdr" limit={4} filters={filters} />
-              </div>
+              {/* Ranking SDRs */}
+              <RankingTable negocios={negocios} type="sdr" limit={4} filters={filters} />
+            </div>
 
-              {/* Daily Revenue Chart - apenas pipeline Comercial */}
+            {/* Daily Revenue Chart - apenas pipeline Comercial */}
+            <div className="mt-4">
               <DailyRevenueChart data={(allNegocios || []).filter(n => isComercial(n.pipeline))} month={currentMonth} year={currentYear} metaExcelente={metaGlobal?.meta_faturamento_excelente} />
-            </TabsContent>
-
-            <TabsContent value="sdr">
-              <SDRAnalytics negocios={negocios} filters={filters} />
-            </TabsContent>
-
-            <TabsContent value="especialistas">
-              <EspecialistasAnalytics negocios={negocios} filters={filters} />
-            </TabsContent>
-
-            <TabsContent value="faturamento">
-              <AgentRevenueReport negocios={negocios} filters={filters} />
-            </TabsContent>
-          </Tabs>}
+            </div>
+          </>}
       </div>
     </DashboardLayout>;
 }

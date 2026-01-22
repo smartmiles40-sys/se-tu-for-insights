@@ -10,6 +10,9 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ImportPage from "./pages/ImportPage";
 import StagingPage from "./pages/StagingPage";
+import SDRPage from "./pages/SDRPage";
+import EspecialistasPage from "./pages/EspecialistasPage";
+import MarketingPage from "./pages/MarketingPage";
 import MetasPage from "./pages/MetasPage";
 import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import NotFound from "./pages/NotFound";
@@ -29,6 +32,9 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/import" element={<ProtectedRoute requiredRole="gestor"><ImportPage /></ProtectedRoute>} />
               <Route path="/staging" element={<ProtectedRoute requiredRole="gestor"><StagingPage /></ProtectedRoute>} />
+              <Route path="/sdr" element={<ProtectedRoute><SDRPage /></ProtectedRoute>} />
+              <Route path="/especialistas" element={<ProtectedRoute><EspecialistasPage /></ProtectedRoute>} />
+              <Route path="/marketing" element={<ProtectedRoute><MarketingPage /></ProtectedRoute>} />
               <Route path="/metas" element={<ProtectedRoute requiredRole="gestor"><MetasPage /></ProtectedRoute>} />
               <Route path="/configuracoes" element={<ProtectedRoute requiredRole="gestor"><ConfiguracoesPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
