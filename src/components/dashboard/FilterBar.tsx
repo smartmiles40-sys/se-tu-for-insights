@@ -25,10 +25,15 @@ interface FilterBarProps {
     utmSources: string[];
     leadFontes: string[];
     tiposVenda: string[];
+    fontes: string[];
   };
+  showFonte?: boolean;
+  hidePipeline?: boolean;
+  hideVendedor?: boolean;
+  hideUtmSource?: boolean;
 }
 
-export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps) {
+export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePipeline, hideVendedor, hideUtmSource }: FilterBarProps) {
   const hasFilters = Object.entries(filters).some(([key, v]) => {
     if (key === 'vendedores' || key === 'tiposVenda') {
       return Array.isArray(v) && v.length > 0;
@@ -161,7 +166,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
       )}
 
       {/* Vendedor Multi-Select */}
-      {options.vendedores.length > 0 && (
+      {!hideVendedor && options.vendedores.length > 0 && (
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -216,7 +221,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
       )}
 
       {/* Pipeline Filter */}
-      {options.pipelines.length > 0 && (
+      {!hidePipeline && options.pipelines.length > 0 && (
         <Select
           value={filters.pipeline || 'all'}
           onValueChange={(v) => updateFilter('pipeline', v)}
@@ -236,7 +241,7 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
       )}
 
       {/* UTM Source Filter */}
-      {options.utmSources.length > 0 && (
+      {!hideUtmSource && options.utmSources.length > 0 && (
         <Select
           value={filters.utmSource || 'all'}
           onValueChange={(v) => updateFilter('utmSource', v)}
@@ -249,6 +254,26 @@ export function FilterBar({ filters, onFiltersChange, options }: FilterBarProps)
             {options.utmSources.map((u) => (
               <SelectItem key={u} value={u}>
                 {u}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Fonte Filter (contato_fonte) */}
+      {showFonte && options.fontes && options.fontes.length > 0 && (
+        <Select
+          value={filters.fonte || 'all'}
+          onValueChange={(v) => updateFilter('fonte', v)}
+        >
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Fonte" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover border-border z-50">
+            <SelectItem value="all">Todas Fontes</SelectItem>
+            {options.fontes.map((f) => (
+              <SelectItem key={f} value={f}>
+                {f}
               </SelectItem>
             ))}
           </SelectContent>

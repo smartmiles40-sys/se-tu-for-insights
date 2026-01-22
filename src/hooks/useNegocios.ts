@@ -54,6 +54,7 @@ export interface NegocioFilters {
   utmSource?: string;
   leadFonte?: string;
   tiposVenda?: string[];
+  fonte?: string; // contato_fonte filter
 }
 
 export function useNegocios(filters?: NegocioFilters) {
@@ -109,9 +110,12 @@ export function useNegocios(filters?: NegocioFilters) {
       if (filters?.leadFonte) {
         query = query.eq('lead_fonte', filters.leadFonte);
       }
-    if (filters?.tiposVenda && filters.tiposVenda.length > 0) {
-      query = query.in('tipo_venda', filters.tiposVenda);
-    }
+      if (filters?.fonte) {
+        query = query.eq('contato_fonte', filters.fonte);
+      }
+      if (filters?.tiposVenda && filters.tiposVenda.length > 0) {
+        query = query.in('tipo_venda', filters.tiposVenda);
+      }
 
       const { data, error } = await query;
 
@@ -250,6 +254,7 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
       utmSources: [],
       leadFontes: [],
       tiposVenda: [],
+      fontes: [],
     };
   }
 
@@ -277,5 +282,6 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
     utmSources: unique(negocios.map(n => n.utm_source)),
     leadFontes: unique(negocios.map(n => n.lead_fonte)),
     tiposVenda: unique(tiposVendaFromValidPipelines),
+    fontes: unique(negocios.map(n => n.contato_fonte)),
   };
 }
