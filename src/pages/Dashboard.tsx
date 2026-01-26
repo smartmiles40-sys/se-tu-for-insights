@@ -82,6 +82,11 @@ export default function Dashboard() {
     // Separar negócios por pipeline (apenas para faturamento/vendas)
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
 
+    // Filtro interno para KPIs de reunião: apenas Pacotes de Viagens e Expedições
+    const TIPOS_VENDA_VALIDOS = ['Pacotes de Viagens', 'Expedições'];
+    const isTipoVendaValido = (tipoVenda: string | null | undefined): boolean =>
+      TIPOS_VENDA_VALIDOS.includes(tipoVenda || '');
+
     // UNIVERSO BASE: Reuniões que já deveriam ter acontecido
     // Use Brazil timezone for consistent date handling
     const hojeStr = getTodayBrazil();
@@ -102,11 +107,15 @@ export default function Dashboard() {
     // Realizadas: contadas pelo booleano reuniao_realizada
     // ========================================
 
-    // No-Shows: negócios com data_noshow preenchida
-    const noShows = negocios.filter(n => n.data_noshow !== null).length;
+    // No-Shows: negócios com data_noshow preenchida E tipo_venda válido
+    const noShows = negocios.filter(n => 
+      n.data_noshow !== null && isTipoVendaValido(n.tipo_venda)
+    ).length;
 
-    // Reuniões Realizadas: negócios com reuniao_realizada = true
-    const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada === true).length;
+    // Reuniões Realizadas: negócios com reuniao_realizada = true E tipo_venda válido
+    const reunioesRealizadas = negocios.filter(n => 
+      n.reuniao_realizada === true && isTipoVendaValido(n.tipo_venda)
+    ).length;
 
     // Base com resultado = No-Shows + Realizadas (para cálculo de taxas)
     const baseComResultado = noShows + reunioesRealizadas;
@@ -124,8 +133,13 @@ export default function Dashboard() {
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
 
-    // Taxa de conversão: vendas / reuniões realizadas
-    const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
+    // Vendas filtradas por tipo para % Conversão (apenas Pacotes de Viagens e Expedições)
+    const vendasParaConversao = vendasNoPeriodo.filter(n => 
+      isTipoVendaValido(n.tipo_venda)
+    ).length;
+
+    // Taxa de conversão: vendas filtradas / reuniões realizadas
+    const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasParaConversao / reunioesRealizadas * 100 : 0;
 
     // ANÁLISE DE COHORT simplificada
     const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
