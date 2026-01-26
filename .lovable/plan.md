@@ -1,103 +1,67 @@
 
-# Plano: Corrigir Contagem de Vendas e Filtro de Vendedores
 
-## Problemas Identificados
+## Problema Identificado
 
-### 1. Total de Vendas (21 vs 23)
-O Dashboard mostra 21 vendas porque exige `data_venda` preenchida no período. Há **2 vendas da Tainara** com `data_venda = NULL`:
-- Negócio #18465 (R$ 734,47)
-- Negócio #12999 (sem valor)
+O cálculo de No-Show no Dashboard está correto na lógica, mas há uma **inconsistência de nomes** entre os campos:
 
-### 2. Filtro de Vendedor Incompleto
-O filtro usa o campo `responsavel_reuniao`, mas muitas vendas têm esse campo como **"Não se aplica"** ou nulo:
+- **Filtro de Vendedor** usa: `quem_vendeu` (ex: "Valéria Noronha" com acento)
+- **Atribuição de No-Show** usa: `responsavel_reuniao` (ex: "Valeria Noronha" sem acento)
 
-| Vendedor | Vendas com responsavel_reuniao correto | Vendas com "Não se aplica" |
-|----------|----------------------------------------|---------------------------|
-| Tainara  | 1                                      | 5 (+ 2 sem data)          |
-| Beatriz  | 0                                      | 1                         |
-| Talita   | 8                                      | 0                         |
-| Valéria  | 5                                      | 0                         |
-| John     | 1                                      | 0                         |
+### Dados Encontrados
+
+**No-Shows por `responsavel_reuniao`:**
+| Responsável | Total No-Shows |
+|-------------|----------------|
+| Valeria Noronha | 6 |
+| (vazio) | 5 |
+| Talita Carvalho | 3 |
+
+**Vendedores no filtro (`quem_vendeu`):**
+- Beatriz Galvão, John Italo, Tainara Vasconcelos, Talita Carvalho, **Valéria** Noronha
+
+### Causa Raiz
+A comparação `includes()` falha porque:
+- `"Valeria Noronha".includes("Valéria")` = **false** (acento diferente)
 
 ---
 
-## Solução Proposta
+## Plano de Correção
 
-### Parte 1: Corrigir o Filtro de Vendedores
+### Arquivo a Modificar
+`src/pages/Dashboard.tsx`
 
-Alterar a fonte de dados do filtro de **`responsavel_reuniao`** para **`quem_vendeu`**, que contém a atribuição correta de vendas.
-
-**Arquivos a modificar:**
-
-#### `src/hooks/useNegocios.ts`
-1. Mudar `useFilterOptions` para usar `quem_vendeu` ao invés de `responsavel_reuniao`
-2. Mudar a query `useNegocios` para filtrar por `quem_vendeu` quando vendedores são selecionados
+### Mudança Proposta
+Adicionar normalização de acentos na comparação de nomes para garantir match correto.
 
 ```typescript
-// Em useFilterOptions
-const normalizedVendedores = negocios.map(n => normalizeName(n.quem_vendeu));
+// Função auxiliar para remover acentos
+const removeAccents = (str: string) => 
+  str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-// Em useNegocios (filtro)
-if (filters?.vendedores && filters.vendedores.length > 0) {
-  const orConditions = filters.vendedores
-    .map(v => `quem_vendeu.ilike.%${v}%`)
-    .join(',');
-  query = query.or(orConditions);
-}
+// No cálculo de noShows
+const noShows = negocios.filter(n => {
+  if (n.data_noshow === null) return false;
+  if (filters?.vendedores && filters.vendedores.length > 0) {
+    const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
+    return filters.vendedores.some(v => 
+      responsavel.includes(removeAccents(v.toLowerCase()))
+    );
+  }
+  return true;
+}).length;
+
+// Aplicar mesma lógica para reunioesRealizadas
 ```
 
----
-
-### Parte 2: Corrigir Contagem de Vendas no Dashboard
-
-Há duas opções:
-
-#### Opção A: Corrigir os dados no banco (Recomendado)
-Atualizar as 2 vendas da Tainara que estão sem `data_venda`:
-```sql
-UPDATE negocios 
-SET data_venda = '2026-01-20'  -- ou data apropriada
-WHERE id IN ('5807ce3e-f382-4074-b922-b7d2ac9a1764', 'ace4989a-2acf-45e6-8265-9550af2fcc68');
-```
-
-#### Opção B: Incluir vendas sem data_venda
-Alterar a lógica de contagem para incluir vendas onde `venda_aprovada = true` mesmo sem `data_venda`:
-```typescript
-// Em Dashboard.tsx
-const vendasNoPeriodo = negociosComercial.filter(n => 
-  n.venda_aprovada === true && 
-  (isInPeriod(n.data_venda) || n.data_venda === null)
-);
-```
+### Resultado Esperado
+- Ao filtrar por "Valéria Noronha", os 6 no-shows atribuídos a "Valeria Noronha" serão exibidos corretamente
+- Ao filtrar por "Talita Carvalho", os 3 no-shows serão exibidos
 
 ---
 
-## Arquivos a Modificar
+## Detalhes Técnicos
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/hooks/useNegocios.ts` | Mudar filtro e opções de `responsavel_reuniao` para `quem_vendeu` |
-| `src/pages/Dashboard.tsx` | Ajustar lógica de vendas (se opção B) |
-| Banco de dados | Corrigir `data_venda` das 2 vendas (se opção A) |
+A função `normalize('NFD')` decompõe caracteres acentuados em caractere base + acento, e o `replace()` remove os acentos, permitindo comparação insensível a acentos:
+- "Valéria" → "Valeria"
+- "João" → "Joao"
 
----
-
-## Resultado Esperado
-
-| Vendedor | Vendas Visíveis Após Correção |
-|----------|------------------------------|
-| Tainara  | 8 (ou 6 se não corrigir datas) |
-| Talita   | 8                            |
-| Valéria  | 5                            |
-| John     | 1                            |
-| Beatriz  | 1                            |
-| **Total**| **23**                       |
-
----
-
-## Recomendação
-
-Sugiro implementar **Opção A** (corrigir dados no banco) junto com a mudança do filtro para usar `quem_vendeu`. Isso garante:
-1. Dados consistentes no banco
-2. Filtro correto por vendedor
-3. Contagem correta de 23 vendas
