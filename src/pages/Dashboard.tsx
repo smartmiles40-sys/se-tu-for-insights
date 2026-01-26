@@ -102,30 +102,35 @@ export default function Dashboard() {
     // Realizadas: contadas pelo booleano reuniao_realizada
     // ========================================
 
+    // Helper para remover acentos e normalizar nomes
+    const removeAccents = (str: string) => 
+      str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
     // No-Shows: negócios com data_noshow preenchida
     // Quando há filtro de vendedor, precisamos filtrar também por responsavel_reuniao
     // porque quem_vendeu só é preenchido após a venda (no-shows não têm venda)
     const noShows = negocios.filter(n => {
       if (n.data_noshow === null) return false;
-      // Se há filtro de vendedor, verificar se responsavel_reuniao corresponde
+      // Se há filtro de vendedor, verificar se responsavel_reuniao corresponde (com normalização de acentos)
       if (filters?.vendedores && filters.vendedores.length > 0) {
-        const responsavel = n.responsavel_reuniao?.toLowerCase() || '';
-        return filters.vendedores.some(v => responsavel.includes(v.toLowerCase()));
+        const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
+        return filters.vendedores.some(v => responsavel.includes(removeAccents(v.toLowerCase())));
       }
       return true;
     }).length;
 
     // Reuniões Realizadas: negócios com reuniao_realizada = true
-    // Quando há filtro de vendedor, aplicar mesma lógica de responsavel_reuniao
+    // Quando há filtro de vendedor, aplicar mesma lógica de responsavel_reuniao (com normalização de acentos)
     const reunioesRealizadas = negocios.filter(n => {
       if (n.reuniao_realizada !== true) return false;
       // Se há filtro de vendedor, verificar responsavel_reuniao OU quem_vendeu
       if (filters?.vendedores && filters.vendedores.length > 0) {
-        const responsavel = n.responsavel_reuniao?.toLowerCase() || '';
-        const quemVendeu = n.quem_vendeu?.toLowerCase() || '';
-        return filters.vendedores.some(v => 
-          responsavel.includes(v.toLowerCase()) || quemVendeu.includes(v.toLowerCase())
-        );
+        const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
+        const quemVendeu = removeAccents(n.quem_vendeu?.toLowerCase() || '');
+        return filters.vendedores.some(v => {
+          const vendedorNorm = removeAccents(v.toLowerCase());
+          return responsavel.includes(vendedorNorm) || quemVendeu.includes(vendedorNorm);
+        });
       }
       return true;
     }).length;
