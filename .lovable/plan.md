@@ -1,67 +1,55 @@
 
-
 ## Problema Identificado
 
-O cálculo de No-Show no Dashboard está correto na lógica, mas há uma **inconsistência de nomes** entre os campos:
+O filtro de vendedor no nível do **banco de dados** (`useNegocios.ts`) está filtrando **apenas por `quem_vendeu`**. Porém, os no-shows não têm `quem_vendeu` preenchido (é `null` porque não houve venda).
 
-- **Filtro de Vendedor** usa: `quem_vendeu` (ex: "Valéria Noronha" com acento)
-- **Atribuição de No-Show** usa: `responsavel_reuniao` (ex: "Valeria Noronha" sem acento)
+### Fluxo Atual (Incorreto)
+1. Usuário filtra por "Valéria Noronha"
+2. Hook `useNegocios` aplica: `WHERE quem_vendeu ILIKE '%Valéria%'`
+3. Registros de no-show (que têm `quem_vendeu = NULL`) são **excluídos da query**
+4. Dashboard recebe 0 no-shows
 
-### Dados Encontrados
-
-**No-Shows por `responsavel_reuniao`:**
-| Responsável | Total No-Shows |
-|-------------|----------------|
-| Valeria Noronha | 6 |
-| (vazio) | 5 |
-| Talita Carvalho | 3 |
-
-**Vendedores no filtro (`quem_vendeu`):**
-- Beatriz Galvão, John Italo, Tainara Vasconcelos, Talita Carvalho, **Valéria** Noronha
-
-### Causa Raiz
-A comparação `includes()` falha porque:
-- `"Valeria Noronha".includes("Valéria")` = **false** (acento diferente)
+### Dados Confirmados
+- Valéria tem **6 no-shows** no banco (campo `responsavel_reuniao`)
+- Mas todos têm `quem_vendeu = NULL`
 
 ---
 
 ## Plano de Correção
 
 ### Arquivo a Modificar
-`src/pages/Dashboard.tsx`
+`src/hooks/useNegocios.ts`
 
 ### Mudança Proposta
-Adicionar normalização de acentos na comparação de nomes para garantir match correto.
+Modificar o filtro de vendedor para buscar também por `responsavel_reuniao`:
 
 ```typescript
-// Função auxiliar para remover acentos
-const removeAccents = (str: string) => 
-  str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-// No cálculo de noShows
-const noShows = negocios.filter(n => {
-  if (n.data_noshow === null) return false;
-  if (filters?.vendedores && filters.vendedores.length > 0) {
-    const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
-    return filters.vendedores.some(v => 
-      responsavel.includes(removeAccents(v.toLowerCase()))
-    );
-  }
-  return true;
-}).length;
-
-// Aplicar mesma lógica para reunioesRealizadas
+// Linhas 97-103: Alterar para incluir responsavel_reuniao
+if (filters?.vendedores && filters.vendedores.length > 0) {
+  const orConditions = filters.vendedores
+    .flatMap(v => [
+      `quem_vendeu.ilike.%${v}%`,
+      `responsavel_reuniao.ilike.%${v}%`
+    ])
+    .join(',');
+  query = query.or(orConditions);
+}
 ```
 
 ### Resultado Esperado
-- Ao filtrar por "Valéria Noronha", os 6 no-shows atribuídos a "Valeria Noronha" serão exibidos corretamente
-- Ao filtrar por "Talita Carvalho", os 3 no-shows serão exibidos
+- Ao filtrar por "Valéria Noronha":
+  - Registros com `quem_vendeu = 'Valéria Noronha'` → incluídos
+  - Registros com `responsavel_reuniao = 'Valeria Noronha'` → incluídos (inclui no-shows)
+- Os 6 no-shows serão exibidos corretamente
 
 ---
 
 ## Detalhes Técnicos
 
-A função `normalize('NFD')` decompõe caracteres acentuados em caractere base + acento, e o `replace()` remove os acentos, permitindo comparação insensível a acentos:
-- "Valéria" → "Valeria"
-- "João" → "Joao"
+O `flatMap` cria condições para ambos os campos, permitindo que registros sejam incluídos se:
+- `quem_vendeu` contém o nome do vendedor, **OU**
+- `responsavel_reuniao` contém o nome do vendedor
 
+Isso garante que:
+- Vendas sejam atribuídas ao `quem_vendeu`
+- No-shows e reuniões sejam atribuídos ao `responsavel_reuniao`
