@@ -94,10 +94,10 @@ export function useNegocios(filters?: NegocioFilters) {
         // Filtra por nome normalizado (correspondência parcial no início)
         query = query.ilike('sdr', `${filters.sdr}%`);
       }
-      // Filter by vendedores (multiple selection, based on responsavel_reuniao)
+      // Filter by vendedores (multiple selection, based on quem_vendeu)
       if (filters?.vendedores && filters.vendedores.length > 0) {
         const orConditions = filters.vendedores
-          .map(v => `responsavel_reuniao.ilike.%${v}%`)
+          .map(v => `quem_vendeu.ilike.%${v}%`)
           .join(',');
         query = query.or(orConditions);
       }
@@ -264,8 +264,8 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
   // Normaliza nomes de SDRs para evitar duplicações
   const normalizedSdrs = negocios.map(n => normalizeName(n.sdr));
   
-  // Get unique vendedores from responsavel_reuniao (normalized, excluding "Não se aplica")
-  const normalizedVendedores = negocios.map(n => normalizeName(n.responsavel_reuniao));
+  // Get unique vendedores from quem_vendeu (normalized, excluding "Não se aplica")
+  const normalizedVendedores = negocios.map(n => normalizeName(n.quem_vendeu));
   const uniqueVendedores = [...new Set(normalizedVendedores)]
     .filter((v): v is string => v !== null && v.trim() !== '' && v.toLowerCase() !== 'não se aplica')
     .sort();
