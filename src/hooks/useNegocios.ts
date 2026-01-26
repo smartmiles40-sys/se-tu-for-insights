@@ -264,10 +264,16 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
   // Normaliza nomes de SDRs para evitar duplicações
   const normalizedSdrs = negocios.map(n => normalizeName(n.sdr));
   
-  // Get unique vendedores from quem_vendeu (normalized, excluding "Não se aplica")
+  // Get unique vendedores from quem_vendeu (normalized, excluding "Não se aplica" and specific names)
+  const excludedVendedores = ['luiz', 'everton', 'everton lopes', 'luis antonio'];
   const normalizedVendedores = negocios.map(n => normalizeName(n.quem_vendeu));
   const uniqueVendedores = [...new Set(normalizedVendedores)]
-    .filter((v): v is string => v !== null && v.trim() !== '' && v.toLowerCase() !== 'não se aplica')
+    .filter((v): v is string => 
+      v !== null && 
+      v.trim() !== '' && 
+      v.toLowerCase() !== 'não se aplica' &&
+      !excludedVendedores.some(excluded => v.toLowerCase().includes(excluded))
+    )
     .sort();
 
   // Filtrar tipos de venda apenas das pipelines Comercial 1 e Pós-Venda
