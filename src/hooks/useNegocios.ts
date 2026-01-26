@@ -94,10 +94,13 @@ export function useNegocios(filters?: NegocioFilters) {
         // Filtra por nome normalizado (correspondência parcial no início)
         query = query.ilike('sdr', `${filters.sdr}%`);
       }
-      // Filter by vendedores (multiple selection, based on quem_vendeu)
+      // Filter by vendedores (multiple selection, based on quem_vendeu OR responsavel_reuniao)
       if (filters?.vendedores && filters.vendedores.length > 0) {
         const orConditions = filters.vendedores
-          .map(v => `quem_vendeu.ilike.%${v}%`)
+          .flatMap(v => [
+            `quem_vendeu.ilike.%${v}%`,
+            `responsavel_reuniao.ilike.%${v}%`
+          ])
           .join(',');
         query = query.or(orConditions);
       }
