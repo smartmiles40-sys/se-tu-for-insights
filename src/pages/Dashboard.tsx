@@ -103,10 +103,32 @@ export default function Dashboard() {
     // ========================================
 
     // No-Shows: negócios com data_noshow preenchida
-    const noShows = negocios.filter(n => n.data_noshow !== null).length;
+    // Quando há filtro de vendedor, precisamos filtrar também por responsavel_reuniao
+    // porque quem_vendeu só é preenchido após a venda (no-shows não têm venda)
+    const noShows = negocios.filter(n => {
+      if (n.data_noshow === null) return false;
+      // Se há filtro de vendedor, verificar se responsavel_reuniao corresponde
+      if (filters?.vendedores && filters.vendedores.length > 0) {
+        const responsavel = n.responsavel_reuniao?.toLowerCase() || '';
+        return filters.vendedores.some(v => responsavel.includes(v.toLowerCase()));
+      }
+      return true;
+    }).length;
 
     // Reuniões Realizadas: negócios com reuniao_realizada = true
-    const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada === true).length;
+    // Quando há filtro de vendedor, aplicar mesma lógica de responsavel_reuniao
+    const reunioesRealizadas = negocios.filter(n => {
+      if (n.reuniao_realizada !== true) return false;
+      // Se há filtro de vendedor, verificar responsavel_reuniao OU quem_vendeu
+      if (filters?.vendedores && filters.vendedores.length > 0) {
+        const responsavel = n.responsavel_reuniao?.toLowerCase() || '';
+        const quemVendeu = n.quem_vendeu?.toLowerCase() || '';
+        return filters.vendedores.some(v => 
+          responsavel.includes(v.toLowerCase()) || quemVendeu.includes(v.toLowerCase())
+        );
+      }
+      return true;
+    }).length;
 
     // Base com resultado = No-Shows + Realizadas (para cálculo de taxas)
     const baseComResultado = noShows + reunioesRealizadas;
