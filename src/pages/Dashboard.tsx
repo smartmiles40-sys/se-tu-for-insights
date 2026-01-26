@@ -232,6 +232,7 @@ export default function Dashboard() {
     return {
       receitaTotal,
       vendasRealizadas,
+      vendasParaConversao,
       reunioesRealizadas,
       reunioesAgendadas,
       noShows,
@@ -359,7 +360,7 @@ export default function Dashboard() {
                 <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
                   {executiveStats.taxaConversaoGeral.toFixed(1)}%
                 </div>
-                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasRealizadas)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasParaConversao)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
                 <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
               </div>
             </div>
