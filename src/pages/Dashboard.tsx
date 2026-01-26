@@ -82,8 +82,8 @@ export default function Dashboard() {
     // Separar negócios por pipeline (apenas para faturamento/vendas)
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
 
-    // Filtro interno para KPIs de reunião: apenas Pacotes de Viagens e Expedições
-    const TIPOS_VENDA_VALIDOS = ['Pacotes de Viagens', 'Expedições'];
+    // Filtro interno para KPIs de reunião: apenas Pacote de Viagens e Expedições
+    const TIPOS_VENDA_VALIDOS = ['Pacote de Viagens', 'Expedições'];
     const isTipoVendaValido = (tipoVenda: string | null | undefined): boolean =>
       TIPOS_VENDA_VALIDOS.includes(tipoVenda || '');
 
