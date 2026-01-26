@@ -82,11 +82,6 @@ export default function Dashboard() {
     // Separar negócios por pipeline (apenas para faturamento/vendas)
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
 
-    // Filtro interno para KPIs de reunião: excluir Outros, Seguro Viagem e Passagens aéreas
-    const TIPOS_VENDA_EXCLUIDOS = ['Outros', 'Seguro Viagem', 'Passagens aéreas'];
-    const isTipoVendaValido = (tipoVenda: string | null | undefined): boolean =>
-      !TIPOS_VENDA_EXCLUIDOS.includes(tipoVenda || '');
-
     // UNIVERSO BASE: Reuniões que já deveriam ter acontecido
     // Use Brazil timezone for consistent date handling
     const hojeStr = getTodayBrazil();
@@ -107,15 +102,11 @@ export default function Dashboard() {
     // Realizadas: contadas pelo booleano reuniao_realizada
     // ========================================
 
-    // No-Shows: negócios com data_noshow preenchida E tipo_venda válido
-    const noShows = negocios.filter(n => 
-      n.data_noshow !== null && isTipoVendaValido(n.tipo_venda)
-    ).length;
+    // No-Shows: negócios com data_noshow preenchida
+    const noShows = negocios.filter(n => n.data_noshow !== null).length;
 
-    // Reuniões Realizadas: negócios com reuniao_realizada = true E tipo_venda válido
-    const reunioesRealizadas = negocios.filter(n => 
-      n.reuniao_realizada === true && isTipoVendaValido(n.tipo_venda)
-    ).length;
+    // Reuniões Realizadas: negócios com reuniao_realizada = true
+    const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada === true).length;
 
     // Base com resultado = No-Shows + Realizadas (para cálculo de taxas)
     const baseComResultado = noShows + reunioesRealizadas;
@@ -133,13 +124,8 @@ export default function Dashboard() {
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
 
-    // Vendas filtradas por tipo para % Conversão (apenas Pacotes de Viagens e Expedições)
-    const vendasParaConversao = vendasNoPeriodo.filter(n => 
-      isTipoVendaValido(n.tipo_venda)
-    ).length;
-
-    // Taxa de conversão: vendas filtradas / reuniões realizadas
-    const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasParaConversao / reunioesRealizadas * 100 : 0;
+    // Taxa de conversão: vendas / reuniões realizadas
+    const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
 
     // ANÁLISE DE COHORT simplificada
     const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
@@ -232,7 +218,6 @@ export default function Dashboard() {
     return {
       receitaTotal,
       vendasRealizadas,
-      vendasParaConversao,
       reunioesRealizadas,
       reunioesAgendadas,
       noShows,
@@ -360,7 +345,7 @@ export default function Dashboard() {
                 <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
                   {executiveStats.taxaConversaoGeral.toFixed(1)}%
                 </div>
-                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasParaConversao)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasRealizadas)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
                 <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
               </div>
             </div>
