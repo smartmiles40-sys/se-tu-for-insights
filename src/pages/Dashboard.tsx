@@ -82,10 +82,10 @@ export default function Dashboard() {
     // Separar negócios por pipeline (apenas para faturamento/vendas)
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
 
-    // Filtro interno para KPIs de reunião: apenas Pacote de Viagens e Expedições
-    const TIPOS_VENDA_VALIDOS = ['Pacote de Viagens', 'Expedições'];
+    // Filtro interno para KPIs de reunião: excluir Outros, Seguro Viagem e Passagens aéreas
+    const TIPOS_VENDA_EXCLUIDOS = ['Outros', 'Seguro Viagem', 'Passagens aéreas'];
     const isTipoVendaValido = (tipoVenda: string | null | undefined): boolean =>
-      TIPOS_VENDA_VALIDOS.includes(tipoVenda || '');
+      !TIPOS_VENDA_EXCLUIDOS.includes(tipoVenda || '');
 
     // UNIVERSO BASE: Reuniões que já deveriam ter acontecido
     // Use Brazil timezone for consistent date handling
