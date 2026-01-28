@@ -12,6 +12,8 @@ import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegoci
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle, Filter } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PIPELINE_PRE_VENDAS, PIPELINE_COMERCIAL, isPipelineValido, isPreVendas, isComercial } from '@/lib/pipelines';
@@ -25,7 +27,7 @@ export default function Dashboard() {
     };
   };
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
-  const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string>('all');
+  const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string[]>([]);
 
   // Get current month/year for meta - parse from filter string or use Brazil timezone
   const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : getCurrentMonthBrazil();
@@ -157,9 +159,9 @@ export default function Dashboard() {
     const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
 
     // Taxa de conversão filtrada por tipo de venda (para o card específico)
-    const vendasFiltradasPorTipo = tipoVendaConversaoFilter === 'all' 
+    const vendasFiltradasPorTipo = tipoVendaConversaoFilter.length === 0 
       ? vendasNoPeriodo 
-      : vendasNoPeriodo.filter(n => n.tipo_venda === tipoVendaConversaoFilter);
+      : vendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
     const vendasFiltradasCount = vendasFiltradasPorTipo.length;
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
 
@@ -389,22 +391,45 @@ export default function Dashboard() {
                   {executiveStats.taxaConversaoFiltrada.toFixed(1)}%
                 </div>
                 <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasFiltradasCount)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
-                <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
-                
-                {/* Filtro local de Tipo de Venda */}
-                <div className="mt-2 pt-2 border-t border-slate-700/50">
-                  <Select value={tipoVendaConversaoFilter} onValueChange={setTipoVendaConversaoFilter}>
-                    <SelectTrigger className="h-6 text-[10px] bg-slate-800/50 border-slate-700 text-slate-300 w-full">
-                      <Filter className="h-3 w-3 mr-1 text-slate-500" />
-                      <SelectValue placeholder="Tipo de Venda" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" className="text-xs">Todos os tipos</SelectItem>
-                      {executiveStats.tiposVendaUnicos.map((tipo) => (
-                        <SelectItem key={tipo} value={tipo} className="text-xs">{tipo}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-end justify-between mt-1 gap-2">
+                  <div className="text-xs text-slate-500">Meta: ≥25%</div>
+                  
+                  {/* Filtro local de Tipo de Venda - Multi-select */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1 h-5 px-1.5 text-[9px] bg-slate-800/50 border border-slate-700 rounded text-slate-400 hover:text-slate-300 hover:border-slate-600 transition-colors">
+                        <Filter className="h-2.5 w-2.5" />
+                        {tipoVendaConversaoFilter.length === 0 ? 'Todos' : tipoVendaConversaoFilter.length}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-44 p-2" align="end">
+                      <div className="space-y-1.5">
+                        <div 
+                          className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer hover:text-slate-200 py-1"
+                          onClick={() => setTipoVendaConversaoFilter([])}
+                        >
+                          <Checkbox checked={tipoVendaConversaoFilter.length === 0} className="h-3 w-3" />
+                          Todos os tipos
+                        </div>
+                        {executiveStats.tiposVendaUnicos.map((tipo) => (
+                          <div 
+                            key={tipo} 
+                            className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-slate-100 py-1"
+                            onClick={() => {
+                              setTipoVendaConversaoFilter(prev => 
+                                prev.includes(tipo) 
+                                  ? prev.filter(t => t !== tipo)
+                                  : [...prev, tipo]
+                              );
+                            }}
+                          >
+                            <Checkbox checked={tipoVendaConversaoFilter.includes(tipo)} className="h-3 w-3" />
+                            {tipo}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
