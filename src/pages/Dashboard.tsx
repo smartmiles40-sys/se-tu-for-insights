@@ -83,12 +83,9 @@ export default function Dashboard() {
     // - data_venda (date)
     // ========================================
 
-    // Separar negócios por pipeline (apenas para faturamento/vendas)
-    const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
-
-    // UNIVERSO BASE: Reuniões que já deveriam ter acontecido
-    // Use Brazil timezone for consistent date handling
-    const hojeStr = getTodayBrazil();
+    // Helper para remover acentos e normalizar nomes
+    const removeAccents = (str: string) => 
+      str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     // ========================================
     // 1️⃣ % AGENDAMENTO
@@ -103,12 +100,8 @@ export default function Dashboard() {
     // ========================================
     // 2️⃣ % NO-SHOW e 3️⃣ % SHOW-UP
     // No-Shows: contados pela data_noshow preenchida
-    // Realizadas: contadas pelo booleano reuniao_realizada
+    // Realizadas: contadas pelo booleano reuniao_realizada com fallback de data
     // ========================================
-
-    // Helper para remover acentos e normalizar nomes
-    const removeAccents = (str: string) => 
-      str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     // No-Shows: negócios com data_noshow preenchida
     // Quando há filtro de vendedor, precisamos filtrar também por responsavel_reuniao
@@ -124,9 +117,14 @@ export default function Dashboard() {
     }).length;
 
     // Reuniões Realizadas: negócios com reuniao_realizada = true
-    // Quando há filtro de vendedor, aplicar mesma lógica de responsavel_reuniao (com normalização de acentos)
+    // CORREÇÃO CRÍTICA: data_reuniao_realizada está vazia na base, usar data_agendamento como fallback
     const reunioesRealizadas = negocios.filter(n => {
       if (n.reuniao_realizada !== true) return false;
+      
+      // Verificar se está no período: usar data_agendamento como fallback quando data_reuniao_realizada está vazia
+      const dataRef = n.data_reuniao_realizada || n.data_agendamento;
+      if (!isInPeriod(dataRef)) return false;
+      
       // Se há filtro de vendedor, verificar responsavel_reuniao OU quem_vendeu
       if (filters?.vendedores && filters.vendedores.length > 0) {
         const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
@@ -149,23 +147,20 @@ export default function Dashboard() {
     const taxaShowUp = baseComResultado > 0 ? reunioesRealizadas / baseComResultado * 100 : 0;
 
     // ========================================
-    // VENDAS E FATURAMENTO (pipeline Comercial)
+    // VENDAS E FATURAMENTO (TODOS OS PIPELINES)
+    // CORREÇÃO: Incluir vendas de todos os pipelines, não apenas Comercial 1
     // ========================================
-    const vendasNoPeriodo = negociosComercial.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
+    const vendasNoPeriodo = negocios.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
 
     // Taxa de conversão: vendas / reuniões realizadas
     const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
 
-    // TODAS as vendas (sem filtro de pipeline) para o filtro de Tipo de Venda
-    const todasVendasNoPeriodo = negocios.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
-
     // Taxa de conversão filtrada por tipo de venda (para o card específico)
-    // Quando filtro ativo: busca de TODOS os pipelines; sem filtro: apenas Comercial 1
     const vendasParaFiltro = tipoVendaConversaoFilter.length === 0 
       ? vendasNoPeriodo 
-      : todasVendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
+      : vendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
     const vendasFiltradasCount = vendasParaFiltro.length;
     const receitaFiltrada = vendasParaFiltro.reduce((sum, n) => sum + (n.total || 0), 0);
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
@@ -174,8 +169,8 @@ export default function Dashboard() {
     const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
     const taxaConversaoLeadsDoPeriodo = totalLeads > 0 ? vendasDosLeadsDoPeriodo / totalLeads * 100 : 0;
 
-    // TEMPO MÉDIO DE FECHAMENTO: apenas Comercial com vendas
-    const vendasComDatas = negociosComercial.filter(n => n.venda_aprovada === true && n.primeiro_contato && n.data_venda);
+    // TEMPO MÉDIO DE FECHAMENTO: todas as vendas com datas
+    const vendasComDatas = vendasNoPeriodo.filter(n => n.primeiro_contato && n.data_venda);
     let tempoMedioFechamento = 0;
     if (vendasComDatas.length > 0) {
       const totalDias = vendasComDatas.reduce((sum, n) => {
@@ -217,9 +212,9 @@ export default function Dashboard() {
       }
     });
 
-    // Vendas, receita e reuniões: apenas Comercial 1
-    negociosComercial.forEach(n => {
-      if (n.venda_aprovada && n.data_venda) {
+    // Vendas, receita e reuniões: todos os pipelines com vendas aprovadas
+    vendasNoPeriodo.forEach(n => {
+      if (n.data_venda) {
         try {
           const date = parseISO(n.data_venda);
           const monthKey = format(startOfMonth(date), 'yyyy-MM');
@@ -235,9 +230,14 @@ export default function Dashboard() {
           monthlyMap[monthKey].receita += n.total || 0;
         } catch (e) {}
       }
-      if (n.reuniao_realizada && n.data_reuniao_realizada) {
+    });
+    
+    // Reuniões: usar data_agendamento como fallback
+    negocios.filter(n => n.reuniao_realizada).forEach(n => {
+      const dataRef = n.data_reuniao_realizada || n.data_agendamento;
+      if (dataRef) {
         try {
-          const date = parseISO(n.data_reuniao_realizada);
+          const date = parseISO(dataRef);
           const monthKey = format(startOfMonth(date), 'yyyy-MM');
           if (!monthlyMap[monthKey]) {
             monthlyMap[monthKey] = {
@@ -251,6 +251,7 @@ export default function Dashboard() {
         } catch (e) {}
       }
     });
+    
     const monthlyData = Object.entries(monthlyMap).sort(([a], [b]) => a.localeCompare(b)).map(([key, data]) => ({
       month: format(parseISO(key + '-01'), 'MMM', {
         locale: ptBR
@@ -259,7 +260,7 @@ export default function Dashboard() {
       conversao: data.leads > 0 ? data.vendas / data.leads * 100 : 0
     }));
     // Lista única de tipos de venda para o filtro (de TODOS os pipelines)
-    const tiposVendaUnicos = [...new Set(todasVendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
+    const tiposVendaUnicos = [...new Set(vendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
 
     return {
       receitaTotal,
