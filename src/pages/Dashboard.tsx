@@ -10,7 +10,8 @@ import { MetaProgressCompact } from '@/components/dashboard/MetaProgressCompact'
 import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { useMetaGlobal } from '@/hooks/useMetas';
-import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle, Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PIPELINE_PRE_VENDAS, PIPELINE_COMERCIAL, isPipelineValido, isPreVendas, isComercial } from '@/lib/pipelines';
@@ -24,6 +25,7 @@ export default function Dashboard() {
     };
   };
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
+  const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string>('all');
 
   // Get current month/year for meta - parse from filter string or use Brazil timezone
   const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : getCurrentMonthBrazil();
@@ -154,6 +156,13 @@ export default function Dashboard() {
     // Taxa de conversão: vendas / reuniões realizadas
     const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
 
+    // Taxa de conversão filtrada por tipo de venda (para o card específico)
+    const vendasFiltradasPorTipo = tipoVendaConversaoFilter === 'all' 
+      ? vendasNoPeriodo 
+      : vendasNoPeriodo.filter(n => n.tipo_venda === tipoVendaConversaoFilter);
+    const vendasFiltradasCount = vendasFiltradasPorTipo.length;
+    const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
+
     // ANÁLISE DE COHORT simplificada
     const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
     const taxaConversaoLeadsDoPeriodo = totalLeads > 0 ? vendasDosLeadsDoPeriodo / totalLeads * 100 : 0;
@@ -242,6 +251,9 @@ export default function Dashboard() {
       ...data,
       conversao: data.leads > 0 ? data.vendas / data.leads * 100 : 0
     }));
+    // Lista única de tipos de venda para o filtro
+    const tiposVendaUnicos = [...new Set(vendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
+
     return {
       receitaTotal,
       vendasRealizadas,
@@ -258,9 +270,13 @@ export default function Dashboard() {
       // Cohort
       vendasDosLeadsDoPeriodo,
       taxaConversaoLeadsDoPeriodo,
-      tempoMedioFechamento
+      tempoMedioFechamento,
+      // Conversão filtrada
+      taxaConversaoFiltrada,
+      vendasFiltradasCount,
+      tiposVendaUnicos
     };
-  }, [negocios, filters]);
+  }, [negocios, filters, tipoVendaConversaoFilter]);
 
   // Prepare data for MetaProgress
   const realizadoData = useMemo(() => ({
@@ -369,11 +385,27 @@ export default function Dashboard() {
                   <span className="text-xs text-slate-400 uppercase tracking-wider">% Conversão Vendas</span>
                   <Target className="h-4 w-4 text-slate-500" />
                 </div>
-                <div className={`text-3xl font-bold ${executiveStats.taxaConversaoGeral >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoGeral >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
-                  {executiveStats.taxaConversaoGeral.toFixed(1)}%
+                <div className={`text-3xl font-bold ${executiveStats.taxaConversaoFiltrada >= 25 ? 'text-emerald-400' : executiveStats.taxaConversaoFiltrada >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                  {executiveStats.taxaConversaoFiltrada.toFixed(1)}%
                 </div>
-                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasRealizadas)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
+                <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasFiltradasCount)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
                 <div className="text-xs text-slate-500 mt-0.5">Meta: ≥25%</div>
+                
+                {/* Filtro local de Tipo de Venda */}
+                <div className="mt-2 pt-2 border-t border-slate-700/50">
+                  <Select value={tipoVendaConversaoFilter} onValueChange={setTipoVendaConversaoFilter}>
+                    <SelectTrigger className="h-6 text-[10px] bg-slate-800/50 border-slate-700 text-slate-300 w-full">
+                      <Filter className="h-3 w-3 mr-1 text-slate-500" />
+                      <SelectValue placeholder="Tipo de Venda" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-xs">Todos os tipos</SelectItem>
+                      {executiveStats.tiposVendaUnicos.map((tipo) => (
+                        <SelectItem key={tipo} value={tipo} className="text-xs">{tipo}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
