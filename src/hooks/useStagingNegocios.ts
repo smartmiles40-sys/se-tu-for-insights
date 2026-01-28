@@ -144,7 +144,7 @@ export function useApproveStaging() {
 
   return useMutation({
     mutationFn: async (ids: string[]) => {
-      // First, get the staging records
+      // Get staging records to approve
       const { data: stagingRecords, error: fetchError } = await supabase
         .from('staging_negocios')
         .select('*')
@@ -155,8 +155,29 @@ export function useApproveStaging() {
         throw new Error('No records found');
       }
 
-      // Prepare records for negocios table (remove staging-specific fields)
-      const negociosRecords = stagingRecords.map(record => ({
+      // Get crm_ids that already exist in negocios
+      const crmIds = stagingRecords
+        .map(r => r.crm_id)
+        .filter((id): id is string => Boolean(id));
+      
+      let existingCrmIds = new Set<string>();
+      if (crmIds.length > 0) {
+        const { data: existingRecords } = await supabase
+          .from('negocios')
+          .select('crm_id')
+          .in('crm_id', crmIds);
+        
+        existingCrmIds = new Set(
+          existingRecords?.map(r => r.crm_id).filter((id): id is string => Boolean(id)) || []
+        );
+      }
+
+      // Separate records into updates and inserts
+      const toUpdate = stagingRecords.filter(r => r.crm_id && existingCrmIds.has(r.crm_id));
+      const toInsert = stagingRecords.filter(r => !r.crm_id || !existingCrmIds.has(r.crm_id));
+
+      // Helper to prepare record data (remove staging-specific fields)
+      const prepareRecord = (record: typeof stagingRecords[0]) => ({
         nome: record.nome,
         pipeline: record.pipeline,
         contato_fonte: record.contato_fonte,
@@ -178,7 +199,6 @@ export function useApproveStaging() {
         utm_content: record.utm_content,
         utm_term: record.utm_term,
         lead_fonte: record.lead_fonte,
-        // New CRM fields
         crm_id: record.crm_id,
         fase: record.fase,
         custo: record.custo,
@@ -194,14 +214,33 @@ export function useApproveStaging() {
         data_prevista: record.data_prevista,
         primeiro_contato: record.primeiro_contato,
         data_movimentacao: record.data_movimentacao,
-      }));
+      });
 
-      // Insert into negocios
-      const { error: insertError } = await supabase
-        .from('negocios')
-        .insert(negociosRecords);
+      // Update existing records in negocios
+      for (const record of toUpdate) {
+        const { error } = await supabase
+          .from('negocios')
+          .update(prepareRecord(record))
+          .eq('crm_id', record.crm_id!);
+        
+        if (error) {
+          console.error('Error updating record:', error);
+          throw error;
+        }
+      }
 
-      if (insertError) throw insertError;
+      // Insert new records
+      if (toInsert.length > 0) {
+        const insertRecords = toInsert.map(prepareRecord);
+        const { error } = await supabase
+          .from('negocios')
+          .insert(insertRecords);
+        
+        if (error) {
+          console.error('Error inserting records:', error);
+          throw error;
+        }
+      }
 
       // Update staging status to approved
       const { error: updateError } = await supabase
@@ -211,13 +250,13 @@ export function useApproveStaging() {
 
       if (updateError) throw updateError;
 
-      return stagingRecords.length;
+      return { updated: toUpdate.length, inserted: toInsert.length };
     },
-    onSuccess: (count) => {
+    onSuccess: ({ updated, inserted }) => {
       queryClient.invalidateQueries({ queryKey: ['staging-negocios'] });
       queryClient.invalidateQueries({ queryKey: ['staging-negocios-count'] });
       queryClient.invalidateQueries({ queryKey: ['negocios'] });
-      toast.success(`${count} registro(s) aprovado(s) com sucesso!`);
+      toast.success(`${updated} atualizado(s), ${inserted} inserido(s) com sucesso!`);
     },
     onError: (error) => {
       console.error('Error approving staging records:', error);
