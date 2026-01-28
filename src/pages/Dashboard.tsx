@@ -118,7 +118,11 @@ export default function Dashboard() {
 
     // Reuniões Realizadas / Propostas Enviadas: baseado em data_reuniao_realizada
     // FONTE PRINCIPAL: campo data_reuniao_realizada (não o booleano)
+    // FILTRO: apenas pipeline Comercial 1 para consistência com Vendas/Faturamento
     const reunioesRealizadas = negocios.filter(n => {
+      // Exigir pipeline Comercial 1
+      if (!isComercial(n.pipeline)) return false;
+      
       // Exigir data_reuniao_realizada preenchida e dentro do período
       if (!n.data_reuniao_realizada || !isInPeriod(n.data_reuniao_realizada)) return false;
       
