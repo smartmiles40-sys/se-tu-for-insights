@@ -46,6 +46,8 @@ const columnMapping: Record<string, keyof Negocio> = {
   'data_agendamento': 'data_agendamento',
   'data da reunião realizada': 'data_reuniao_realizada',
   'data da reuniao realizada': 'data_reuniao_realizada',
+  'data da reunião realizada/proposta enviada': 'data_reuniao_realizada',
+  'data da reuniao realizada/proposta enviada': 'data_reuniao_realizada',
   'data_reuniao_realizada': 'data_reuniao_realizada',
   'data do mql': 'data_mql',
   'data_mql': 'data_mql',
