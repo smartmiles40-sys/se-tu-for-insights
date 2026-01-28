@@ -1,46 +1,119 @@
 
-## Plano: Adicionar Constraint UNIQUE ao Campo crm_id
+## Plano: Corrigir Aprovação de Registros Duplicados
 
 ### Problema Identificado
-O erro `"there is no unique or exclusion constraint matching the ON CONFLICT specification"` continua ocorrendo porque a constraint UNIQUE no campo `crm_id` da tabela `staging_negocios` **não existe** no banco de dados.
+O erro "Erro ao aprovar registros" ocorre porque:
 
-Uma verificação confirmou que não há nenhuma constraint UNIQUE na tabela `staging_negocios`.
-
-### Causa do Problema
-A migration anterior não foi aplicada corretamente - o erro de "constraint já existe" foi um falso positivo ou houve um problema na execução.
+1. A tabela `negocios` tem uma constraint UNIQUE em `crm_id` (`negocios_crm_id_unique`)
+2. Dos 184 registros selecionados, todos já existem na tabela `negocios` com o mesmo `crm_id`
+3. O código atual usa `insert`, que falha com conflito de chave duplicada (erro 409)
 
 ### Solução
-Executar uma nova migration para:
+Modificar a função `useApproveStaging` para:
+1. Verificar quais `crm_id` já existem na tabela `negocios`
+2. Para registros existentes: fazer `UPDATE` (atualizar dados)
+3. Para registros novos: fazer `INSERT`
 
-1. **Limpar registros duplicados** (se houver) - Manter apenas o registro mais recente para cada `crm_id`
-2. **Adicionar constraint UNIQUE** no campo `crm_id`
+### Alterações de Código
+
+**Arquivo: `src/hooks/useStagingNegocios.ts`**
+
+Modificar a função `useApproveStaging` (linhas 142-226) para:
+
+```typescript
+export function useApproveStaging() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Get staging records to approve
+      const { data: stagingRecords, error: fetchError } = await supabase
+        .from('staging_negocios')
+        .select('*')
+        .in('id', ids);
+
+      if (fetchError) throw fetchError;
+      if (!stagingRecords || stagingRecords.length === 0) {
+        throw new Error('No records found');
+      }
+
+      // Get crm_ids that already exist in negocios
+      const crmIds = stagingRecords
+        .map(r => r.crm_id)
+        .filter(Boolean);
+      
+      let existingCrmIds = new Set<string>();
+      if (crmIds.length > 0) {
+        const { data: existingRecords } = await supabase
+          .from('negocios')
+          .select('crm_id')
+          .in('crm_id', crmIds);
+        
+        existingCrmIds = new Set(existingRecords?.map(r => r.crm_id) || []);
+      }
+
+      // Separate records into updates and inserts
+      const toUpdate = stagingRecords.filter(r => r.crm_id && existingCrmIds.has(r.crm_id));
+      const toInsert = stagingRecords.filter(r => !r.crm_id || !existingCrmIds.has(r.crm_id));
+
+      // Prepare record data (remove staging-specific fields)
+      const prepareRecord = (record) => ({
+        nome: record.nome,
+        pipeline: record.pipeline,
+        // ... all other fields
+      });
+
+      // Update existing records
+      for (const record of toUpdate) {
+        const { error } = await supabase
+          .from('negocios')
+          .update(prepareRecord(record))
+          .eq('crm_id', record.crm_id);
+        
+        if (error) throw error;
+      }
+
+      // Insert new records
+      if (toInsert.length > 0) {
+        const insertRecords = toInsert.map(prepareRecord);
+        const { error } = await supabase
+          .from('negocios')
+          .insert(insertRecords);
+        
+        if (error) throw error;
+      }
+
+      // Update staging status to approved
+      const { error: updateError } = await supabase
+        .from('staging_negocios')
+        .update({ status: 'aprovado' })
+        .in('id', ids);
+
+      if (updateError) throw updateError;
+
+      return stagingRecords.length;
+    },
+    // ... callbacks unchanged
+  });
+}
+```
 
 ### Detalhes Técnicos
 
-**SQL da Migration:**
-```sql
--- Primeiro, limpar possíveis duplicatas existentes mantendo apenas o mais recente
-DELETE FROM staging_negocios a
-USING staging_negocios b
-WHERE a.crm_id = b.crm_id
-  AND a.crm_id IS NOT NULL
-  AND a.created_at < b.created_at;
+**Por que o erro ocorre:**
+- A tabela `negocios` possui constraint `negocios_crm_id_unique`
+- O código atual usa `.insert()` que falha quando `crm_id` já existe
+- 184 dos 458 registros no staging têm `crm_id` duplicados em `negocios`
 
--- Adicionar constraint UNIQUE
-ALTER TABLE staging_negocios 
-ADD CONSTRAINT staging_negocios_crm_id_unique UNIQUE (crm_id);
-```
-
-**Por que isso resolve o problema:**
-- O Supabase SDK usa `ON CONFLICT` para fazer upsert
-- `ON CONFLICT` requer uma constraint UNIQUE ou exclusion para identificar o registro a atualizar
-- Sem essa constraint, o banco não sabe qual registro atualizar quando há um `crm_id` duplicado
+**Como a solução funciona:**
+1. Consulta quais `crm_id` já existem em `negocios`
+2. Divide registros em dois grupos: atualizar vs inserir
+3. Registros existentes são atualizados com `UPDATE ... WHERE crm_id = ?`
+4. Registros novos são inseridos normalmente
+5. Todos os registros staging são marcados como aprovados
 
 ### Resultado Esperado
-Após a migration:
-- A importação do arquivo `report_32.xls` funcionará corretamente
-- Registros com mesmo `crm_id` serão atualizados (não duplicados)
-- O campo `data_reuniao_realizada` será populado corretamente
-
-### Arquivos Afetados
-Nenhum arquivo de código precisa ser alterado - apenas uma migration de banco de dados.
+- Aprovação funcionará sem erros
+- Registros existentes em `negocios` serão atualizados com novos dados
+- Registros novos serão inseridos
+- O status no staging será atualizado para "aprovado"
