@@ -345,29 +345,32 @@ export function useImportToStaging() {
         status: 'pendente' as StagingStatus,
       }));
 
-      // Insert in batches of 100
+      // Use upsert in batches of 100 to handle duplicate crm_id
       const batchSize = 100;
-      let inserted = 0;
+      let processed = 0;
 
       for (let i = 0; i < stagingRecords.length; i += batchSize) {
         const batch = stagingRecords.slice(i, i + batchSize);
         const { error } = await supabase
           .from('staging_negocios')
-          .insert(batch);
+          .upsert(batch, { 
+            onConflict: 'crm_id',
+            ignoreDuplicates: false 
+          });
 
         if (error) {
-          console.error('Error inserting batch:', error);
+          console.error('Error upserting batch:', error);
           throw error;
         }
-        inserted += batch.length;
+        processed += batch.length;
       }
 
-      return { count: inserted, batch_id };
+      return { count: processed, batch_id };
     },
     onSuccess: ({ count }) => {
       queryClient.invalidateQueries({ queryKey: ['staging-negocios'] });
       queryClient.invalidateQueries({ queryKey: ['staging-negocios-count'] });
-      toast.success(`${count} registro(s) importados para revisão!`);
+      toast.success(`${count} registro(s) importados/atualizados para revisão!`);
     },
     onError: (error) => {
       console.error('Error importing to staging:', error);
