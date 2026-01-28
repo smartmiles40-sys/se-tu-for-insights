@@ -167,6 +167,7 @@ export default function Dashboard() {
       ? vendasNoPeriodo 
       : todasVendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
     const vendasFiltradasCount = vendasParaFiltro.length;
+    const receitaFiltrada = vendasParaFiltro.reduce((sum, n) => sum + (n.total || 0), 0);
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
 
     // ANÁLISE DE COHORT simplificada
@@ -280,6 +281,7 @@ export default function Dashboard() {
       // Conversão filtrada
       taxaConversaoFiltrada,
       vendasFiltradasCount,
+      receitaFiltrada,
       tiposVendaUnicos
     };
   }, [negocios, filters, tipoVendaConversaoFilter]);
@@ -395,6 +397,7 @@ export default function Dashboard() {
                   {executiveStats.taxaConversaoFiltrada.toFixed(1)}%
                 </div>
                 <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.vendasFiltradasCount)} / {formatNumber(executiveStats.reunioesRealizadas)}</div>
+                <div className="text-xs text-success mt-1">{formatCurrency(executiveStats.receitaFiltrada)}</div>
                 <div className="flex items-end justify-between mt-1 gap-2">
                   <div className="text-xs text-slate-500">Meta: ≥25%</div>
                   
