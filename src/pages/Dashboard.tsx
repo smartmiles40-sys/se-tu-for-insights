@@ -158,11 +158,15 @@ export default function Dashboard() {
     // Taxa de conversão: vendas / reuniões realizadas
     const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
 
+    // TODAS as vendas (sem filtro de pipeline) para o filtro de Tipo de Venda
+    const todasVendasNoPeriodo = negocios.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
+
     // Taxa de conversão filtrada por tipo de venda (para o card específico)
-    const vendasFiltradasPorTipo = tipoVendaConversaoFilter.length === 0 
+    // Quando filtro ativo: busca de TODOS os pipelines; sem filtro: apenas Comercial 1
+    const vendasParaFiltro = tipoVendaConversaoFilter.length === 0 
       ? vendasNoPeriodo 
-      : vendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
-    const vendasFiltradasCount = vendasFiltradasPorTipo.length;
+      : todasVendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
+    const vendasFiltradasCount = vendasParaFiltro.length;
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
 
     // ANÁLISE DE COHORT simplificada
@@ -253,8 +257,8 @@ export default function Dashboard() {
       ...data,
       conversao: data.leads > 0 ? data.vendas / data.leads * 100 : 0
     }));
-    // Lista única de tipos de venda para o filtro
-    const tiposVendaUnicos = [...new Set(vendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
+    // Lista única de tipos de venda para o filtro (de TODOS os pipelines)
+    const tiposVendaUnicos = [...new Set(todasVendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
 
     return {
       receitaTotal,
