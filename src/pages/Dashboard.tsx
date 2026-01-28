@@ -116,19 +116,11 @@ export default function Dashboard() {
       return true;
     }).length;
 
-    // Reuniões Realizadas: negócios com reuniao_realizada = true
-    // CORREÇÃO: data_reuniao_realizada está vazia na base
-    // - Usar data_agendamento como fallback
-    // - Se ambas estão vazias, incluir a reunião (booleano é a fonte da verdade)
+    // Reuniões Realizadas / Propostas Enviadas: baseado em data_reuniao_realizada
+    // FONTE PRINCIPAL: campo data_reuniao_realizada (não o booleano)
     const reunioesRealizadas = negocios.filter(n => {
-      if (n.reuniao_realizada !== true) return false;
-      
-      // Determinar data de referência para filtro de período
-      const dataRef = n.data_reuniao_realizada || n.data_agendamento;
-      
-      // Se não tem nenhuma data, incluir a reunião (o booleano é a fonte da verdade)
-      // Se tem data, verificar se está no período
-      if (dataRef && !isInPeriod(dataRef)) return false;
+      // Exigir data_reuniao_realizada preenchida e dentro do período
+      if (!n.data_reuniao_realizada || !isInPeriod(n.data_reuniao_realizada)) return false;
       
       // Se há filtro de vendedor, verificar responsavel_reuniao OU quem_vendeu
       if (filters?.vendedores && filters.vendedores.length > 0) {
