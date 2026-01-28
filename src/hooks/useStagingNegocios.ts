@@ -337,29 +337,89 @@ export function useImportToStaging() {
       // Generate a batch_id for this import
       const batch_id = crypto.randomUUID();
       
-      // Prepare records with staging-specific fields
-      const stagingRecords = records.map(record => ({
-        ...record,
-        batch_id,
-        source: 'import_arquivo',
-        status: 'pendente' as StagingStatus,
-      }));
-
-      // Use upsert in batches of 100 to handle duplicate crm_id
-      const batchSize = 100;
+      // Process records: separate by crm_id presence
+      const recordsWithCrmId = records.filter(r => r.crm_id);
+      const recordsWithoutCrmId = records.filter(r => !r.crm_id);
+      
       let processed = 0;
+      const batchSize = 100;
 
-      for (let i = 0; i < stagingRecords.length; i += batchSize) {
-        const batch = stagingRecords.slice(i, i + batchSize);
+      // For records WITH crm_id, check if they exist and update/insert accordingly
+      for (let i = 0; i < recordsWithCrmId.length; i += batchSize) {
+        const batch = recordsWithCrmId.slice(i, i + batchSize);
+        const crmIds = batch.map(r => r.crm_id!);
+        
+        // Get existing records
+        const { data: existingRecords } = await supabase
+          .from('staging_negocios')
+          .select('id, crm_id')
+          .in('crm_id', crmIds);
+        
+        const existingCrmIds = new Set(existingRecords?.map(r => r.crm_id) || []);
+        
+        // Split into updates and inserts
+        const toUpdate = batch.filter(r => existingCrmIds.has(r.crm_id));
+        const toInsert = batch.filter(r => !existingCrmIds.has(r.crm_id));
+        
+        // Update existing records
+        for (const record of toUpdate) {
+          const existingRecord = existingRecords?.find(r => r.crm_id === record.crm_id);
+          if (existingRecord) {
+            const { error } = await supabase
+              .from('staging_negocios')
+              .update({
+                ...record,
+                batch_id,
+                source: 'import_arquivo',
+                status: 'pendente' as StagingStatus,
+              })
+              .eq('id', existingRecord.id);
+            
+            if (error) {
+              console.error('Error updating record:', error);
+              throw error;
+            }
+            processed++;
+          }
+        }
+        
+        // Insert new records
+        if (toInsert.length > 0) {
+          const insertRecords = toInsert.map(record => ({
+            ...record,
+            batch_id,
+            source: 'import_arquivo',
+            status: 'pendente' as StagingStatus,
+          }));
+          
+          const { error } = await supabase
+            .from('staging_negocios')
+            .insert(insertRecords);
+          
+          if (error) {
+            console.error('Error inserting batch:', error);
+            throw error;
+          }
+          processed += toInsert.length;
+        }
+      }
+
+      // For records WITHOUT crm_id, just insert (no conflict possible)
+      for (let i = 0; i < recordsWithoutCrmId.length; i += batchSize) {
+        const batch = recordsWithoutCrmId.slice(i, i + batchSize);
+        const insertRecords = batch.map(record => ({
+          ...record,
+          batch_id,
+          source: 'import_arquivo',
+          status: 'pendente' as StagingStatus,
+        }));
+        
         const { error } = await supabase
           .from('staging_negocios')
-          .upsert(batch, { 
-            onConflict: 'crm_id',
-            ignoreDuplicates: false 
-          });
+          .insert(insertRecords);
 
         if (error) {
-          console.error('Error upserting batch:', error);
+          console.error('Error inserting batch:', error);
           throw error;
         }
         processed += batch.length;
