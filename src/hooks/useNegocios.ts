@@ -268,7 +268,7 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
   const normalizedSdrs = negocios.map(n => normalizeName(n.sdr));
   
   // Get unique vendedores from quem_vendeu (normalized, excluding "Não se aplica" and specific names)
-  const excludedVendedores = ['luiz', 'everton', 'everton lopes', 'luis antonio'];
+  const excludedVendedores = ['everton', 'everton lopes'];
   const normalizedVendedores = negocios.map(n => normalizeName(n.quem_vendeu));
   const uniqueVendedores = [...new Set(normalizedVendedores)]
     .filter((v): v is string => 
