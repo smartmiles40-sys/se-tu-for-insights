@@ -1,119 +1,151 @@
 
-## Plano: Corrigir Aprovação de Registros Duplicados
+## Plano: Usar Apenas `data_venda` para Identificar Vendas
 
-### Problema Identificado
-O erro "Erro ao aprovar registros" ocorre porque:
+### Situação Atual
+O campo `venda_aprovada` está sendo usado em **10 componentes** para filtrar vendas, mas esse campo não está mais sendo preenchido corretamente no CRM. O critério correto agora é:
 
-1. A tabela `negocios` tem uma constraint UNIQUE em `crm_id` (`negocios_crm_id_unique`)
-2. Dos 184 registros selecionados, todos já existem na tabela `negocios` com o mesmo `crm_id`
-3. O código atual usa `insert`, que falha com conflito de chave duplicada (erro 409)
+**Critério de Venda = `data_venda` preenchida (não nula)**
 
-### Solução
-Modificar a função `useApproveStaging` para:
-1. Verificar quais `crm_id` já existem na tabela `negocios`
-2. Para registros existentes: fazer `UPDATE` (atualizar dados)
-3. Para registros novos: fazer `INSERT`
+Confirmação no banco de dados:
+- Total com `data_venda` no período (01-28/jan) + pipeline Comercial 1 = **36 vendas** ✓
 
-### Alterações de Código
+### Arquivos a Modificar
 
-**Arquivo: `src/hooks/useStagingNegocios.ts`**
+| Arquivo | Mudança |
+|---------|---------|
+| `src/pages/Dashboard.tsx` | Linhas 154, 159, 174 |
+| `src/components/dashboard/FunnelHorizontal.tsx` | Linha 50-51 |
+| `src/components/dashboard/RankingTable.tsx` | Linhas 49, 82 |
+| `src/components/dashboard/OrigemPerformance.tsx` | Linha 44 |
+| `src/components/dashboard/AgentRevenueReport.tsx` | Linha 51 |
+| `src/components/dashboard/EspecialistasPerformance.tsx` | Linha 29 |
+| `src/components/dashboard/EspecialistasDashboard.tsx` | Linha 34 |
+| `src/components/dashboard/SDRAnalytics.tsx` | Linha 76 |
+| `src/components/dashboard/DailyRevenueChart.tsx` | Linha 51 |
+| `src/components/dashboard/EspecialistasAnalytics.tsx` | Linha 55 |
+| `src/components/dashboard/MarketingAnalytics.tsx` | Linha 46 |
 
-Modificar a função `useApproveStaging` (linhas 142-226) para:
+### Alterações por Arquivo
 
+**1. Dashboard.tsx (linhas 154, 159, 174)**
 ```typescript
-export function useApproveStaging() {
-  const queryClient = useQueryClient();
+// ANTES
+const vendasNoPeriodo = negociosComercial.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
+const todasVendasNoPeriodo = negocios.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
+const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
 
-  return useMutation({
-    mutationFn: async (ids: string[]) => {
-      // Get staging records to approve
-      const { data: stagingRecords, error: fetchError } = await supabase
-        .from('staging_negocios')
-        .select('*')
-        .in('id', ids);
-
-      if (fetchError) throw fetchError;
-      if (!stagingRecords || stagingRecords.length === 0) {
-        throw new Error('No records found');
-      }
-
-      // Get crm_ids that already exist in negocios
-      const crmIds = stagingRecords
-        .map(r => r.crm_id)
-        .filter(Boolean);
-      
-      let existingCrmIds = new Set<string>();
-      if (crmIds.length > 0) {
-        const { data: existingRecords } = await supabase
-          .from('negocios')
-          .select('crm_id')
-          .in('crm_id', crmIds);
-        
-        existingCrmIds = new Set(existingRecords?.map(r => r.crm_id) || []);
-      }
-
-      // Separate records into updates and inserts
-      const toUpdate = stagingRecords.filter(r => r.crm_id && existingCrmIds.has(r.crm_id));
-      const toInsert = stagingRecords.filter(r => !r.crm_id || !existingCrmIds.has(r.crm_id));
-
-      // Prepare record data (remove staging-specific fields)
-      const prepareRecord = (record) => ({
-        nome: record.nome,
-        pipeline: record.pipeline,
-        // ... all other fields
-      });
-
-      // Update existing records
-      for (const record of toUpdate) {
-        const { error } = await supabase
-          .from('negocios')
-          .update(prepareRecord(record))
-          .eq('crm_id', record.crm_id);
-        
-        if (error) throw error;
-      }
-
-      // Insert new records
-      if (toInsert.length > 0) {
-        const insertRecords = toInsert.map(prepareRecord);
-        const { error } = await supabase
-          .from('negocios')
-          .insert(insertRecords);
-        
-        if (error) throw error;
-      }
-
-      // Update staging status to approved
-      const { error: updateError } = await supabase
-        .from('staging_negocios')
-        .update({ status: 'aprovado' })
-        .in('id', ids);
-
-      if (updateError) throw updateError;
-
-      return stagingRecords.length;
-    },
-    // ... callbacks unchanged
-  });
-}
+// DEPOIS
+const vendasNoPeriodo = negociosComercial.filter(n => n.data_venda && isInPeriod(n.data_venda));
+const todasVendasNoPeriodo = negocios.filter(n => n.data_venda && isInPeriod(n.data_venda));
+const vendasDosLeadsDoPeriodo = negocios.filter(n => n.data_venda !== null).length;
 ```
 
-### Detalhes Técnicos
+**2. FunnelHorizontal.tsx (linhas 49-54)**
+```typescript
+// ANTES
+const vendas = negociosValidos.filter(n => 
+  n.venda_aprovada === true && 
+  n.data_venda !== null && 
+  isInPeriod(n.data_venda)
+).length;
 
-**Por que o erro ocorre:**
-- A tabela `negocios` possui constraint `negocios_crm_id_unique`
-- O código atual usa `.insert()` que falha quando `crm_id` já existe
-- 184 dos 458 registros no staging têm `crm_id` duplicados em `negocios`
+// DEPOIS
+const vendas = negociosValidos.filter(n => 
+  n.data_venda !== null && 
+  isInPeriod(n.data_venda)
+).length;
+```
 
-**Como a solução funciona:**
-1. Consulta quais `crm_id` já existem em `negocios`
-2. Divide registros em dois grupos: atualizar vs inserir
-3. Registros existentes são atualizados com `UPDATE ... WHERE crm_id = ?`
-4. Registros novos são inseridos normalmente
-5. Todos os registros staging são marcados como aprovados
+**3. RankingTable.tsx (linhas 49, 82)**
+```typescript
+// ANTES
+if (n.venda_aprovada && isInPeriod(n.data_venda) && n.sdr) {...}
+if (n.venda_aprovada && isInPeriod(n.data_venda)) {...}
+
+// DEPOIS
+if (n.data_venda && isInPeriod(n.data_venda) && n.sdr) {...}
+if (n.data_venda && isInPeriod(n.data_venda)) {...}
+```
+
+**4. OrigemPerformance.tsx (linha 44)**
+```typescript
+// ANTES
+if (n.venda_aprovada && isInPeriod(n.data_venda)) {...}
+
+// DEPOIS
+if (n.data_venda && isInPeriod(n.data_venda)) {...}
+```
+
+**5. AgentRevenueReport.tsx (linha 51)**
+```typescript
+// ANTES
+(n) => ... && n.venda_aprovada && isInPeriod(n.data_venda),
+
+// DEPOIS
+(n) => ... && n.data_venda && isInPeriod(n.data_venda),
+```
+
+**6. EspecialistasPerformance.tsx (linha 29)**
+```typescript
+// ANTES
+const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
+
+// DEPOIS
+const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
+```
+
+**7. EspecialistasDashboard.tsx (linha 34)**
+```typescript
+// ANTES
+const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
+
+// DEPOIS
+const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
+```
+
+**8. SDRAnalytics.tsx (linha 76)**
+```typescript
+// ANTES
+.filter(n => n.sdr === sdr && n.venda_aprovada && isInPeriod(n.data_venda))
+
+// DEPOIS
+.filter(n => n.sdr === sdr && n.data_venda && isInPeriod(n.data_venda))
+```
+
+**9. DailyRevenueChart.tsx (linha 51)**
+```typescript
+// ANTES
+if (item.venda_aprovada && item.total) {...}
+
+// DEPOIS
+if (item.data_venda && item.total) {...}
+```
+
+**10. EspecialistasAnalytics.tsx (linha 55)**
+```typescript
+// ANTES
+n.venda_aprovada && isInPeriod(n.data_venda)
+
+// DEPOIS
+n.data_venda && isInPeriod(n.data_venda)
+```
+
+**11. MarketingAnalytics.tsx (linha 46)**
+```typescript
+// ANTES
+if (n.venda_aprovada) {...}
+
+// DEPOIS
+if (n.data_venda) {...}
+```
 
 ### Resultado Esperado
-- Aprovação funcionará sem erros
-- Registros existentes em `negocios` serão atualizados com novos dados
-- Registros novos serão inseridos
-- O status no staging será atualizado para "aprovado"
+- Dashboard principal mostrará **36 vendas** no período 01-28/jan
+- Todas as métricas de vendas e faturamento serão consistentes
+- O campo `venda_aprovada` não será mais usado como critério principal
+
+### Detalhes Técnicos
+A regra unificada para todas as métricas de vendas passa a ser:
+- **Critério**: `data_venda !== null` (campo preenchido)
+- **Período**: `data_venda` dentro do range de datas selecionado
+- **Pipeline**: Comercial 1 (onde aplicável, para consistência com reuniões)
