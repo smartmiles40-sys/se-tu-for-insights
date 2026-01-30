@@ -31,7 +31,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
     return vendedores.map(vendedor => {
       const vendedorNegocios = negocios.filter(n => n.vendedor === vendedor);
       const reunioesRecebidas = vendedorNegocios.filter(n => n.reuniao_realizada).length;
-      const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
+      const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
       const vendasRealizadas = vendas.length;
       const taxaFechamento = reunioesRecebidas > 0 ? (vendasRealizadas / reunioesRecebidas) * 100 : 0;
       const receitaGerada = vendas.reduce((sum, n) => sum + (n.total || 0), 0);

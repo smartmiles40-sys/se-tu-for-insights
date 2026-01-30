@@ -46,9 +46,8 @@ export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
       n.data_sql !== null && isInPeriod(n.data_sql)
     ).length;
     
-    // Vendas: conta por venda_aprovada E data_venda (todos os negócios válidos)
+    // Vendas: conta por data_venda preenchida (todos os negócios válidos)
     const vendas = negociosValidos.filter(n => 
-      n.venda_aprovada === true && 
       n.data_venda !== null && 
       isInPeriod(n.data_venda)
     ).length;

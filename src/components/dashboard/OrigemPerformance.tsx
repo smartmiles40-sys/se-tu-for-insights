@@ -41,7 +41,7 @@ export function OrigemPerformance({ negocios, filters }: OrigemPerformanceProps)
     negociosComercial.forEach(n => {
       const origem = n.lead_fonte || n.utm_source || 'Direto';
       
-      if (n.venda_aprovada && isInPeriod(n.data_venda)) {
+      if (n.data_venda && isInPeriod(n.data_venda)) {
         if (!origemMap[origem]) {
           origemMap[origem] = { origem, leads: 0, vendas: 0, receita: 0 };
         }

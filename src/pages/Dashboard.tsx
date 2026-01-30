@@ -151,12 +151,12 @@ export default function Dashboard() {
     // VENDAS E FATURAMENTO (apenas pipeline Comercial 1)
     // ========================================
     const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
-    const vendasNoPeriodo = negociosComercial.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
+    const vendasNoPeriodo = negociosComercial.filter(n => n.data_venda && isInPeriod(n.data_venda));
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
     
     // TODAS as vendas (todos os pipelines) para filtro de Tipo de Venda
-    const todasVendasNoPeriodo = negocios.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
+    const todasVendasNoPeriodo = negocios.filter(n => n.data_venda && isInPeriod(n.data_venda));
 
     // Taxa de conversão: vendas / reuniões realizadas
     const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
@@ -171,7 +171,7 @@ export default function Dashboard() {
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
 
     // ANÁLISE DE COHORT simplificada
-    const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
+    const vendasDosLeadsDoPeriodo = negocios.filter(n => n.data_venda !== null).length;
     const taxaConversaoLeadsDoPeriodo = totalLeads > 0 ? vendasDosLeadsDoPeriodo / totalLeads * 100 : 0;
 
     // TEMPO MÉDIO DE FECHAMENTO: todas as vendas com datas

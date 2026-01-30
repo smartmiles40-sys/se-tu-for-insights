@@ -26,7 +26,7 @@ export function EspecialistasPerformance({ negocios }: EspecialistasPerformanceP
       // Reuniões recebidas = reuniões realizadas atribuídas a este especialista
       const reunioesRecebidas = vendedorNegocios.filter(n => n.reuniao_realizada).length;
       
-      const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
+      const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
       const vendasRealizadas = vendas.length;
       
       const taxaConversao = reunioesRecebidas > 0 ? (vendasRealizadas / reunioesRecebidas) * 100 : 0;

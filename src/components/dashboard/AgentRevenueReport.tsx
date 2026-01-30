@@ -48,7 +48,7 @@ export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProp
     // Para cada vendedor, calcular vendas e faturamento
     vendedores.forEach((vendedor) => {
       const vendasAgente = negocios.filter(
-        (n) => (n.vendedor === vendedor || n.quem_vendeu === vendedor) && n.venda_aprovada && isInPeriod(n.data_venda),
+        (n) => (n.vendedor === vendedor || n.quem_vendeu === vendedor) && n.data_venda && isInPeriod(n.data_venda),
       );
 
       const vendas = vendasAgente.length;

@@ -48,7 +48,7 @@ export function DailyRevenueChart({ data, month, year, title = "Faturamento por 
     // Fill in actual revenue data - filter for approved sales
     // Use data_venda if available, otherwise fall back to data_inicio
     data.forEach(item => {
-      if (item.venda_aprovada && item.total) {
+      if (item.data_venda && item.total) {
         const dateStr = item.data_venda || item.data_inicio;
         if (!dateStr) return;
         
