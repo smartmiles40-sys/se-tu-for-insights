@@ -212,7 +212,7 @@ export function useNegociosStats(negocios: Negocio[] | undefined) {
   const noShows = negocios.filter(n => n.no_show).length;
   const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
   
-  const vendas = negocios.filter(n => n.venda_aprovada);
+  const vendas = negocios.filter(n => n.data_venda !== null);
   const vendasRealizadas = vendas.length;
   const receitaTotal = vendas.reduce((sum, n) => sum + (n.total || 0), 0);
   const ticketMedio = vendasRealizadas > 0 ? receitaTotal / vendasRealizadas : 0;
