@@ -46,7 +46,7 @@ export function RankingTable({ negocios, type, limit = 5, filters }: RankingTabl
       
       // Receita originada pelo SDR: verificar em todos negócios
       negocios.forEach(n => {
-        if (n.venda_aprovada && isInPeriod(n.data_venda) && n.sdr) {
+        if (n.data_venda && isInPeriod(n.data_venda) && n.sdr) {
           const sdr = n.sdr;
           if (!sdrMap[sdr]) {
             sdrMap[sdr] = { name: sdr, agendamentos: 0, leads: 0, receita: 0 };
@@ -79,7 +79,7 @@ export function RankingTable({ negocios, type, limit = 5, filters }: RankingTabl
         }
         
         // Vendas e receita: por data_venda
-        if (n.venda_aprovada && isInPeriod(n.data_venda)) {
+        if (n.data_venda && isInPeriod(n.data_venda)) {
           if (!espMap[esp]) {
             espMap[esp] = { name: esp, vendas: 0, reunioes: 0, receita: 0 };
           }

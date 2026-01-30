@@ -73,7 +73,7 @@ export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
       
       // Faturamento originado: vendas que vieram deste SDR (pode verificar em qualquer pipeline)
       const faturamentoOriginado = negocios
-        .filter(n => n.sdr === sdr && n.venda_aprovada && isInPeriod(n.data_venda))
+        .filter(n => n.sdr === sdr && n.data_venda && isInPeriod(n.data_venda))
         .reduce((sum, n) => sum + (n.total || 0), 0);
       
       return {

@@ -52,7 +52,7 @@ export function EspecialistasAnalytics({ negocios, filters }: EspecialistasAnaly
       
       // Vendas e faturamento: por data_venda
       const vendas = vendedorNegocios.filter(n => 
-        n.venda_aprovada && isInPeriod(n.data_venda)
+        n.data_venda && isInPeriod(n.data_venda)
       );
       const vendasRealizadas = vendas.length;
       const taxaConversao = reunioesRecebidas > 0 ? (vendasRealizadas / reunioesRecebidas) * 100 : 0;

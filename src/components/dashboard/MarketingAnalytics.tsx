@@ -43,7 +43,7 @@ export function MarketingAnalytics({ negocios }: MarketingAnalyticsProps) {
 
       origemStats[origem].leads += 1;
       if (n.reuniao_realizada) origemStats[origem].reunioes += 1;
-      if (n.venda_aprovada) {
+      if (n.data_venda) {
         origemStats[origem].vendas += 1;
         origemStats[origem].receita += n.total || 0;
       }
