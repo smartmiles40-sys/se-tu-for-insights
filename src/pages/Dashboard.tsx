@@ -464,7 +464,7 @@ export default function Dashboard() {
                       <div>
                         <div className="text-xs text-slate-400 uppercase">CPL</div>
                       </div>
-                      <div className="text-base font-bold text-cyan-400">{formatCurrencyDecimal(3.55)}</div>
+                      <div className="text-base font-bold text-cyan-400">{formatCurrencyDecimal(5.04)}</div>
                     </div>
                     <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                       <div>
