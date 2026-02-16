@@ -110,8 +110,13 @@ export default function Dashboard() {
     // Quando há filtro de vendedor, precisamos filtrar também por responsavel_reuniao
     // porque quem_vendeu só é preenchido após a venda (no-shows não têm venda)
     const noShows = negocios.filter(n => {
-      if (n.data_noshow === null) return false;
-      // Se há filtro de vendedor, verificar se responsavel_reuniao corresponde (com normalização de acentos)
+      // Exigir data_noshow preenchida e dentro do período
+      if (!n.data_noshow || !isInPeriod(n.data_noshow)) return false;
+      // Se realizou a reunião depois, NÃO é no-show
+      if (n.data_reuniao_realizada) return false;
+      // Exigir pipeline Comercial 1
+      if (!isComercial(n.pipeline)) return false;
+      // Se há filtro de vendedor, verificar responsavel_reuniao
       if (filters?.vendedores && filters.vendedores.length > 0) {
         const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
         return filters.vendedores.some(v => responsavel.includes(removeAccents(v.toLowerCase())));
