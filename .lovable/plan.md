@@ -1,43 +1,34 @@
 
 
-## Correção dos cálculos de No-Show e Show-Up
+## Correção: No-Show baseado em agendamento passado sem reunião
 
-### Problema identificado
+### Problema
+Atualmente o dashboard identifica no-shows **apenas** quando o campo `data_noshow` está preenchido no CRM. Porém, o CRM não preenche esse campo de forma consistente — em fevereiro, existem **34 reuniões agendadas sem `data_reuniao_realizada`**, mas apenas 1 tem `data_noshow` marcado.
 
-Atualmente o dashboard conta como **No-Show** qualquer registro que tenha `data_noshow` preenchida, mesmo que a reunião tenha sido realizada depois. Dos 10 registros com `data_noshow`, **8 também têm `data_reuniao_realizada`** -- ou seja, deram no-show inicialmente mas acabaram fazendo a reunião. Esses não devem contar como no-show.
+### Nova regra
+Um registro é **No-Show** se:
+1. Está no pipeline **"Comercial 1"**
+2. Tem `data_agendamento` preenchida e **no passado** (antes de hoje)
+3. **Não tem** `data_reuniao_realizada` preenchida
+4. A `data_agendamento` está dentro do período selecionado no filtro
 
-Alem disso, o filtro de no-show nao aplica:
-- Filtro de **pipeline** (deveria ser apenas "Comercial 1", como as reuniões realizadas)
-- Filtro de **período** (deveria verificar se `data_noshow` esta dentro do período selecionado)
+Isso elimina a dependência do campo `data_noshow` e captura todos os casos reais.
 
-### Dados reais (Fevereiro 2026)
+### Alterações técnicas
 
-| Metrica | Valor atual (errado) | Valor correto |
-|---------|---------------------|---------------|
-| No-Shows | ~8-10 | 0 (o unico no-show de fev tambem tem reuniao realizada) |
-| Reunioes Realizadas | 41 | 41 |
+**1. `src/pages/Dashboard.tsx`** - Cálculo principal de no-shows (~linhas 112-125)
 
-### Regra corrigida
-
-Um registro e **No-Show** somente se:
-1. `data_noshow` esta preenchida **E** dentro do periodo selecionado
-2. `data_reuniao_realizada` **NAO** esta preenchida (se fez a reuniao depois, nao e no-show)
-3. Pipeline e "Comercial 1" (consistencia com reunioes realizadas)
-
-### Alteracoes tecnicas
-
-**Arquivo: `src/pages/Dashboard.tsx`**
-
-Alterar o calculo de `noShows` (linhas ~112-120) para:
+Trocar a lógica de `data_noshow` para verificar se `data_agendamento` já passou sem reunião realizada:
 
 ```typescript
 const noShows = negocios.filter(n => {
-  // Exigir data_noshow preenchida e dentro do periodo
-  if (!n.data_noshow || !isInPeriod(n.data_noshow)) return false;
-  // Se realizou a reuniao depois, NAO e no-show
-  if (n.data_reuniao_realizada) return false;
   // Exigir pipeline Comercial 1
   if (!isComercial(n.pipeline)) return false;
+  // Exigir data_agendamento preenchida, dentro do período E no passado
+  if (!n.data_agendamento || !isInPeriod(n.data_agendamento)) return false;
+  if (n.data_agendamento >= getTodayBrazil()) return false;
+  // Se realizou a reunião, NÃO é no-show
+  if (n.data_reuniao_realizada) return false;
   // Filtro de vendedor
   if (filters?.vendedores && filters.vendedores.length > 0) {
     const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
@@ -47,21 +38,38 @@ const noShows = negocios.filter(n => {
 }).length;
 ```
 
-**Arquivo: `src/components/dashboard/CriticalRatesPanel.tsx`**
+Importar `getTodayBrazil` de `@/lib/dateUtils`.
 
-Aplicar a mesma logica na contagem de no-shows desse componente (linha ~29):
+**2. `src/components/dashboard/CriticalRatesPanel.tsx`** (~linha 29)
+
+Aplicar a mesma lógica simplificada (sem filtro de período pois os dados já vêm filtrados):
 
 ```typescript
-// No-show: apenas se NAO realizou reuniao depois
 const noShows = negocios.filter(n => 
-  n.data_noshow !== null && n.data_noshow !== undefined && !n.data_reuniao_realizada
+  n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada
 ).length;
 ```
 
-**Arquivo: `src/hooks/useNegocios.ts`** (funcao `useNegociosStats`)
+**3. `src/components/dashboard/SDRPerformance.tsx`** (~linha 32)
 
-Ajustar a contagem de no-shows para consistencia:
+Mesma lógica para consistência entre componentes:
 
 ```typescript
-const noShows = negocios.filter(n => n.no_show && !n.data_reuniao_realizada).length;
+const noShows = sdrNegocios.filter(n => 
+  n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada
+).length;
 ```
+
+**4. `src/hooks/useNegocios.ts`** - função `useNegociosStats` (~linha 212)
+
+Atualizar para consistência global:
+
+```typescript
+const noShows = negocios.filter(n => 
+  n.reuniao_agendada && n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada
+).length;
+```
+
+### Resultado esperado
+Com os dados atuais de fevereiro, os no-shows devem subir de **1** para aproximadamente **16+** (reuniões agendadas antes de hoje sem realização), refletindo a realidade operacional.
+
