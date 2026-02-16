@@ -1,151 +1,79 @@
 
-## Plano: Usar Apenas `data_venda` para Identificar Vendas
 
-### Situação Atual
-O campo `venda_aprovada` está sendo usado em **10 componentes** para filtrar vendas, mas esse campo não está mais sendo preenchido corretamente no CRM. O critério correto agora é:
+# Resumo do Colaborador - Nova Pagina de Indicadores
 
-**Critério de Venda = `data_venda` preenchida (não nula)**
+## Objetivo
+Criar a pagina "Resumo do Colaborador" conforme o print enviado, com tabela de indicadores mostrando metas (Min/Sat/Exc), resultado realizado, peso e multiplicador.
 
-Confirmação no banco de dados:
-- Total com `data_venda` no período (01-28/jan) + pipeline Comercial 1 = **36 vendas** ✓
+## O que sera construido
 
-### Arquivos a Modificar
+### 1. Novos campos no banco de dados (tabela `metas`)
+Adicionar 9 novos campos para os 3 indicadores que ainda nao existem:
+- `meta_margem_minimo`, `meta_margem_satisfatorio`, `meta_margem_excelente` (Margem Global - %)
+- `meta_media_closer_minimo`, `meta_media_closer_satisfatorio`, `meta_media_closer_excelente` (Media por Closer - R$)
+- `meta_indicacoes_minimo`, `meta_indicacoes_satisfatorio`, `meta_indicacoes_excelente` (Indicacoes por Especialista - numero)
 
-| Arquivo | Mudança |
-|---------|---------|
-| `src/pages/Dashboard.tsx` | Linhas 154, 159, 174 |
-| `src/components/dashboard/FunnelHorizontal.tsx` | Linha 50-51 |
-| `src/components/dashboard/RankingTable.tsx` | Linhas 49, 82 |
-| `src/components/dashboard/OrigemPerformance.tsx` | Linha 44 |
-| `src/components/dashboard/AgentRevenueReport.tsx` | Linha 51 |
-| `src/components/dashboard/EspecialistasPerformance.tsx` | Linha 29 |
-| `src/components/dashboard/EspecialistasDashboard.tsx` | Linha 34 |
-| `src/components/dashboard/SDRAnalytics.tsx` | Linha 76 |
-| `src/components/dashboard/DailyRevenueChart.tsx` | Linha 51 |
-| `src/components/dashboard/EspecialistasAnalytics.tsx` | Linha 55 |
-| `src/components/dashboard/MarketingAnalytics.tsx` | Linha 46 |
+### 2. Nova pagina: `src/pages/ResumoColaboradorPage.tsx`
+Layout conforme o print:
+- **Header**: "Resumo do Colaborador" com subtitulo "Visualizacao consolidada de resultado e desempenho"
+- **Seletor de colaborador**: Dropdown com todos os colaboradores cadastrados
+- **Toggle**: "Meus Resultados" / "Meu Time"
+- **Tabs**: "Resultado Financeiro" / "Avaliacao"
+- **Seletores de periodo**: Mes e Ano (dropdowns)
+- **Tabela "Indicadores do Mes (Camada 1)"** com colunas:
+  - Indicador
+  - Meta Min
+  - Meta Sat
+  - Meta Exc
+  - Resultado (calculado a partir dos dados reais)
+  - Peso (configuravel: 40%, 20%, 10%, 20%, 10%)
+  - Mult (multiplicador calculado com base no nivel atingido)
 
-### Alterações por Arquivo
+### 3. Indicadores da tabela
 
-**1. Dashboard.tsx (linhas 154, 159, 174)**
-```typescript
-// ANTES
-const vendasNoPeriodo = negociosComercial.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
-const todasVendasNoPeriodo = negocios.filter(n => n.venda_aprovada === true && isInPeriod(n.data_venda));
-const vendasDosLeadsDoPeriodo = negocios.filter(n => n.venda_aprovada === true).length;
+| Indicador | Fonte do Resultado | Peso |
+|---|---|---|
+| Faturamento Global | Soma de `total` das vendas no periodo | 40% |
+| Margem Global | Novo indicador (resultado manual por enquanto) | 20% |
+| Conversao | Taxa de conversao vendas/reunioes | 10% |
+| Media por Closer | Faturamento / numero de closers ativos | 20% |
+| Indicacoes por Especialista | Novo indicador (resultado manual por enquanto) | 10% |
 
-// DEPOIS
-const vendasNoPeriodo = negociosComercial.filter(n => n.data_venda && isInPeriod(n.data_venda));
-const todasVendasNoPeriodo = negocios.filter(n => n.data_venda && isInPeriod(n.data_venda));
-const vendasDosLeadsDoPeriodo = negocios.filter(n => n.data_venda !== null).length;
+### 4. Logica do Multiplicador
+- Abaixo do minimo: 0
+- Entre minimo e satisfatorio: interpolacao linear (ex: 0.5 a 0.8)
+- Entre satisfatorio e excelente: interpolacao linear (ex: 0.8 a 1.0)  
+- Acima do excelente: 1.0 (ou bonus)
+- Quando nao ha resultado: exibe "---"
+
+### 5. Rota e navegacao
+- Nova rota `/resumo` no `App.tsx`
+- Novo link "Resumo" no sidebar (`AppSidebar.tsx`)
+
+### 6. Atualizacao da pagina de Metas
+- Adicionar campos para configurar os 3 novos indicadores (Margem, Media por Closer, Indicacoes) na aba Global da pagina de Metas
+
+## Detalhes Tecnicos
+
+**Arquivos a criar:**
+- `src/pages/ResumoColaboradorPage.tsx` - Pagina principal
+
+**Arquivos a modificar:**
+- `src/App.tsx` - Adicionar rota `/resumo`
+- `src/components/AppSidebar.tsx` - Adicionar link no menu
+- `src/hooks/useMetas.ts` - Adicionar novos campos na interface Meta
+- `src/pages/MetasPage.tsx` - Adicionar inputs para os novos indicadores
+
+**Migracao SQL:**
+```text
+ALTER TABLE metas ADD COLUMN meta_margem_minimo numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_margem_satisfatorio numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_margem_excelente numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_media_closer_minimo numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_media_closer_satisfatorio numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_media_closer_excelente numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_indicacoes_minimo numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_indicacoes_satisfatorio numeric DEFAULT 0;
+ALTER TABLE metas ADD COLUMN meta_indicacoes_excelente numeric DEFAULT 0;
 ```
 
-**2. FunnelHorizontal.tsx (linhas 49-54)**
-```typescript
-// ANTES
-const vendas = negociosValidos.filter(n => 
-  n.venda_aprovada === true && 
-  n.data_venda !== null && 
-  isInPeriod(n.data_venda)
-).length;
-
-// DEPOIS
-const vendas = negociosValidos.filter(n => 
-  n.data_venda !== null && 
-  isInPeriod(n.data_venda)
-).length;
-```
-
-**3. RankingTable.tsx (linhas 49, 82)**
-```typescript
-// ANTES
-if (n.venda_aprovada && isInPeriod(n.data_venda) && n.sdr) {...}
-if (n.venda_aprovada && isInPeriod(n.data_venda)) {...}
-
-// DEPOIS
-if (n.data_venda && isInPeriod(n.data_venda) && n.sdr) {...}
-if (n.data_venda && isInPeriod(n.data_venda)) {...}
-```
-
-**4. OrigemPerformance.tsx (linha 44)**
-```typescript
-// ANTES
-if (n.venda_aprovada && isInPeriod(n.data_venda)) {...}
-
-// DEPOIS
-if (n.data_venda && isInPeriod(n.data_venda)) {...}
-```
-
-**5. AgentRevenueReport.tsx (linha 51)**
-```typescript
-// ANTES
-(n) => ... && n.venda_aprovada && isInPeriod(n.data_venda),
-
-// DEPOIS
-(n) => ... && n.data_venda && isInPeriod(n.data_venda),
-```
-
-**6. EspecialistasPerformance.tsx (linha 29)**
-```typescript
-// ANTES
-const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
-
-// DEPOIS
-const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
-```
-
-**7. EspecialistasDashboard.tsx (linha 34)**
-```typescript
-// ANTES
-const vendas = vendedorNegocios.filter(n => n.venda_aprovada);
-
-// DEPOIS
-const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
-```
-
-**8. SDRAnalytics.tsx (linha 76)**
-```typescript
-// ANTES
-.filter(n => n.sdr === sdr && n.venda_aprovada && isInPeriod(n.data_venda))
-
-// DEPOIS
-.filter(n => n.sdr === sdr && n.data_venda && isInPeriod(n.data_venda))
-```
-
-**9. DailyRevenueChart.tsx (linha 51)**
-```typescript
-// ANTES
-if (item.venda_aprovada && item.total) {...}
-
-// DEPOIS
-if (item.data_venda && item.total) {...}
-```
-
-**10. EspecialistasAnalytics.tsx (linha 55)**
-```typescript
-// ANTES
-n.venda_aprovada && isInPeriod(n.data_venda)
-
-// DEPOIS
-n.data_venda && isInPeriod(n.data_venda)
-```
-
-**11. MarketingAnalytics.tsx (linha 46)**
-```typescript
-// ANTES
-if (n.venda_aprovada) {...}
-
-// DEPOIS
-if (n.data_venda) {...}
-```
-
-### Resultado Esperado
-- Dashboard principal mostrará **36 vendas** no período 01-28/jan
-- Todas as métricas de vendas e faturamento serão consistentes
-- O campo `venda_aprovada` não será mais usado como critério principal
-
-### Detalhes Técnicos
-A regra unificada para todas as métricas de vendas passa a ser:
-- **Critério**: `data_venda !== null` (campo preenchido)
-- **Período**: `data_venda` dentro do range de datas selecionado
-- **Pipeline**: Comercial 1 (onde aplicável, para consistência com reuniões)
