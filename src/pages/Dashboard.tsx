@@ -110,12 +110,13 @@ export default function Dashboard() {
     // Quando há filtro de vendedor, precisamos filtrar também por responsavel_reuniao
     // porque quem_vendeu só é preenchido após a venda (no-shows não têm venda)
     const noShows = negocios.filter(n => {
-      // Exigir data_noshow preenchida e dentro do período
-      if (!n.data_noshow || !isInPeriod(n.data_noshow)) return false;
-      // Se realizou a reunião depois, NÃO é no-show
-      if (n.data_reuniao_realizada) return false;
       // Exigir pipeline Comercial 1
       if (!isComercial(n.pipeline)) return false;
+      // Exigir data_agendamento preenchida, dentro do período E no passado
+      if (!n.data_agendamento || !isInPeriod(n.data_agendamento)) return false;
+      if (n.data_agendamento >= getTodayBrazil()) return false;
+      // Se realizou a reunião, NÃO é no-show
+      if (n.data_reuniao_realizada) return false;
       // Se há filtro de vendedor, verificar responsavel_reuniao
       if (filters?.vendedores && filters.vendedores.length > 0) {
         const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
