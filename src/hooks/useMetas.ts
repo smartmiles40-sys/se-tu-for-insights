@@ -27,6 +27,16 @@ export interface Meta {
   meta_agendamentos_minimo: number;
   meta_agendamentos_satisfatorio: number;
   meta_agendamentos_excelente: number;
+  // New indicators
+  meta_margem_minimo: number;
+  meta_margem_satisfatorio: number;
+  meta_margem_excelente: number;
+  meta_media_closer_minimo: number;
+  meta_media_closer_satisfatorio: number;
+  meta_media_closer_excelente: number;
+  meta_indicacoes_minimo: number;
+  meta_indicacoes_satisfatorio: number;
+  meta_indicacoes_excelente: number;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +64,16 @@ export interface MetaInput {
   meta_agendamentos_minimo?: number;
   meta_agendamentos_satisfatorio?: number;
   meta_agendamentos_excelente?: number;
+  // New indicators
+  meta_margem_minimo?: number;
+  meta_margem_satisfatorio?: number;
+  meta_margem_excelente?: number;
+  meta_media_closer_minimo?: number;
+  meta_media_closer_satisfatorio?: number;
+  meta_media_closer_excelente?: number;
+  meta_indicacoes_minimo?: number;
+  meta_indicacoes_satisfatorio?: number;
+  meta_indicacoes_excelente?: number;
 }
 
 export function useMetas(mes?: number, ano?: number) {
@@ -75,7 +95,7 @@ export function useMetas(mes?: number, ano?: number) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Meta[];
+      return (data as unknown) as Meta[];
     },
   });
 }
@@ -93,7 +113,7 @@ export function useMetaGlobal(mes: number, ano: number) {
         .maybeSingle();
 
       if (error) throw error;
-      return data as Meta | null;
+      return (data as unknown) as Meta | null;
     },
   });
 }
@@ -138,6 +158,15 @@ export function useUpsertMeta() {
         meta_agendamentos_minimo: meta.meta_agendamentos_minimo || 0,
         meta_agendamentos_satisfatorio: meta.meta_agendamentos_satisfatorio || 0,
         meta_agendamentos_excelente: meta.meta_agendamentos_excelente || 0,
+        meta_margem_minimo: meta.meta_margem_minimo || 0,
+        meta_margem_satisfatorio: meta.meta_margem_satisfatorio || 0,
+        meta_margem_excelente: meta.meta_margem_excelente || 0,
+        meta_media_closer_minimo: meta.meta_media_closer_minimo || 0,
+        meta_media_closer_satisfatorio: meta.meta_media_closer_satisfatorio || 0,
+        meta_media_closer_excelente: meta.meta_media_closer_excelente || 0,
+        meta_indicacoes_minimo: meta.meta_indicacoes_minimo || 0,
+        meta_indicacoes_satisfatorio: meta.meta_indicacoes_satisfatorio || 0,
+        meta_indicacoes_excelente: meta.meta_indicacoes_excelente || 0,
       };
 
       if (existing) {

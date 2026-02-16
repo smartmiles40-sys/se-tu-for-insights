@@ -34,6 +34,15 @@ interface GlobalMeta {
   meta_conversao_minimo: number;
   meta_conversao_satisfatorio: number;
   meta_conversao_excelente: number;
+  meta_margem_minimo: number;
+  meta_margem_satisfatorio: number;
+  meta_margem_excelente: number;
+  meta_media_closer_minimo: number;
+  meta_media_closer_satisfatorio: number;
+  meta_media_closer_excelente: number;
+  meta_indicacoes_minimo: number;
+  meta_indicacoes_satisfatorio: number;
+  meta_indicacoes_excelente: number;
   meta_reunioes: number;
   meta_agendamentos: number;
 }
@@ -57,6 +66,15 @@ const defaultGlobalMeta: GlobalMeta = {
   meta_conversao_minimo: 0,
   meta_conversao_satisfatorio: 0,
   meta_conversao_excelente: 0,
+  meta_margem_minimo: 0,
+  meta_margem_satisfatorio: 0,
+  meta_margem_excelente: 0,
+  meta_media_closer_minimo: 0,
+  meta_media_closer_satisfatorio: 0,
+  meta_media_closer_excelente: 0,
+  meta_indicacoes_minimo: 0,
+  meta_indicacoes_satisfatorio: 0,
+  meta_indicacoes_excelente: 0,
   meta_reunioes: 0,
   meta_agendamentos: 0,
 };
@@ -99,6 +117,15 @@ export default function MetasPage() {
         meta_conversao_minimo: global.meta_conversao_minimo || 0,
         meta_conversao_satisfatorio: global.meta_conversao_satisfatorio || 0,
         meta_conversao_excelente: global.meta_conversao_excelente || 0,
+        meta_margem_minimo: global.meta_margem_minimo || 0,
+        meta_margem_satisfatorio: global.meta_margem_satisfatorio || 0,
+        meta_margem_excelente: global.meta_margem_excelente || 0,
+        meta_media_closer_minimo: global.meta_media_closer_minimo || 0,
+        meta_media_closer_satisfatorio: global.meta_media_closer_satisfatorio || 0,
+        meta_media_closer_excelente: global.meta_media_closer_excelente || 0,
+        meta_indicacoes_minimo: global.meta_indicacoes_minimo || 0,
+        meta_indicacoes_satisfatorio: global.meta_indicacoes_satisfatorio || 0,
+        meta_indicacoes_excelente: global.meta_indicacoes_excelente || 0,
         meta_reunioes: global.meta_reunioes || 0,
         meta_agendamentos: global.meta_agendamentos || 0,
       });
@@ -363,6 +390,47 @@ export default function MetasPage() {
                   }}
                   onChange={(level, value) => setGlobalMeta(prev => ({ ...prev, [`meta_conversao_${level}`]: value }))}
                   isPercent
+                />
+
+                {/* Margem Global - 3 levels */}
+                <ThreeLevelInput
+                  label="Margem Global (%)"
+                  icon={TrendingUp}
+                  iconColor="text-orange-400"
+                  values={{
+                    minimo: globalMeta.meta_margem_minimo,
+                    satisfatorio: globalMeta.meta_margem_satisfatorio,
+                    excelente: globalMeta.meta_margem_excelente,
+                  }}
+                  onChange={(level, value) => setGlobalMeta(prev => ({ ...prev, [`meta_margem_${level}`]: value }))}
+                  isPercent
+                />
+
+                {/* Média por Closer - 3 levels */}
+                <ThreeLevelInput
+                  label="Média por Closer (R$)"
+                  icon={DollarSign}
+                  iconColor="text-pink-400"
+                  values={{
+                    minimo: globalMeta.meta_media_closer_minimo,
+                    satisfatorio: globalMeta.meta_media_closer_satisfatorio,
+                    excelente: globalMeta.meta_media_closer_excelente,
+                  }}
+                  onChange={(level, value) => setGlobalMeta(prev => ({ ...prev, [`meta_media_closer_${level}`]: value }))}
+                  isCurrency
+                />
+
+                {/* Indicações por Especialista - 3 levels */}
+                <ThreeLevelInput
+                  label="Indicações por Especialista"
+                  icon={Users}
+                  iconColor="text-indigo-400"
+                  values={{
+                    minimo: globalMeta.meta_indicacoes_minimo,
+                    satisfatorio: globalMeta.meta_indicacoes_satisfatorio,
+                    excelente: globalMeta.meta_indicacoes_excelente,
+                  }}
+                  onChange={(level, value) => setGlobalMeta(prev => ({ ...prev, [`meta_indicacoes_${level}`]: value }))}
                 />
 
                 {/* Reuniões e Agendamentos - single value */}

@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   Target,
   Settings,
+  ClipboardList,
 } from 'lucide-react';
 import { useStagingPendingCount } from '@/hooks/useStagingNegocios';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 // Navigation links removed - SDRs, Especialistas, Marketing are now in GlobalFilters top bar
 
 const dataItems = [
+  { path: '/resumo', label: 'Resumo', icon: ClipboardList, roles: ['admin', 'gestor', 'vendedor'] },
   { path: '/metas', label: 'Metas', icon: Target, roles: ['admin', 'gestor'] },
   { path: '/configuracoes', label: 'Configurações', icon: Settings, roles: ['admin', 'gestor'] },
   { path: '/staging', label: 'Dados Recebidos', icon: FileSpreadsheet, roles: ['admin', 'gestor'], showBadge: true },
