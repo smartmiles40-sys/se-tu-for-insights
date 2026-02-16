@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import { GaugeChart } from './GaugeChart';
+import { getTodayBrazil } from '@/lib/dateUtils';
 
 interface CriticalRatesPanelProps {
   negocios: Negocio[];
@@ -23,8 +24,8 @@ export function CriticalRatesPanel({ negocios }: CriticalRatesPanelProps) {
     const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
     const vendas = negocios.filter(n => n.venda_aprovada).length;
     // No-show: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
-    // No-show: apenas se NÃO realizou reunião depois
-    const noShows = negocios.filter(n => n.data_noshow !== null && n.data_noshow !== undefined && !n.data_reuniao_realizada).length;
+    // No-show: agendamento passado sem reunião realizada
+    const noShows = negocios.filter(n => n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada).length;
 
     return {
       agendamento: totalLeads > 0 ? (reunioesAgendadas / totalLeads) * 100 : 0,

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getTodayBrazil } from '@/lib/dateUtils';
 
 export interface Negocio {
   id: string;
@@ -209,7 +210,7 @@ export function useNegociosStats(negocios: Negocio[] | undefined) {
   const totalNegocios = negocios.length;
   const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada).length;
   const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
-  const noShows = negocios.filter(n => n.no_show && !n.data_reuniao_realizada).length;
+  const noShows = negocios.filter(n => n.reuniao_agendada && n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada).length;
   const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
   
   const vendas = negocios.filter(n => n.data_venda !== null);

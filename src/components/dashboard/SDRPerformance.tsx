@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { getTodayBrazil } from '@/lib/dateUtils';
 
 interface SDRPerformanceProps {
   negocios: Negocio[];
@@ -29,8 +30,8 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
       const reunioesAgendadas = sdrNegocios.filter(n => n.reuniao_agendada).length;
       const reunioesRealizadas = sdrNegocios.filter(n => n.reuniao_realizada).length;
       
-      // No-show: apenas se NÃO realizou reunião depois
-      const noShows = sdrNegocios.filter(n => n.data_noshow !== null && n.data_noshow !== undefined && !n.data_reuniao_realizada).length;
+      // No-show: agendamento passado sem reunião realizada
+      const noShows = sdrNegocios.filter(n => n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada).length;
       
       const taxaAgendamento = leadsRecebidos > 0 ? (reunioesAgendadas / leadsRecebidos) * 100 : 0;
       const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
