@@ -244,8 +244,9 @@ export default function MetasPage() {
         <div className="space-y-1">
           <Label className="text-xs text-red-400">Mínimo</Label>
           <Input
-            type="number"
-            value={values.minimo}
+            type="text"
+            inputMode="decimal"
+            value={values.minimo || ''}
             onChange={(e) => onChange('minimo', isCurrency ? parseFloat(e.target.value) || 0 : parseInt(e.target.value) || 0)}
             placeholder="0"
             className="h-9 text-sm"
@@ -254,8 +255,9 @@ export default function MetasPage() {
         <div className="space-y-1">
           <Label className="text-xs text-yellow-400">Satisfatório</Label>
           <Input
-            type="number"
-            value={values.satisfatorio}
+            type="text"
+            inputMode="decimal"
+            value={values.satisfatorio || ''}
             onChange={(e) => onChange('satisfatorio', isCurrency ? parseFloat(e.target.value) || 0 : parseInt(e.target.value) || 0)}
             placeholder="0"
             className="h-9 text-sm"
@@ -264,8 +266,9 @@ export default function MetasPage() {
         <div className="space-y-1">
           <Label className="text-xs text-green-400">Excelente</Label>
           <Input
-            type="number"
-            value={values.excelente}
+            type="text"
+            inputMode="decimal"
+            value={values.excelente || ''}
             onChange={(e) => onChange('excelente', isCurrency ? parseFloat(e.target.value) || 0 : parseInt(e.target.value) || 0)}
             placeholder="0"
             className="h-9 text-sm"
@@ -441,8 +444,9 @@ export default function MetasPage() {
                       Meta Reuniões
                     </Label>
                     <Input
-                      type="number"
-                      value={globalMeta.meta_reunioes}
+                      type="text"
+                      inputMode="decimal"
+                      value={globalMeta.meta_reunioes || ''}
                       onChange={(e) => setGlobalMeta(prev => ({ ...prev, meta_reunioes: parseInt(e.target.value) || 0 }))}
                       placeholder="0"
                     />
@@ -453,8 +457,9 @@ export default function MetasPage() {
                       Meta Agendamentos
                     </Label>
                     <Input
-                      type="number"
-                      value={globalMeta.meta_agendamentos}
+                      type="text"
+                      inputMode="decimal"
+                      value={globalMeta.meta_agendamentos || ''}
                       onChange={(e) => setGlobalMeta(prev => ({ ...prev, meta_agendamentos: parseInt(e.target.value) || 0 }))}
                       placeholder="0"
                     />
