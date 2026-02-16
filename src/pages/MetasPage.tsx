@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -218,6 +218,34 @@ export default function MetasPage() {
 
   const noColaboradores = (!sdrs || sdrs.length === 0) && (!especialistas || especialistas.length === 0);
 
+  const NumericInput = ({ value, onCommit, isCurrency, ...props }: { value: number; onCommit: (v: number) => void; isCurrency?: boolean } & Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange' | 'onBlur' | 'type'>) => {
+    const [localValue, setLocalValue] = useState(value ? String(value) : '');
+    const committedRef = useRef(value);
+
+    useEffect(() => {
+      if (value !== committedRef.current) {
+        committedRef.current = value;
+        setLocalValue(value ? String(value) : '');
+      }
+    }, [value]);
+
+    return (
+      <Input
+        type="text"
+        inputMode="decimal"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={() => {
+          const parsed = isCurrency ? parseFloat(localValue) || 0 : parseInt(localValue) || 0;
+          committedRef.current = parsed;
+          onCommit(parsed);
+          setLocalValue(parsed ? String(parsed) : '');
+        }}
+        {...props}
+      />
+    );
+  };
+
   const ThreeLevelInput = ({
     label,
     icon: Icon,
@@ -243,33 +271,30 @@ export default function MetasPage() {
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
           <Label className="text-xs text-red-400">Mínimo</Label>
-          <Input
-            type="text"
-            inputMode="decimal"
-            value={values.minimo || ''}
-            onChange={(e) => onChange('minimo', isCurrency ? parseFloat(e.target.value) || 0 : parseInt(e.target.value) || 0)}
+          <NumericInput
+            value={values.minimo}
+            onCommit={(v) => onChange('minimo', v)}
+            isCurrency={isCurrency}
             placeholder="0"
             className="h-9 text-sm"
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs text-yellow-400">Satisfatório</Label>
-          <Input
-            type="text"
-            inputMode="decimal"
-            value={values.satisfatorio || ''}
-            onChange={(e) => onChange('satisfatorio', isCurrency ? parseFloat(e.target.value) || 0 : parseInt(e.target.value) || 0)}
+          <NumericInput
+            value={values.satisfatorio}
+            onCommit={(v) => onChange('satisfatorio', v)}
+            isCurrency={isCurrency}
             placeholder="0"
             className="h-9 text-sm"
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs text-green-400">Excelente</Label>
-          <Input
-            type="text"
-            inputMode="decimal"
-            value={values.excelente || ''}
-            onChange={(e) => onChange('excelente', isCurrency ? parseFloat(e.target.value) || 0 : parseInt(e.target.value) || 0)}
+          <NumericInput
+            value={values.excelente}
+            onCommit={(v) => onChange('excelente', v)}
+            isCurrency={isCurrency}
             placeholder="0"
             className="h-9 text-sm"
           />
@@ -443,11 +468,9 @@ export default function MetasPage() {
                       <Calendar className="h-4 w-4 text-purple-400" />
                       Meta Reuniões
                     </Label>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={globalMeta.meta_reunioes || ''}
-                      onChange={(e) => setGlobalMeta(prev => ({ ...prev, meta_reunioes: parseInt(e.target.value) || 0 }))}
+                    <NumericInput
+                      value={globalMeta.meta_reunioes}
+                      onCommit={(v) => setGlobalMeta(prev => ({ ...prev, meta_reunioes: v }))}
                       placeholder="0"
                     />
                   </div>
@@ -456,11 +479,9 @@ export default function MetasPage() {
                       <Users className="h-4 w-4 text-yellow-400" />
                       Meta Agendamentos
                     </Label>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={globalMeta.meta_agendamentos || ''}
-                      onChange={(e) => setGlobalMeta(prev => ({ ...prev, meta_agendamentos: parseInt(e.target.value) || 0 }))}
+                    <NumericInput
+                      value={globalMeta.meta_agendamentos}
+                      onCommit={(v) => setGlobalMeta(prev => ({ ...prev, meta_agendamentos: v }))}
                       placeholder="0"
                     />
                   </div>
