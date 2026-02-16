@@ -58,6 +58,15 @@ export type Database = {
           meta_faturamento_excelente: number | null
           meta_faturamento_minimo: number | null
           meta_faturamento_satisfatorio: number | null
+          meta_indicacoes_excelente: number | null
+          meta_indicacoes_minimo: number | null
+          meta_indicacoes_satisfatorio: number | null
+          meta_margem_excelente: number | null
+          meta_margem_minimo: number | null
+          meta_margem_satisfatorio: number | null
+          meta_media_closer_excelente: number | null
+          meta_media_closer_minimo: number | null
+          meta_media_closer_satisfatorio: number | null
           meta_reunioes: number | null
           meta_reunioes_excelente: number | null
           meta_reunioes_minimo: number | null
@@ -83,6 +92,15 @@ export type Database = {
           meta_faturamento_excelente?: number | null
           meta_faturamento_minimo?: number | null
           meta_faturamento_satisfatorio?: number | null
+          meta_indicacoes_excelente?: number | null
+          meta_indicacoes_minimo?: number | null
+          meta_indicacoes_satisfatorio?: number | null
+          meta_margem_excelente?: number | null
+          meta_margem_minimo?: number | null
+          meta_margem_satisfatorio?: number | null
+          meta_media_closer_excelente?: number | null
+          meta_media_closer_minimo?: number | null
+          meta_media_closer_satisfatorio?: number | null
           meta_reunioes?: number | null
           meta_reunioes_excelente?: number | null
           meta_reunioes_minimo?: number | null
@@ -108,6 +126,15 @@ export type Database = {
           meta_faturamento_excelente?: number | null
           meta_faturamento_minimo?: number | null
           meta_faturamento_satisfatorio?: number | null
+          meta_indicacoes_excelente?: number | null
+          meta_indicacoes_minimo?: number | null
+          meta_indicacoes_satisfatorio?: number | null
+          meta_margem_excelente?: number | null
+          meta_margem_minimo?: number | null
+          meta_margem_satisfatorio?: number | null
+          meta_media_closer_excelente?: number | null
+          meta_media_closer_minimo?: number | null
+          meta_media_closer_satisfatorio?: number | null
           meta_reunioes?: number | null
           meta_reunioes_excelente?: number | null
           meta_reunioes_minimo?: number | null
