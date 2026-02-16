@@ -209,7 +209,7 @@ export function useNegociosStats(negocios: Negocio[] | undefined) {
   const totalNegocios = negocios.length;
   const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada).length;
   const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
-  const noShows = negocios.filter(n => n.no_show).length;
+  const noShows = negocios.filter(n => n.no_show && !n.data_reuniao_realizada).length;
   const taxaNoShow = reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0;
   
   const vendas = negocios.filter(n => n.data_venda !== null);
