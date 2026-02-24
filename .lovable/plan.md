@@ -1,75 +1,72 @@
 
 
-## Correção: No-Show baseado em agendamento passado sem reunião
+## Adicionar tooltips de mapeamento de campos na página de importação
 
-### Problema
-Atualmente o dashboard identifica no-shows **apenas** quando o campo `data_noshow` está preenchido no CRM. Porém, o CRM não preenche esse campo de forma consistente — em fevereiro, existem **34 reuniões agendadas sem `data_reuniao_realizada`**, mas apenas 1 tem `data_noshow` marcado.
-
-### Nova regra
-Um registro é **No-Show** se:
-1. Está no pipeline **"Comercial 1"**
-2. Tem `data_agendamento` preenchida e **no passado** (antes de hoje)
-3. **Não tem** `data_reuniao_realizada` preenchida
-4. A `data_agendamento` está dentro do período selecionado no filtro
-
-Isso elimina a dependência do campo `data_noshow` e captura todos os casos reais.
+### O que será feito
+Adicionar uma seção de referência na página de importação com todos os campos do dashboard e seus respectivos nomes esperados no CSV/Excel. Cada campo terá um ícone de informação (ℹ️) que, ao passar o cursor, mostra quais colunas da planilha são aceitas para aquele campo.
 
 ### Alterações técnicas
 
-**1. `src/pages/Dashboard.tsx`** - Cálculo principal de no-shows (~linhas 112-125)
+**Arquivo: `src/components/DataImport.tsx`**
 
-Trocar a lógica de `data_noshow` para verificar se `data_agendamento` já passou sem reunião realizada:
+Adicionar, abaixo da descrição do card (após linha 507), uma seção com um accordion ou uma lista compacta dos campos agrupados por categoria, cada um com um `Tooltip` mostrando as variações aceitas do CSV:
 
-```typescript
-const noShows = negocios.filter(n => {
-  // Exigir pipeline Comercial 1
-  if (!isComercial(n.pipeline)) return false;
-  // Exigir data_agendamento preenchida, dentro do período E no passado
-  if (!n.data_agendamento || !isInPeriod(n.data_agendamento)) return false;
-  if (n.data_agendamento >= getTodayBrazil()) return false;
-  // Se realizou a reunião, NÃO é no-show
-  if (n.data_reuniao_realizada) return false;
-  // Filtro de vendedor
-  if (filters?.vendedores && filters.vendedores.length > 0) {
-    const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
-    return filters.vendedores.some(v => responsavel.includes(removeAccents(v.toLowerCase())));
-  }
-  return true;
-}).length;
-```
+**Categorias e mapeamentos:**
 
-Importar `getTodayBrazil` de `@/lib/dateUtils`.
+| Campo no Dashboard | Colunas aceitas no CSV |
+|---|---|
+| **Identificação** | |
+| CRM ID | `ID`, `crm_id` |
+| Nome | `Nome`, `Título`, `Titulo` |
+| Pipeline | `Pipeline de Negócio`, `Pipeline` |
+| Fase | `Fase: Em Andamento`, `Fase: Perdidos`, `Fase: Fechados`, `Fase` |
+| **Datas** | |
+| Data de Início | `Data de início`, `Data criação` |
+| Data Agendamento | `Data do agendamento` |
+| Data Reunião Realizada | `Data da reunião realizada`, `Data da reunião realizada/Proposta enviada` |
+| Data MQL | `Data do MQL` |
+| Data SQL | `Data do SQL` |
+| Data Venda | `Data da venda realizada` |
+| Data No Show | `Data de no show` |
+| Data Prevista | `Data prevista de fechamento` |
+| Primeiro Contato | `Primeiro contato lead` |
+| Data Movimentação | `Data de movimentação do card` |
+| **Pessoas** | |
+| Vendedor | `Vendedor`, `Responsável` |
+| SDR | `Quem fez o agendamento?`, `SDR` |
+| Quem Vendeu | `Quem realizou a venda?` |
+| Resp. Reunião | `Responsável pela reunião` |
+| **Valores** | |
+| Faturamento (Total) | `Total`, `Valor`, `Valor total`, `Lead: Total` |
+| Custo | `Custo`, `Custo total da venda` |
+| **Qualificação** | |
+| MQL | `MQL`, `MQL (preencha com "sim")` |
+| SQL | `SQL`, `SQL (preencha com "sim")` |
+| Reunião Agendada | `Reunião agendada?`, `Reunião agendada` |
+| Reunião Realizada | `Reunião realizada?`, `Reunião realizada` |
+| No Show | `No show?`, `No show` |
+| Venda Aprovada | `Venda aprovada`, `Venda aprovada (preencha com "sim")` |
+| **Outros** | |
+| Tipo de Venda | `Tipo de venda`, `Venda realizada - tipo` |
+| Motivo de Perda | `Motivo de perda` |
+| Info Etapa | `Informações da etapa` |
+| **Fontes** | |
+| Lead Fonte | `Lead: Fonte`, `Fonte` |
+| Contato Fonte | `Contato: Fonte` |
+| **UTM** | |
+| UTM Source | `Lead: utm_source`, `utm_source`, `utm source` |
+| UTM Medium | `Lead: utm_medium`, `utm_medium` |
+| UTM Campaign | `Lead: utm_campaign`, `utm_campaign` |
+| UTM Content | `Lead: utm_content`, `utm_content` |
+| UTM Term | `Lead: utm_term`, `utm_term` |
 
-**2. `src/components/dashboard/CriticalRatesPanel.tsx`** (~linha 29)
+**Implementação:**
 
-Aplicar a mesma lógica simplificada (sem filtro de período pois os dados já vêm filtrados):
+1. Importar `Tooltip`, `TooltipTrigger`, `TooltipContent`, `TooltipProvider` e o ícone `Info` do lucide-react
+2. Criar um array constante `fieldMappingInfo` agrupando os campos por categoria com o nome do dashboard e as variações aceitas
+3. Adicionar um componente `Collapsible` (ou accordion) abaixo da descrição do card com título "Mapeamento de campos" 
+4. Dentro, renderizar cada campo como um badge/chip com um ícone `Info` que ao hover mostra um tooltip com as colunas CSV aceitas
+5. Layout compacto em grid para não ocupar muito espaço
 
-```typescript
-const noShows = negocios.filter(n => 
-  n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada
-).length;
-```
-
-**3. `src/components/dashboard/SDRPerformance.tsx`** (~linha 32)
-
-Mesma lógica para consistência entre componentes:
-
-```typescript
-const noShows = sdrNegocios.filter(n => 
-  n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada
-).length;
-```
-
-**4. `src/hooks/useNegocios.ts`** - função `useNegociosStats` (~linha 212)
-
-Atualizar para consistência global:
-
-```typescript
-const noShows = negocios.filter(n => 
-  n.reuniao_agendada && n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada
-).length;
-```
-
-### Resultado esperado
-Com os dados atuais de fevereiro, os no-shows devem subir de **1** para aproximadamente **16+** (reuniões agendadas antes de hoje sem realização), refletindo a realidade operacional.
+**Nenhuma alteração de lógica** — apenas UI informativa.
 
