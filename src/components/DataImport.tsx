@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { FieldMappingReference } from '@/components/FieldMappingReference';
 
 // Mapeamento das colunas do CSV para o banco (mais flexível)
 const columnMapping: Record<string, keyof Negocio> = {
@@ -505,6 +506,7 @@ export function DataImport() {
             Faça upload de um arquivo CSV ou Excel com os dados do CRM. 
             Os dados serão enviados para revisão antes de entrar no dashboard.
           </CardDescription>
+          <FieldMappingReference />
         </CardHeader>
         <CardContent>
           {status === 'success' ? (
