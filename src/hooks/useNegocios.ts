@@ -50,6 +50,7 @@ export interface Negocio {
 export interface NegocioFilters {
   sdr?: string;
   vendedores?: string[];
+  quemVendeu?: string[];
   pipeline?: string;
   utmSource?: string;
   leadFonte?: string;
@@ -87,6 +88,12 @@ export function useNegocios(filters?: NegocioFilters) {
       }
       if (filters?.fonte) {
         query = query.eq('contato_fonte', filters.fonte);
+      }
+      if (filters?.quemVendeu && filters.quemVendeu.length > 0) {
+        const orConditions = filters.quemVendeu
+          .map(v => `quem_vendeu.ilike.%${v}%`)
+          .join(',');
+        query = query.or(orConditions);
       }
       if (filters?.tiposVenda && filters.tiposVenda.length > 0) {
         query = query.in('tipo_venda', filters.tiposVenda);
@@ -225,6 +232,7 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
     return {
       sdrs: [],
       vendedores: [],
+      quemVendeu: [],
       pipelines: [],
       utmSources: [],
       leadFontes: [],
@@ -254,13 +262,14 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
     .filter(n => n.pipeline && PIPELINES_TIPO_VENDA.includes(n.pipeline))
     .map(n => n.tipo_venda);
 
-  return {
-    sdrs: unique(normalizedSdrs),
-    vendedores: uniqueVendedores,
-    pipelines: unique(negocios.map(n => n.pipeline)),
-    utmSources: unique(negocios.map(n => n.utm_source)),
-    leadFontes: unique(negocios.map(n => n.lead_fonte)),
-    tiposVenda: unique(tiposVendaFromValidPipelines),
-    fontes: unique(negocios.map(n => n.contato_fonte)),
-  };
-}
+    return {
+      sdrs: unique(normalizedSdrs),
+      vendedores: uniqueVendedores,
+      quemVendeu: unique(negocios.map(n => n.quem_vendeu)),
+      pipelines: unique(negocios.map(n => n.pipeline)),
+      utmSources: unique(negocios.map(n => n.utm_source)),
+      leadFontes: unique(negocios.map(n => n.lead_fonte)),
+      tiposVenda: unique(tiposVendaFromValidPipelines),
+      fontes: unique(negocios.map(n => n.contato_fonte)),
+    };
+  }
