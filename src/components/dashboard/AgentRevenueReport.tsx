@@ -30,11 +30,8 @@ interface AgentStats {
 }
 
 export function AgentRevenueReport({ negocios, filters }: AgentRevenueReportProps) {
-  // Helper to check if date is in period
   const isInPeriod = (dateStr: string | null | undefined): boolean => {
-    if (!dateStr) return false;
-    if (!filters?.dataInicio || !filters?.dataFim) return true;
-    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+    return !!dateStr;
   };
 
   const { allAgents, sdrTotal, especialistaTotal, grandTotal } = useMemo(() => {

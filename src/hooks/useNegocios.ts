@@ -48,8 +48,6 @@ export interface Negocio {
 }
 
 export interface NegocioFilters {
-  dataInicio?: string;
-  dataFim?: string;
   sdr?: string;
   vendedores?: string[];
   pipeline?: string;
@@ -68,15 +66,6 @@ export function useNegocios(filters?: NegocioFilters) {
         .select('*')
         .order('data_inicio', { ascending: false });
 
-      // Filter by date range using primeiro_contato (Primeiro contato Lead)
-      if (filters?.dataInicio && filters?.dataFim) {
-        query = query.gte('primeiro_contato', filters.dataInicio);
-        query = query.lte('primeiro_contato', filters.dataFim);
-      } else if (filters?.dataInicio) {
-        query = query.gte('primeiro_contato', filters.dataInicio);
-      } else if (filters?.dataFim) {
-        query = query.lte('primeiro_contato', filters.dataFim);
-      }
       if (filters?.sdr) {
         query = query.ilike('sdr', `${filters.sdr}%`);
       }

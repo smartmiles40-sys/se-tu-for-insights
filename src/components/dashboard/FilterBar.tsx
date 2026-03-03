@@ -6,12 +6,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
 import { useLocation } from 'react-router-dom';
@@ -100,81 +97,6 @@ export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePi
             </NavLink>
           );
         })}
-      </div>
-
-      {/* Date Range */}
-      <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                'w-[140px] justify-start text-left font-normal',
-                !filters.dataInicio && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {filters.dataInicio ? (
-                format(new Date(filters.dataInicio), 'dd/MM/yyyy', { locale: ptBR })
-              ) : (
-                <span>Data início</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
-            <Calendar
-              mode="single"
-              selected={filters.dataInicio ? new Date(filters.dataInicio) : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  const firstDay = startOfMonth(date);
-                  updateFilter('dataInicio', format(firstDay, 'yyyy-MM-dd'));
-                } else {
-                  updateFilter('dataInicio', undefined);
-                }
-              }}
-              locale={ptBR}
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-
-        <span className="text-muted-foreground">até</span>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                'w-[140px] justify-start text-left font-normal',
-                !filters.dataFim && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {filters.dataFim ? (
-                format(new Date(filters.dataFim), 'dd/MM/yyyy', { locale: ptBR })
-              ) : (
-                <span>Data fim</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
-            <Calendar
-              mode="single"
-              selected={filters.dataFim ? new Date(filters.dataFim) : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  const lastDay = endOfMonth(date);
-                  updateFilter('dataFim', format(lastDay, 'yyyy-MM-dd'));
-                } else {
-                  updateFilter('dataFim', undefined);
-                }
-              }}
-              locale={ptBR}
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
       </div>
 
       {/* SDR Filter */}

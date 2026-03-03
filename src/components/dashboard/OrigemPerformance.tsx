@@ -11,11 +11,8 @@ interface OrigemPerformanceProps {
 const COLORS = ['#22d3ee', '#facc15', '#f472b6', '#34d399', '#fb923c'];
 
 export function OrigemPerformance({ negocios, filters }: OrigemPerformanceProps) {
-  // Helper to check if date is in period
   const isInPeriod = (dateStr: string | null | undefined): boolean => {
-    if (!dateStr) return false;
-    if (!filters?.dataInicio || !filters?.dataFim) return true;
-    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+    return !!dateStr;
   };
 
   const data = useMemo(() => {

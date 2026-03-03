@@ -83,7 +83,7 @@ export default function ResumoColaboradorPage() {
   const lastDay = new Date(selectedAno, selectedMes, 0).getDate();
   const dataFim = `${selectedAno}-${String(selectedMes).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-  const { data: negocios, isLoading: loadingNegocios } = useNegocios({ dataInicio, dataFim });
+  const { data: negocios, isLoading: loadingNegocios } = useNegocios({});
 
   // Calculate results from negocios (Comercial 1 pipeline for sales)
   const results = useMemo(() => {

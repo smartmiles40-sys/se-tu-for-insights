@@ -18,20 +18,12 @@ import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { getTodayBrazil, getFirstDayOfMonthBrazil, getBrazilDateParts, getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
 export default function Dashboard() {
-  // Default filters: current month (1st day to today) using Brazil timezone
-  const getDefaultFilters = (): NegocioFilters => {
-    return {
-      dataInicio: getFirstDayOfMonthBrazil(),
-      dataFim: getTodayBrazil()
-    };
-  };
-  const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
+  const [filters, setFilters] = useState<NegocioFilters>({});
   const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string[]>([]);
   const [investimentoTotal, setInvestimentoTotal] = useState(0);
 
-  // Get current month/year for meta - parse from filter string or use Brazil timezone
-  const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : getCurrentMonthBrazil();
-  const currentYear = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[0]) : getCurrentYearBrazil();
+  const currentMonth = getCurrentMonthBrazil();
+  const currentYear = getCurrentYearBrazil();
   const {
     data: allNegocios,
     isLoading: loadingAll
@@ -46,11 +38,9 @@ export default function Dashboard() {
     isLoading: loadingMeta
   } = useMetaGlobal(currentMonth, currentYear);
 
-  // Helper function to check if a date is within the filter period
-  const isInPeriod = (dateStr: string | null | undefined): boolean => {
-    if (!dateStr) return false;
-    if (!filters.dataInicio || !filters.dataFim) return true;
-    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+  // No date filtering needed - all imported data is for the desired month
+  const isInPeriod = (_dateStr: string | null | undefined): boolean => {
+    return !!_dateStr;
   };
   const executiveStats = useMemo(() => {
     if (!negocios || negocios.length === 0) {

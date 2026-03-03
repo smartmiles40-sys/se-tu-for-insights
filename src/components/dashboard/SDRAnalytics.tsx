@@ -32,11 +32,8 @@ interface SDRStats {
 }
 
 export function SDRAnalytics({ negocios, filters }: SDRAnalyticsProps) {
-  // Helper to check if date is in period
   const isInPeriod = (dateStr: string | null | undefined): boolean => {
-    if (!dateStr) return false;
-    if (!filters?.dataInicio || !filters?.dataFim) return true;
-    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+    return !!dateStr;
   };
 
   const sdrStats = useMemo((): SDRStats[] => {

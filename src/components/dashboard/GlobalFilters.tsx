@@ -6,12 +6,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CalendarIcon, X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -103,81 +100,6 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
             </NavLink>
           );
         })}
-      </div>
-
-      {/* Date Range */}
-      <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                'w-[130px] justify-start text-left font-normal h-8',
-                !filters.dataInicio && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-              {filters.dataInicio ? (
-                format(new Date(filters.dataInicio), 'dd/MM/yyyy', { locale: ptBR })
-              ) : (
-                <span className="text-xs">Data início</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
-            <Calendar
-              mode="single"
-              selected={filters.dataInicio ? new Date(filters.dataInicio + 'T12:00:00') : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  updateFilter('dataInicio', format(date, 'yyyy-MM-dd'));
-                } else {
-                  updateFilter('dataInicio', undefined);
-                }
-              }}
-              locale={ptBR}
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-
-        <span className="text-muted-foreground text-xs">até</span>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                'w-[130px] justify-start text-left font-normal h-8',
-                !filters.dataFim && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-              {filters.dataFim ? (
-                format(new Date(filters.dataFim), 'dd/MM/yyyy', { locale: ptBR })
-              ) : (
-                <span className="text-xs">Data fim</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
-            <Calendar
-              mode="single"
-              selected={filters.dataFim ? new Date(filters.dataFim + 'T12:00:00') : undefined}
-              onSelect={(date) => {
-                if (date) {
-                  updateFilter('dataFim', format(date, 'yyyy-MM-dd'));
-                } else {
-                  updateFilter('dataFim', undefined);
-                }
-              }}
-              locale={ptBR}
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
       </div>
 
       {/* Vendedor Multi-Select */}
