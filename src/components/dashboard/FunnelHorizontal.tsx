@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { Negocio, NegocioFilters } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
-import { isPipelineValido } from '@/lib/pipelines';
 
 interface FunnelHorizontalProps {
   negocios: Negocio[];
@@ -30,27 +29,17 @@ export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
   };
 
   const funnelData = useMemo(() => {
-    // Filtrar apenas pipelines válidos
-    const negociosValidos = negocios.filter(n => isPipelineValido(n.pipeline));
+    // Leads: contagem total de registros (todos os IDs)
+    const leads = negocios.length;
     
-    // Leads: conta por primeiro_contato (todos os negócios válidos)
-    const leads = negociosValidos.filter(n => isInPeriod(n.primeiro_contato)).length;
+    // MQL: COUNT(data_mql preenchida)
+    const mql = negocios.filter(n => n.data_mql !== null).length;
     
-    // MQL: conta por data_mql (todos os negócios válidos)
-    const mql = negociosValidos.filter(n => 
-      n.data_mql !== null && isInPeriod(n.data_mql)
-    ).length;
+    // SQL: COUNT(data_sql preenchida)
+    const sql = negocios.filter(n => n.data_sql !== null).length;
     
-    // SQL: conta por data_sql (todos os negócios válidos)
-    const sql = negociosValidos.filter(n => 
-      n.data_sql !== null && isInPeriod(n.data_sql)
-    ).length;
-    
-    // Vendas: conta por data_venda preenchida (todos os negócios válidos)
-    const vendas = negociosValidos.filter(n => 
-      n.data_venda !== null && 
-      isInPeriod(n.data_venda)
-    ).length;
+    // Vendas: COUNT(data_venda preenchida)
+    const vendas = negocios.filter(n => n.data_venda !== null).length;
 
     const leadsToMqlRate = leads > 0 ? (mql / leads) * 100 : 0;
     const mqlToSqlRate = mql > 0 ? (sql / mql) * 100 : 0;

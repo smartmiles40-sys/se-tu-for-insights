@@ -16,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { PIPELINE_PRE_VENDAS, PIPELINE_COMERCIAL, isPipelineValido, isPreVendas, isComercial } from '@/lib/pipelines';
 import { getTodayBrazil, getFirstDayOfMonthBrazil, getBrazilDateParts, getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
 export default function Dashboard() {
   // Default filters: current month (1st day to today) using Brazil timezone
@@ -78,12 +77,8 @@ export default function Dashboard() {
     }
 
     // ========================================
-    // REGRAS DE CÁLCULO - Campos utilizados:
-    // - reuniao_agendada (boolean)
-    // - data_agendamento (date)
-    // - data_reuniao_realizada (date)
-    // - data_noshow (date)
-    // - data_venda (date)
+    // REGRAS DE CÁLCULO v1.0 - Baseado em datas
+    // Sem restrição de pipeline
     // ========================================
 
     // Helper para remover acentos e normalizar nomes
@@ -91,90 +86,74 @@ export default function Dashboard() {
       str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     // ========================================
-    // 1️⃣ % AGENDAMENTO
-    // COUNT(data_agendamento IS NOT NULL) / COUNT(leads com primeiro_contato no período)
-    // Exige data_agendamento preenchida para ser considerado agendamento
+    // TOTAL LEADS = Contagem total de registros (todos os IDs)
     // ========================================
-    // Total Leads: apenas pipelines válidos com primeiro_contato preenchido E dentro do período
-    const totalLeads = negocios.filter(n => isPipelineValido(n.pipeline) && n.primeiro_contato !== null && isInPeriod(n.primeiro_contato)).length;
-    const reunioesAgendadas = negocios.filter(n => isPipelineValido(n.pipeline) && n.data_agendamento !== null && isInPeriod(n.data_agendamento)).length;
+    const totalLeads = negocios.length;
+
+    // ========================================
+    // REUNIÕES AGENDADAS = COUNT(data_agendamento preenchida)
+    // ========================================
+    const reunioesAgendadas = negocios.filter(n => n.data_agendamento !== null).length;
+
+    // ========================================
+    // % AGENDAMENTO = Agendamentos / Total Leads
+    // Meta: ≥15%
+    // ========================================
     const taxaAgendamento = totalLeads > 0 ? reunioesAgendadas / totalLeads * 100 : 0;
 
     // ========================================
-    // 2️⃣ % NO-SHOW e 3️⃣ % SHOW-UP
-    // No-Shows: contados pela data_noshow preenchida
-    // Realizadas: contadas pelo booleano reuniao_realizada com fallback de data
+    // NO-SHOWS = COUNT(data_noshow preenchida)
     // ========================================
+    const noShows = negocios.filter(n => n.data_noshow !== null).length;
 
-    // No-Shows: negócios com data_noshow preenchida
-    // Quando há filtro de vendedor, precisamos filtrar também por responsavel_reuniao
-    // porque quem_vendeu só é preenchido após a venda (no-shows não têm venda)
-    const noShows = negocios.filter(n => {
-      // Exigir pipeline Comercial 1
-      if (!isComercial(n.pipeline)) return false;
-      // Exigir data_agendamento preenchida, dentro do período E no passado
-      if (!n.data_agendamento || !isInPeriod(n.data_agendamento)) return false;
-      if (n.data_agendamento >= getTodayBrazil()) return false;
-      // Se realizou a reunião, NÃO é no-show
-      if (n.data_reuniao_realizada) return false;
-      // Se há filtro de vendedor, verificar responsavel_reuniao
+    // ========================================
+    // REUNIÕES REALIZADAS = COUNT(data_reuniao_realizada preenchida)
+    // ========================================
+    const reunioesRealizadas = negocios.filter(n => {
+      if (!n.data_reuniao_realizada) return false;
+      
+      // Se há filtro de vendedor, verificar vendedor (pessoa responsável)
       if (filters?.vendedores && filters.vendedores.length > 0) {
-        const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
+        const responsavel = removeAccents(n.vendedor?.toLowerCase() || '');
         return filters.vendedores.some(v => responsavel.includes(removeAccents(v.toLowerCase())));
       }
       return true;
     }).length;
 
-    // Reuniões Realizadas / Propostas Enviadas: baseado em data_reuniao_realizada
-    // FONTE PRINCIPAL: campo data_reuniao_realizada (não o booleano)
-    // FILTRO: apenas pipeline Comercial 1 para consistência com Vendas/Faturamento
-    const reunioesRealizadas = negocios.filter(n => {
-      // Exigir pipeline Comercial 1
-      if (!isComercial(n.pipeline)) return false;
-      
-      // Exigir data_reuniao_realizada preenchida e dentro do período
-      if (!n.data_reuniao_realizada || !isInPeriod(n.data_reuniao_realizada)) return false;
-      
-      // Se há filtro de vendedor, verificar responsavel_reuniao OU quem_vendeu
-      if (filters?.vendedores && filters.vendedores.length > 0) {
-        const responsavel = removeAccents(n.responsavel_reuniao?.toLowerCase() || '');
-        const quemVendeu = removeAccents(n.quem_vendeu?.toLowerCase() || '');
-        return filters.vendedores.some(v => {
-          const vendedorNorm = removeAccents(v.toLowerCase());
-          return responsavel.includes(vendedorNorm) || quemVendeu.includes(vendedorNorm);
-        });
-      }
-      return true;
-    }).length;
-
-    // Base com resultado = No-Shows + Realizadas (para cálculo de taxas)
-    const baseComResultado = noShows + reunioesRealizadas;
-
-    // % No-Show = no-shows / base com resultado
-    const taxaNoShow = baseComResultado > 0 ? noShows / baseComResultado * 100 : 0;
-
-    // % Show-Up = realizadas / base com resultado
-    const taxaShowUp = baseComResultado > 0 ? reunioesRealizadas / baseComResultado * 100 : 0;
+    // ========================================
+    // % NO-SHOW = COUNT(data_noshow) / COUNT(data_agendamento)
+    // Meta: ≤20%
+    // ========================================
+    const taxaNoShow = reunioesAgendadas > 0 ? noShows / reunioesAgendadas * 100 : 0;
 
     // ========================================
-    // VENDAS E FATURAMENTO (apenas pipeline Comercial 1)
+    // % SHOW-UP = COUNT(data_reuniao_realizada) / COUNT(data_agendamento)
+    // Meta: ≥80%
     // ========================================
-    const negociosComercial = negocios.filter(n => isComercial(n.pipeline));
-    const vendasNoPeriodo = negociosComercial.filter(n => n.data_venda && isInPeriod(n.data_venda));
+    const taxaShowUp = reunioesAgendadas > 0 ? reunioesRealizadas / reunioesAgendadas * 100 : 0;
+
+    // Base com resultado para exibição nos cards
+    const baseComResultado = reunioesAgendadas;
+
+    // ========================================
+    // VENDAS E FATURAMENTO
+    // Vendas = COUNT(data_venda preenchida)
+    // Faturamento = SOMA(Total) onde data_venda preenchida
+    // ========================================
+    const vendasNoPeriodo = negocios.filter(n => n.data_venda && isInPeriod(n.data_venda));
     const vendasRealizadas = vendasNoPeriodo.length;
     const receitaTotal = vendasNoPeriodo.reduce((sum, n) => sum + (n.total || 0), 0);
-    
-    // TODAS as vendas (todos os pipelines) para filtro de Tipo de Venda
-    const todasVendasNoPeriodo = negocios.filter(n => n.data_venda && isInPeriod(n.data_venda));
 
-    // Taxa de conversão: vendas / reuniões realizadas
+    // ========================================
+    // % CONVERSÃO VENDAS = COUNT(data_venda) / COUNT(data_reuniao_realizada)
+    // Meta: ≥25%
+    // ========================================
     const taxaConversaoGeral = reunioesRealizadas > 0 ? vendasRealizadas / reunioesRealizadas * 100 : 0;
 
-    // Taxa de conversão filtrada por tipo de venda (para o card específico)
-    // Quando filtro ativo: busca de TODOS os pipelines; sem filtro: apenas Comercial 1
+    // Conversão filtrada por tipo de venda
     const vendasParaFiltro = tipoVendaConversaoFilter.length === 0 
       ? vendasNoPeriodo 
-      : todasVendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
+      : vendasNoPeriodo.filter(n => n.tipo_venda && tipoVendaConversaoFilter.includes(n.tipo_venda));
     const vendasFiltradasCount = vendasParaFiltro.length;
     const receitaFiltrada = vendasParaFiltro.reduce((sum, n) => sum + (n.total || 0), 0);
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
@@ -273,8 +252,8 @@ export default function Dashboard() {
       ...data,
       conversao: data.leads > 0 ? data.vendas / data.leads * 100 : 0
     }));
-    // Lista única de tipos de venda para o filtro (de TODOS os pipelines)
-    const tiposVendaUnicos = [...new Set(todasVendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
+    // Lista única de tipos de venda para o filtro
+    const tiposVendaUnicos = [...new Set(vendasNoPeriodo.map(n => n.tipo_venda).filter(Boolean))] as string[];
 
     return {
       receitaTotal,
@@ -372,7 +351,7 @@ export default function Dashboard() {
                   <span className="text-xs text-slate-400 uppercase tracking-wider">% Agendamento</span>
                   <TrendingUp className="h-4 w-4 text-slate-500" />
                 </div>
-                <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 50 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 30 ? 'text-yellow-400' : 'text-red-400'}`}>
+                <div className={`text-3xl font-bold ${executiveStats.taxaAgendamento >= 15 ? 'text-emerald-400' : executiveStats.taxaAgendamento >= 10 ? 'text-yellow-400' : 'text-red-400'}`}>
                   {executiveStats.taxaAgendamento.toFixed(1)}%
                 </div>
                 <div className="text-sm text-slate-300 mt-1">{formatNumber(executiveStats.reunioesAgendadas)} / {formatNumber(executiveStats.totalLeads)}</div>
@@ -548,9 +527,9 @@ export default function Dashboard() {
               <RankingTable negocios={negocios} type="sdr" limit={4} filters={filters} />
             </div>
 
-            {/* Daily Revenue Chart - apenas pipeline Comercial */}
+            {/* Daily Revenue Chart */}
             <div className="mt-4">
-              <DailyRevenueChart data={(allNegocios || []).filter(n => isComercial(n.pipeline))} month={currentMonth} year={currentYear} metaExcelente={metaGlobal?.meta_faturamento_excelente} />
+              <DailyRevenueChart data={allNegocios || []} month={currentMonth} year={currentYear} metaExcelente={metaGlobal?.meta_faturamento_excelente} />
             </div>
           </>}
       </div>
