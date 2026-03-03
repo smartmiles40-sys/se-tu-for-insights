@@ -8,11 +8,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { X, ChevronDown, User, Users, UserCheck, Megaphone, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
 import { useLocation } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const navLinks = [
   { path: '/sdr', label: 'SDRs', icon: Users },
@@ -75,9 +78,12 @@ export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePi
     }
   };
 
+  const fromDate = filters.dataInicioFrom ? parseISO(filters.dataInicioFrom) : undefined;
+  const toDate = filters.dataInicioTo ? parseISO(filters.dataInicioTo) : undefined;
+
   return (
     <div className="filter-bar">
-      {/* Navigation Links - Before date filters */}
+      {/* Navigation Links */}
       <div className="flex items-center gap-1 mr-2 border-r border-border/50 pr-3">
         {navLinks.map((link) => {
           const isActive = location.pathname === link.path;
@@ -98,6 +104,70 @@ export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePi
           );
         })}
       </div>
+
+      {/* Date Range Filter - Data de Início */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              'w-[200px] justify-start text-left font-normal text-xs',
+              (fromDate || toDate) && 'border-primary/50'
+            )}
+          >
+            <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+            {fromDate && toDate
+              ? `${format(fromDate, 'dd/MM/yy')} - ${format(toDate, 'dd/MM/yy')}`
+              : fromDate
+                ? `A partir de ${format(fromDate, 'dd/MM/yy')}`
+                : toDate
+                  ? `Até ${format(toDate, 'dd/MM/yy')}`
+                  : 'Data de início'}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
+          <div className="flex flex-col gap-2 p-3">
+            <div className="text-xs font-medium text-muted-foreground">De:</div>
+            <Calendar
+              mode="single"
+              selected={fromDate}
+              onSelect={(date) => {
+                onFiltersChange({
+                  ...filters,
+                  dataInicioFrom: date ? format(date, 'yyyy-MM-dd') : undefined,
+                });
+              }}
+              locale={ptBR}
+              className={cn("p-1 pointer-events-auto")}
+            />
+            <div className="text-xs font-medium text-muted-foreground">Até:</div>
+            <Calendar
+              mode="single"
+              selected={toDate}
+              onSelect={(date) => {
+                onFiltersChange({
+                  ...filters,
+                  dataInicioTo: date ? format(date, 'yyyy-MM-dd') : undefined,
+                });
+              }}
+              locale={ptBR}
+              disabled={(date) => fromDate ? date < fromDate : false}
+              className={cn("p-1 pointer-events-auto")}
+            />
+            {(fromDate || toDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onFiltersChange({ ...filters, dataInicioFrom: undefined, dataInicioTo: undefined })}
+                className="text-muted-foreground hover:text-destructive text-xs h-7"
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                Limpar datas
+              </Button>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* SDR Filter */}
       {options.sdrs.length > 0 && (
@@ -214,7 +284,7 @@ export function FilterBar({ filters, onFiltersChange, options, showFonte, hidePi
         </Select>
       )}
 
-      {/* Fonte Filter (contato_fonte) */}
+      {/* Fonte Filter */}
       {showFonte && options.fontes && options.fontes.length > 0 && (
         <Select
           value={filters.fonte || 'all'}
