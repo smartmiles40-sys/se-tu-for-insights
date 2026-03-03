@@ -1,12 +1,7 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -17,46 +12,53 @@ interface EspecialistasDashboardProps {
 
 interface EspecialistaStats {
   nome: string;
-  reunioesRecebidas: number;
-  vendasRealizadas: number;
-  taxaFechamento: number;
-  receitaGerada: number;
+  faturamento: number;
+  vendas: number;
+  reunioesMarcadas: number;
+  reunioesRealizadas: number;
+  noShow: number;
+  taxaNoShow: number;
+  taxaComparecimento: number;
+  taxaConversao: number;
+  mql: number;
+  mqlVenda: number;
   ticketMedio: number;
 }
 
 export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps) {
   const especialistaStats = useMemo((): EspecialistaStats[] => {
-    const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v))];
-    
+    const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v && v.trim() !== ''))];
+
     return vendedores.map(vendedor => {
-      const vendedorNegocios = negocios.filter(n => n.vendedor === vendedor);
-      const reunioesRecebidas = vendedorNegocios.filter(n => n.reuniao_realizada).length;
-      const vendas = vendedorNegocios.filter(n => n.data_venda !== null);
-      const vendasRealizadas = vendas.length;
-      const taxaFechamento = reunioesRecebidas > 0 ? (vendasRealizadas / reunioesRecebidas) * 100 : 0;
-      const receitaGerada = vendas.reduce((sum, n) => sum + (n.total || 0), 0);
-      const ticketMedio = vendasRealizadas > 0 ? receitaGerada / vendasRealizadas : 0;
-      
+      const vn = negocios.filter(n => n.vendedor === vendedor);
+      const vendas = vn.filter(n => n.data_venda).length;
+      const faturamento = vn.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
+      const reunioesMarcadas = vn.filter(n => n.data_agendamento).length;
+      const reunioesRealizadas = vn.filter(n => n.data_reuniao_realizada).length;
+      const noShow = vn.filter(n => n.data_noshow).length;
+      const mql = vn.filter(n => n.data_mql).length;
+
       return {
         nome: vendedor,
-        reunioesRecebidas,
-        vendasRealizadas,
-        taxaFechamento,
-        receitaGerada,
-        ticketMedio,
+        faturamento,
+        vendas,
+        reunioesMarcadas,
+        reunioesRealizadas,
+        noShow,
+        taxaNoShow: reunioesMarcadas > 0 ? (noShow / reunioesMarcadas) * 100 : 0,
+        taxaComparecimento: reunioesMarcadas > 0 ? (reunioesRealizadas / reunioesMarcadas) * 100 : 0,
+        taxaConversao: reunioesRealizadas > 0 ? (vendas / reunioesRealizadas) * 100 : 0,
+        mql,
+        mqlVenda: mql > 0 ? (vendas / mql) * 100 : 0,
+        ticketMedio: vendas > 0 ? faturamento / vendas : 0,
       };
-    }).sort((a, b) => b.receitaGerada - a.receitaGerada);
+    }).sort((a, b) => b.faturamento - a.faturamento);
   }, [negocios]);
 
-  const maxReceita = Math.max(...especialistaStats.map(e => e.receitaGerada), 1);
+  const maxReceita = Math.max(...especialistaStats.map(e => e.faturamento), 1);
 
-  const formatCurrency = (value: number) => 
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
   const getTaxaBadge = (taxa: number) => {
     if (taxa >= 40) return <Badge variant="outline" className="bg-success/20 text-success-foreground">Excelente</Badge>;
@@ -67,55 +69,48 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
 
   return (
     <div className="dashboard-section">
-      <h3 className="section-title">Performance Especialistas</h3>
-      
+      <h3 className="section-title">Performance Especialistas (Closers)</h3>
+
       {especialistaStats.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">
-          Nenhum dado de especialista disponível
-        </p>
+        <p className="text-muted-foreground text-center py-8">Nenhum dado disponível</p>
       ) : (
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[200px]">Especialista</TableHead>
-                <TableHead className="text-right">Reuniões</TableHead>
+                <TableHead className="w-[180px]">Closer</TableHead>
+                <TableHead className="text-right">Faturamento</TableHead>
                 <TableHead className="text-right">Vendas</TableHead>
-                <TableHead className="text-right">Receita</TableHead>
+                <TableHead className="text-right">Reuniões Marc.</TableHead>
+                <TableHead className="text-right">Realizadas</TableHead>
+                <TableHead className="text-right">No-Show</TableHead>
+                <TableHead className="text-right">% Conv.</TableHead>
+                <TableHead className="text-right">MQL→Venda</TableHead>
                 <TableHead className="text-right">Ticket Médio</TableHead>
                 <TableHead>Performance</TableHead>
-                <TableHead className="text-center">Taxa Fechamento</TableHead>
+                <TableHead className="text-center">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {especialistaStats.map((esp) => (
                 <TableRow key={esp.nome}>
                   <TableCell className="font-medium">{esp.nome}</TableCell>
-                  <TableCell className="text-right">
-                    {new Intl.NumberFormat('pt-BR').format(esp.reunioesRecebidas)}
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-accent">
-                    {new Intl.NumberFormat('pt-BR').format(esp.vendasRealizadas)}
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-primary">
-                    {formatCurrency(esp.receitaGerada)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(esp.ticketMedio)}
-                  </TableCell>
+                  <TableCell className="text-right font-semibold text-success">{formatCurrency(esp.faturamento)}</TableCell>
+                  <TableCell className="text-right font-semibold text-primary">{new Intl.NumberFormat('pt-BR').format(esp.vendas)}</TableCell>
+                  <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.reunioesMarcadas)}</TableCell>
+                  <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.reunioesRealizadas)}</TableCell>
+                  <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.noShow)}</TableCell>
+                  <TableCell className="text-right font-medium">{esp.taxaConversao.toFixed(1)}%</TableCell>
+                  <TableCell className="text-right">{esp.mqlVenda.toFixed(1)}%</TableCell>
+                  <TableCell className="text-right">{formatCurrency(esp.ticketMedio)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Progress 
-                        value={(esp.receitaGerada / maxReceita) * 100} 
-                        className="h-2 flex-1" 
-                      />
+                      <Progress value={(esp.faturamento / maxReceita) * 100} className="h-2 flex-1" />
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    {getTaxaBadge(esp.taxaFechamento)}
-                    <span className="ml-2 text-sm text-muted-foreground">
-                      {esp.taxaFechamento.toFixed(1)}%
-                    </span>
+                    {getTaxaBadge(esp.taxaConversao)}
+                    <span className="ml-1 text-xs text-muted-foreground">{esp.taxaConversao.toFixed(1)}%</span>
                   </TableCell>
                 </TableRow>
               ))}
