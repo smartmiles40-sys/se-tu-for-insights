@@ -13,152 +13,79 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { FieldMappingReference } from '@/components/FieldMappingReference';
 
-// Mapeamento das colunas do CSV para o banco (mais flexível)
+// Mapeamento das colunas do CSV v1.0 para o banco
 const columnMapping: Record<string, keyof Negocio> = {
-  // ID do CRM
+  // 1. Primeiro contato Lead
+  'primeiro contato lead': 'primeiro_contato',
+  'primeiro_contato': 'primeiro_contato',
+  
+  // 2. ID
   'id': 'crm_id',
   'crm_id': 'crm_id',
   
-  // Nome
+  // 3. Nome
   'nome': 'nome',
-  'título': 'nome',
-  'titulo': 'nome',
   
-  // Pipeline
-  'pipeline de negócio': 'pipeline',
-  'pipeline de negocio': 'pipeline',
-  'pipeline': 'pipeline',
-  
-  // Fase
-  'fase: em andamento': 'fase',
-  'fase: perdidos': 'fase',
-  'fase: fechados': 'fase',
-  'fase': 'fase',
-  
-  // Data de Início
-  'data de início': 'data_inicio',
-  'data de inicio': 'data_inicio',
-  'data_inicio': 'data_inicio',
-  'data criação': 'data_inicio',
-  'data criacao': 'data_inicio',
-  
-  // Datas específicas
-  'data do agendamento': 'data_agendamento',
-  'data_agendamento': 'data_agendamento',
-  'data da reunião realizada': 'data_reuniao_realizada',
-  'data da reuniao realizada': 'data_reuniao_realizada',
-  'data da reunião realizada/proposta enviada': 'data_reuniao_realizada',
-  'data da reuniao realizada/proposta enviada': 'data_reuniao_realizada',
-  'data_reuniao_realizada': 'data_reuniao_realizada',
-  'data do mql': 'data_mql',
-  'data_mql': 'data_mql',
-  'data do sql': 'data_sql',
-  'data_sql': 'data_sql',
-  'data da venda realizada': 'data_venda',
-  'data_venda': 'data_venda',
-  'data de no show': 'data_noshow',
-  'data_noshow': 'data_noshow',
-  'data prevista de fechamento': 'data_prevista',
-  'data_prevista': 'data_prevista',
-  'primeiro contato lead': 'primeiro_contato',
-  'primeiro_contato': 'primeiro_contato',
-  'data de movimentação do card': 'data_movimentacao',
-  'data de movimentacao do card': 'data_movimentacao',
-  'data_movimentacao': 'data_movimentacao',
-  
-  // Vendedor
+  // 4. Pessoa responsável (Closer)
+  'pessoa responsável': 'vendedor',
+  'pessoa responsavel': 'vendedor',
   'vendedor': 'vendedor',
   'responsável': 'vendedor',
   'responsavel': 'vendedor',
   
-  // SDR
+  // 5. Pipeline de negócio
+  'pipeline de negócio': 'pipeline',
+  'pipeline de negocio': 'pipeline',
+  'pipeline': 'pipeline',
+  
+  // 6. Fase do negócio
+  'fase do negócio': 'fase',
+  'fase do negocio': 'fase',
+  'fase': 'fase',
+  
+  // 7. Data de início
+  'data de início': 'data_inicio',
+  'data de inicio': 'data_inicio',
+  'data_inicio': 'data_inicio',
+  
+  // 8. Quem fez o agendamento? (SDR)
   'quem fez o agendamento?': 'sdr',
   'quem fez o agendamento': 'sdr',
   'sdr': 'sdr',
   
-  // Responsáveis adicionais
-  'quem realizou a venda?': 'quem_vendeu',
-  'quem realizou a venda': 'quem_vendeu',
-  'quem_vendeu': 'quem_vendeu',
-  'responsável pela reunião': 'responsavel_reuniao',
-  'responsavel pela reuniao': 'responsavel_reuniao',
-  'responsavel_reuniao': 'responsavel_reuniao',
+  // 9. Data do agendamento
+  'data do agendamento': 'data_agendamento',
+  'data_agendamento': 'data_agendamento',
   
-  // Info etapa
-  'informações da etapa': 'info_etapa',
-  'informacoes da etapa': 'info_etapa',
-  'info_etapa': 'info_etapa',
+  // 10. Data da reunião realizada/Proposta enviada
+  'data da reunião realizada/proposta enviada': 'data_reuniao_realizada',
+  'data da reuniao realizada/proposta enviada': 'data_reuniao_realizada',
+  'data da reunião realizada': 'data_reuniao_realizada',
+  'data da reuniao realizada': 'data_reuniao_realizada',
+  'data_reuniao_realizada': 'data_reuniao_realizada',
   
-  // MQL/SQL com variações
-  'mql': 'mql',
-  'mql (preencha com "sim)': 'mql',
-  'mql (preencha com "sim")': 'mql',
-  'sql': 'sql_qualificado',
-  'sql (preencha com "sim")': 'sql_qualificado',
-  'sql_qualificado': 'sql_qualificado',
+  // 11. DATA DO MQL
+  'data do mql': 'data_mql',
+  'data_mql': 'data_mql',
   
-  // Reuniões
-  'reunião agendada?': 'reuniao_agendada',
-  'reunião agendada': 'reuniao_agendada',
-  'reuniao agendada?': 'reuniao_agendada',
-  'reuniao agendada': 'reuniao_agendada',
-  'reuniao_agendada': 'reuniao_agendada',
-  'reunião realizada?': 'reuniao_realizada',
-  'reunião realizada': 'reuniao_realizada',
-  'reuniao realizada?': 'reuniao_realizada',
-  'reuniao realizada': 'reuniao_realizada',
-  'reuniao_realizada': 'reuniao_realizada',
+  // 12. DATA DO SQL
+  'data do sql': 'data_sql',
+  'data_sql': 'data_sql',
   
-  // No show
-  'no show?': 'no_show',
-  'no show': 'no_show',
-  'no_show': 'no_show',
+  // 13. Data da venda realizada
+  'data da venda realizada': 'data_venda',
+  'data_venda': 'data_venda',
   
-  // Venda aprovada
-  'venda aprovada': 'venda_aprovada',
-  'venda_aprovada': 'venda_aprovada',
-  'venda aprovada (preencha com "sim")': 'venda_aprovada',
+  // 14. Data do No Show
+  'data do no show': 'data_noshow',
+  'data de no show': 'data_noshow',
+  'data_noshow': 'data_noshow',
   
-  // Total / Custo
+  // 15. Setores
+  'setores': 'setores',
+  
+  // 16. Total
   'total': 'total',
-  'valor': 'total',
-  'valor total': 'total',
-  'lead: total': 'total',
-  'custo': 'custo',
-  'custo total da venda': 'custo',
-  
-  // Tipo de venda
-  'tipo de venda': 'tipo_venda',
-  'tipo_venda': 'tipo_venda',
-  'venda realizada - tipo': 'tipo_venda',
-  
-  // Motivo de perda
-  'motivo de perda': 'motivo_perda',
-  'motivo_perda': 'motivo_perda',
-  
-  // UTM completo
-  'lead: utm_source': 'utm_source',
-  'utm_source': 'utm_source',
-  'utm source': 'utm_source',
-  'lead: utm_medium': 'utm_medium',
-  'utm_medium': 'utm_medium',
-  'utm medium': 'utm_medium',
-  'lead: utm_campaign': 'utm_campaign',
-  'utm_campaign': 'utm_campaign',
-  'utm campaign': 'utm_campaign',
-  'lead: utm_content': 'utm_content',
-  'utm_content': 'utm_content',
-  'utm content': 'utm_content',
-  'lead: utm_term': 'utm_term',
-  'utm_term': 'utm_term',
-  'utm term': 'utm_term',
-  
-  // Fontes
-  'lead: fonte': 'lead_fonte',
-  'lead_fonte': 'lead_fonte',
-  'fonte': 'lead_fonte',
-  'contato: fonte': 'contato_fonte',
-  'contato_fonte': 'contato_fonte',
 };
 
 function parseBoolean(value: string | undefined | null): boolean {
@@ -273,27 +200,11 @@ function mapRowToStaging(row: Record<string, string>): StagingNegocioInsert {
     
     if (dbColumn) {
       switch (dbColumn) {
-        // Campos booleanos
-        case 'mql':
-        case 'sql_qualificado':
-        case 'reuniao_agendada':
-        case 'reuniao_realizada':
-        case 'no_show':
-        case 'venda_aprovada':
-          (mapped as any)[dbColumn] = parseBoolean(value);
-          break;
-        
-        // Campos numéricos - nunca sobrescrever valor maior com zero
+        // Campos numéricos
         case 'total':
           const parsedTotal = parseNumber(value);
           if (parsedTotal > (mapped.total || 0)) {
             mapped.total = parsedTotal;
-          }
-          break;
-        case 'custo':
-          const parsedCusto = parseNumber(value);
-          if (parsedCusto > (mapped.custo || 0)) {
-            mapped.custo = parsedCusto;
           }
           break;
         
@@ -319,24 +230,25 @@ function mapRowToStaging(row: Record<string, string>): StagingNegocioInsert {
         case 'data_noshow':
           mapped.data_noshow = parseDate(value);
           break;
-        case 'data_prevista':
-          mapped.data_prevista = parseDate(value);
-          break;
         case 'primeiro_contato':
           mapped.primeiro_contato = parseDate(value);
-          break;
-        case 'data_movimentacao':
-          mapped.data_movimentacao = parseDate(value);
           break;
         
         // Campos de texto
         default:
-          // Convert to string first since Excel may return numbers
           const strValue = value !== null && value !== undefined ? String(value).trim() : null;
           (mapped as any)[dbColumn] = strValue || null;
       }
     }
   }
+
+  // Auto-set boolean flags based on date fields
+  mapped.mql = !!mapped.data_mql;
+  mapped.sql_qualificado = !!mapped.data_sql;
+  mapped.reuniao_agendada = !!mapped.data_agendamento;
+  mapped.reuniao_realizada = !!mapped.data_reuniao_realizada;
+  mapped.no_show = !!mapped.data_noshow;
+  mapped.venda_aprovada = !!mapped.data_venda;
 
   return mapped;
 }

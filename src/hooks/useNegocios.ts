@@ -41,6 +41,7 @@ export interface Negocio {
   utm_term: string | null;
   lead_fonte: string | null;
   contato_fonte: string | null;
+  setores: string | null;
   created_at: string;
   updated_at: string;
   imported_by: string | null;
