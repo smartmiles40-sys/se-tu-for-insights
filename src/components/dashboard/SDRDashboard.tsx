@@ -194,6 +194,9 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* SDR Performance Table */}
+      <SDRPerformance negocios={negocios} />
+
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="dashboard-section">
@@ -367,9 +370,6 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
         </Card>
       </div>
 
-
-      {/* SDR Performance Table */}
-      <SDRPerformance negocios={negocios} />
     </div>
   );
 }
