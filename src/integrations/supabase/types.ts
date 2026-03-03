@@ -177,6 +177,7 @@ export type Database = {
           reuniao_agendada: boolean | null
           reuniao_realizada: boolean | null
           sdr: string | null
+          setores: string | null
           sql_qualificado: boolean | null
           tipo_venda: string | null
           total: number | null
@@ -219,6 +220,7 @@ export type Database = {
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
+          setores?: string | null
           sql_qualificado?: boolean | null
           tipo_venda?: string | null
           total?: number | null
@@ -261,6 +263,7 @@ export type Database = {
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
+          setores?: string | null
           sql_qualificado?: boolean | null
           tipo_venda?: string | null
           total?: number | null
@@ -335,6 +338,7 @@ export type Database = {
           reuniao_agendada: boolean | null
           reuniao_realizada: boolean | null
           sdr: string | null
+          setores: string | null
           source: string
           sql_qualificado: boolean | null
           status: Database["public"]["Enums"]["staging_status"]
@@ -381,6 +385,7 @@ export type Database = {
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
+          setores?: string | null
           source?: string
           sql_qualificado?: boolean | null
           status?: Database["public"]["Enums"]["staging_status"]
@@ -427,6 +432,7 @@ export type Database = {
           reuniao_agendada?: boolean | null
           reuniao_realizada?: boolean | null
           sdr?: string | null
+          setores?: string | null
           source?: string
           sql_qualificado?: boolean | null
           status?: Database["public"]["Enums"]["staging_status"]
