@@ -56,6 +56,8 @@ export interface NegocioFilters {
   leadFonte?: string;
   tiposVenda?: string[];
   fonte?: string; // contato_fonte filter
+  dataInicioFrom?: string; // YYYY-MM-DD
+  dataInicioTo?: string;   // YYYY-MM-DD
 }
 
 export function useNegocios(filters?: NegocioFilters) {
@@ -97,6 +99,12 @@ export function useNegocios(filters?: NegocioFilters) {
       }
       if (filters?.tiposVenda && filters.tiposVenda.length > 0) {
         query = query.in('tipo_venda', filters.tiposVenda);
+      }
+      if (filters?.dataInicioFrom) {
+        query = query.gte('data_inicio', filters.dataInicioFrom);
+      }
+      if (filters?.dataInicioTo) {
+        query = query.lte('data_inicio', filters.dataInicioTo);
       }
 
       const { data, error } = await query;
