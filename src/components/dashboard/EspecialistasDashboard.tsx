@@ -27,11 +27,10 @@ interface EspecialistaStats {
 
 export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps) {
   const especialistaStats = useMemo((): EspecialistaStats[] => {
-    // Use quem_vendeu (Quem fez a venda?) for Especialista attribution
-    const vendedores = [...new Set(negocios.map(n => n.quem_vendeu).filter((v): v is string => !!v && v.trim() !== ''))];
+    const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v && v.trim() !== ''))];
 
     return vendedores.map(vendedor => {
-      const vn = negocios.filter(n => n.quem_vendeu === vendedor);
+      const vn = negocios.filter(n => n.vendedor === vendedor);
       const vendas = vn.filter(n => n.data_venda).length;
       const faturamento = vn.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
       const reunioesMarcadas = vn.filter(n => n.data_agendamento).length;

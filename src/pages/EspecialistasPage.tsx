@@ -1,30 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { EspecialistasDashboard } from '@/components/dashboard/EspecialistasDashboard';
 import { FilterBar } from '@/components/dashboard/FilterBar';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
-import { useColaboradores } from '@/hooks/useColaboradores';
 import { Loader2 } from 'lucide-react';
 
 export default function EspecialistasPage() {
   const [filters, setFilters] = useState<NegocioFilters>({});
   
   const { data: allNegocios, isLoading: loadingAll } = useNegocios();
-  const { data: colaboradoresEsp } = useColaboradores('especialista');
   const filterOptions = useFilterOptions(allNegocios);
   const { data: negocios, isLoading } = useNegocios(filters);
-
-  // Restrict vendedor filter options to only registered Especialista colaboradores
-  const filteredOptions = useMemo(() => {
-    if (!colaboradoresEsp) return filterOptions;
-    const espNames = colaboradoresEsp.map(c => c.nome.toLowerCase());
-    return {
-      ...filterOptions,
-      vendedores: filterOptions.vendedores.filter(v => 
-        espNames.some(name => v.toLowerCase().includes(name) || name.includes(v.toLowerCase()))
-      ),
-    };
-  }, [filterOptions, colaboradoresEsp]);
 
   if (isLoading || loadingAll) {
     return (
@@ -47,7 +33,7 @@ export default function EspecialistasPage() {
         <FilterBar 
           filters={filters} 
           onFiltersChange={setFilters} 
-          options={filteredOptions}
+          options={filterOptions}
         />
         
         {negocios && negocios.length > 0 ? (
