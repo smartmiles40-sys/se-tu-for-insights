@@ -68,41 +68,22 @@ export function useNegocios(filters?: NegocioFilters) {
         .select('*')
         .order('data_inicio', { ascending: false });
 
-      // Filter by date range - include records where ANY relevant date is in range:
-      // - primeiro_contato (for leads count)
-      // - data_venda (for sales/revenue)
-      // - data_reuniao_realizada (for meetings)
-      // - data_agendamento (for scheduled meetings)
-      // - data_mql (for MQL)
-      // - data_sql (for SQL)
-      // This allows intelligent filtering per metric
+      // Filter by date range using primeiro_contato (Primeiro contato Lead)
       if (filters?.dataInicio && filters?.dataFim) {
-        query = query.or(
-          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio},data_mql.gte.${filters.dataInicio},data_sql.gte.${filters.dataInicio}`
-        );
-        query = query.or(
-          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim},data_mql.lte.${filters.dataFim},data_sql.lte.${filters.dataFim}`
-        );
+        query = query.gte('primeiro_contato', filters.dataInicio);
+        query = query.lte('primeiro_contato', filters.dataFim);
       } else if (filters?.dataInicio) {
-        query = query.or(
-          `primeiro_contato.gte.${filters.dataInicio},data_venda.gte.${filters.dataInicio},data_reuniao_realizada.gte.${filters.dataInicio},data_agendamento.gte.${filters.dataInicio},data_mql.gte.${filters.dataInicio},data_sql.gte.${filters.dataInicio}`
-        );
+        query = query.gte('primeiro_contato', filters.dataInicio);
       } else if (filters?.dataFim) {
-        query = query.or(
-          `primeiro_contato.lte.${filters.dataFim},data_venda.lte.${filters.dataFim},data_reuniao_realizada.lte.${filters.dataFim},data_agendamento.lte.${filters.dataFim},data_mql.lte.${filters.dataFim},data_sql.lte.${filters.dataFim}`
-        );
+        query = query.lte('primeiro_contato', filters.dataFim);
       }
       if (filters?.sdr) {
-        // Filtra por nome normalizado (correspondência parcial no início)
         query = query.ilike('sdr', `${filters.sdr}%`);
       }
-      // Filter by vendedores (multiple selection, based on quem_vendeu OR responsavel_reuniao)
+      // Filter by vendedores (Pessoa responsável = campo vendedor)
       if (filters?.vendedores && filters.vendedores.length > 0) {
         const orConditions = filters.vendedores
-          .flatMap(v => [
-            `quem_vendeu.ilike.%${v}%`,
-            `responsavel_reuniao.ilike.%${v}%`
-          ])
+          .map(v => `vendedor.ilike.%${v}%`)
           .join(',');
         query = query.or(orConditions);
       }
@@ -269,15 +250,13 @@ export function useFilterOptions(negocios: Negocio[] | undefined) {
   // Normaliza nomes de SDRs para evitar duplicações
   const normalizedSdrs = negocios.map(n => normalizeName(n.sdr));
   
-  // Get unique vendedores from quem_vendeu (normalized, excluding "Não se aplica" and specific names)
-  const excludedVendedores = ['everton', 'everton lopes'];
-  const normalizedVendedores = negocios.map(n => normalizeName(n.quem_vendeu));
+  // Get unique vendedores from vendedor field (Pessoa responsável / Closer)
+  const normalizedVendedores = negocios.map(n => normalizeName(n.vendedor));
   const uniqueVendedores = [...new Set(normalizedVendedores)]
     .filter((v): v is string => 
       v !== null && 
       v.trim() !== '' && 
-      v.toLowerCase() !== 'não se aplica' &&
-      !excludedVendedores.some(excluded => v.toLowerCase().includes(excluded))
+      v.toLowerCase() !== 'não se aplica'
     )
     .sort();
 
