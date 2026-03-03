@@ -27,9 +27,7 @@ export default function Dashboard() {
   };
   const [filters, setFilters] = useState<NegocioFilters>(getDefaultFilters);
   const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string[]>([]);
-  const [custoCPL, setCustoCPL] = useState(5.04);
-  const [custoMQL, setCustoMQL] = useState(25.74);
-  const [custoReuniao, setCustoReuniao] = useState(33.35);
+  const [investimentoTotal, setInvestimentoTotal] = useState(0);
 
   // Get current month/year for meta - parse from filter string or use Brazil timezone
   const currentMonth = filters.dataInicio ? parseInt(filters.dataInicio.split('-')[1]) : getCurrentMonthBrazil();
@@ -66,6 +64,7 @@ export default function Dashboard() {
         taxaShowUp: 0,
         taxaConversaoGeral: 0,
         totalLeads: 0,
+        mqlCount: 0,
         noShows: 0,
         baseComResultado: 0,
         monthlyData: [],
@@ -157,6 +156,9 @@ export default function Dashboard() {
     const vendasFiltradasCount = vendasParaFiltro.length;
     const receitaFiltrada = vendasParaFiltro.reduce((sum, n) => sum + (n.total || 0), 0);
     const taxaConversaoFiltrada = reunioesRealizadas > 0 ? vendasFiltradasCount / reunioesRealizadas * 100 : 0;
+
+    // MQL count for cost indicators
+    const mqlCount = negocios.filter(n => n.data_mql !== null).length;
 
     // ANÁLISE DE COHORT simplificada
     const vendasDosLeadsDoPeriodo = negocios.filter(n => n.data_venda !== null).length;
@@ -267,6 +269,7 @@ export default function Dashboard() {
       taxaShowUp,
       taxaConversaoGeral,
       totalLeads,
+      mqlCount,
       monthlyData,
       // Cohort
       vendasDosLeadsDoPeriodo,
@@ -448,26 +451,42 @@ export default function Dashboard() {
                 <div className="bi-card py-3 px-3 flex-1 flex flex-col">
                   <h3 className="bi-card-title mb-2 text-sm">Indicadores de Custo</h3>
                   <div className="space-y-2 flex-1 flex flex-col justify-around">
-                    {[
-                      { label: 'CPL', value: custoCPL, setter: setCustoCPL, color: 'text-cyan-400' },
-                      { label: 'Custo MQL', value: custoMQL, setter: setCustoMQL, color: 'text-purple-400' },
-                      { label: 'Custo Reunião', value: custoReuniao, setter: setCustoReuniao, color: 'text-blue-400' },
-                    ].map(({ label, value, setter, color }) => (
-                      <div key={label} className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
-                        <div className="text-xs text-slate-400 uppercase">{label}</div>
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          className={`bg-transparent border-none text-right text-base font-bold ${color} w-28 focus:outline-none focus:ring-1 focus:ring-primary/50 rounded px-1`}
-                          defaultValue={value}
-                          onBlur={(e) => {
-                            const parsed = parseFloat(e.target.value.replace(',', '.')) || 0;
-                            setter(parsed);
-                            e.target.value = String(parsed);
-                          }}
-                        />
+                    {/* Investimento Total - input editável */}
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-primary/30">
+                      <div className="text-xs text-slate-400 uppercase">Investimento</div>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="bg-transparent border-none text-right text-base font-bold text-yellow-400 w-28 focus:outline-none focus:ring-1 focus:ring-primary/50 rounded px-1"
+                        defaultValue={investimentoTotal}
+                        onBlur={(e) => {
+                          const parsed = parseFloat(e.target.value.replace(',', '.')) || 0;
+                          setInvestimentoTotal(parsed);
+                          e.target.value = String(parsed);
+                        }}
+                      />
+                    </div>
+                    {/* CPL = Investimento / Total Leads */}
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase">CPL</div>
+                      <div className="text-base font-bold text-cyan-400">
+                        {formatCurrencyDecimal(executiveStats.totalLeads > 0 ? investimentoTotal / executiveStats.totalLeads : 0)}
                       </div>
-                    ))}
+                    </div>
+                    {/* Custo MQL = Investimento / COUNT(MQL) */}
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
+                      <div className="text-base font-bold text-purple-400">
+                        {formatCurrencyDecimal(executiveStats.mqlCount > 0 ? investimentoTotal / executiveStats.mqlCount : 0)}
+                      </div>
+                    </div>
+                    {/* Custo Reunião = Investimento / COUNT(reuniões realizadas) */}
+                    <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
+                      <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
+                      <div className="text-base font-bold text-blue-400">
+                        {formatCurrencyDecimal(executiveStats.reunioesRealizadas > 0 ? investimentoTotal / executiveStats.reunioesRealizadas : 0)}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

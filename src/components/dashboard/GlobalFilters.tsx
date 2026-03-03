@@ -196,8 +196,8 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
                 <User className="h-3.5 w-3.5" />
                 <span className="text-xs">
                   {filters.vendedores && filters.vendedores.length > 0
-                    ? `${filters.vendedores.length} vendedor(es)`
-                    : 'Vendedor'}
+                    ? `${filters.vendedores.length} especialista(s)`
+                    : 'Especialista'}
                 </span>
               </div>
               <ChevronDown className="h-3.5 w-3.5 opacity-50" />
