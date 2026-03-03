@@ -19,6 +19,7 @@ interface GlobalFiltersProps {
   options: {
     sdrs: string[];
     vendedores: string[];
+    quemVendeu: string[];
     pipelines: string[];
     utmSources: string[];
     leadFontes: string[];
@@ -28,7 +29,7 @@ interface GlobalFiltersProps {
 
 export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFiltersProps) {
   const hasFilters = Object.entries(filters).some(([key, v]) => {
-    if (key === 'vendedores' || key === 'tiposVenda') {
+    if (key === 'vendedores' || key === 'tiposVenda' || key === 'quemVendeu') {
       return Array.isArray(v) && v.length > 0;
     }
     return v !== undefined && v !== '';
@@ -39,7 +40,7 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
   };
 
   const updateFilter = (key: keyof NegocioFilters, value: string | string[] | undefined) => {
-    if (key === 'vendedores' || key === 'tiposVenda') {
+    if (key === 'vendedores' || key === 'tiposVenda' || key === 'quemVendeu') {
       onFiltersChange({
         ...filters,
         [key]: Array.isArray(value) && value.length === 0 ? undefined : value,
@@ -58,6 +59,14 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
       updateFilter('vendedores', [...current, vendedor]);
     } else {
       updateFilter('vendedores', current.filter(v => v !== vendedor));
+    }
+  };
+  const handleQuemVendeuToggle = (nome: string, checked: boolean) => {
+    const current = filters.quemVendeu || [];
+    if (checked) {
+      updateFilter('quemVendeu', [...current, nome]);
+    } else {
+      updateFilter('quemVendeu', current.filter(v => v !== nome));
     }
   };
 
@@ -147,6 +156,62 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
                   variant="ghost"
                   size="sm"
                   onClick={() => updateFilter('vendedores', [])}
+                  className="w-full mt-2 text-muted-foreground hover:text-destructive text-xs h-7"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Limpar seleção
+                </Button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+
+      {/* Quem Vendeu Multi-Select */}
+      {options.quemVendeu.length > 0 && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                'h-8 justify-between min-w-[140px]',
+                filters.quemVendeu && filters.quemVendeu.length > 0 && 'border-primary/50'
+              )}
+            >
+              <div className="flex items-center gap-1.5">
+                <UserCheck className="h-3.5 w-3.5" />
+                <span className="text-xs">
+                  {filters.quemVendeu && filters.quemVendeu.length > 0
+                    ? `${filters.quemVendeu.length} vendedor(es)`
+                    : 'Quem Vendeu'}
+                </span>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2 bg-popover border-border z-50" align="start">
+            <div className="space-y-2">
+              {options.quemVendeu.map((nome) => (
+                <div key={nome} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`quemvendeu-${nome}`}
+                    checked={filters.quemVendeu?.includes(nome) || false}
+                    onCheckedChange={(checked) => handleQuemVendeuToggle(nome, checked === true)}
+                  />
+                  <label
+                    htmlFor={`quemvendeu-${nome}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {nome}
+                  </label>
+                </div>
+              ))}
+              {filters.quemVendeu && filters.quemVendeu.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => updateFilter('quemVendeu', [])}
                   className="w-full mt-2 text-muted-foreground hover:text-destructive text-xs h-7"
                 >
                   <X className="h-3 w-3 mr-1" />
