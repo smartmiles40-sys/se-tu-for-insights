@@ -47,14 +47,8 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
   const [tablePage, setTablePage] = useState(1);
   const tablePageSize = 15;
 
-  // Helper to check if date is in filter period
   const isInPeriod = (dateStr: string | null): boolean => {
-    if (!dateStr) return false;
-    if (!filters?.dataInicio && !filters?.dataFim) return true;
-    const date = dateStr;
-    if (filters?.dataInicio && date < filters.dataInicio) return false;
-    if (filters?.dataFim && date > filters.dataFim) return false;
-    return true;
+    return !!dateStr;
   };
 
   const isPipelineValido = (pipeline: string | null): boolean => {

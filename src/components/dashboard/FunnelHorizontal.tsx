@@ -21,11 +21,8 @@ const FUNNEL_COLORS = [
 ];
 
 export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
-  // Helper to check if date is in period
   const isInPeriod = (dateStr: string | null | undefined): boolean => {
-    if (!dateStr) return false;
-    if (!filters?.dataInicio || !filters?.dataFim) return true;
-    return dateStr >= filters.dataInicio && dateStr <= filters.dataFim;
+    return !!dateStr;
   };
 
   const funnelData = useMemo(() => {
