@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Negocio, NegocioFilters } from "@/hooks/useNegocios";
+import { SDRPerformance } from "./SDRPerformance";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -478,6 +479,8 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
           )}
         </CardContent>
       </Card>
+      {/* SDR Performance Table */}
+      <SDRPerformance negocios={negocios} />
     </div>
   );
 }

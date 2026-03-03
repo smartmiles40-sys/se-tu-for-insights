@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { getTodayBrazil } from '@/lib/dateUtils';
 
 interface SDRPerformanceProps {
   negocios: Negocio[];
@@ -9,7 +10,8 @@ interface SDRPerformanceProps {
 
 interface SDRStats {
   nome: string;
-  agendamentos: number;
+  agendamentosTotais: number;
+  agendamentosAteData: number;
   fechouVenda: number;
   faturamentoGerado: number;
   reunioesRealizadas: number;
@@ -22,13 +24,16 @@ interface SDRStats {
 }
 
 export function SDRPerformance({ negocios }: SDRPerformanceProps) {
+  const today = getTodayBrazil();
+
   const sdrStats = useMemo((): SDRStats[] => {
     const sdrs = [...new Set(negocios.map(n => n.sdr).filter((s): s is string => !!s && s.trim() !== ''))];
 
     return sdrs.map(sdr => {
       const sdrNegocios = negocios.filter(n => n.sdr === sdr);
       const totalLeads = sdrNegocios.length;
-      const agendamentos = sdrNegocios.filter(n => n.data_agendamento).length;
+      const agendamentosTotais = sdrNegocios.filter(n => n.data_agendamento).length;
+      const agendamentosAteData = sdrNegocios.filter(n => n.data_agendamento && n.data_agendamento <= today).length;
       const reunioesRealizadas = sdrNegocios.filter(n => n.data_reuniao_realizada).length;
       const noShow = sdrNegocios.filter(n => n.data_noshow).length;
       const fechouVenda = sdrNegocios.filter(n => n.data_venda).length;
@@ -37,19 +42,20 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
 
       return {
         nome: sdr,
-        agendamentos,
+        agendamentosTotais,
+        agendamentosAteData,
         fechouVenda,
         faturamentoGerado,
         reunioesRealizadas,
         noShow,
-        noShowPercent: agendamentos > 0 ? (noShow / agendamentos) * 100 : 0,
-        comparecimento: agendamentos > 0 ? (reunioesRealizadas / agendamentos) * 100 : 0,
+        noShowPercent: agendamentosTotais > 0 ? (noShow / agendamentosTotais) * 100 : 0,
+        comparecimento: reunioesRealizadas,
         mql,
         totalLeads,
         leadMql: totalLeads > 0 ? (mql / totalLeads) * 100 : 0,
       };
     }).sort((a, b) => b.faturamentoGerado - a.faturamentoGerado);
-  }, [negocios]);
+  }, [negocios, today]);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
   const formatCurrency = (value: number) =>
@@ -72,27 +78,31 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
   }
 
   const totais = sdrStats.reduce((acc, s) => ({
-    agendamentos: acc.agendamentos + s.agendamentos,
+    agendamentosTotais: acc.agendamentosTotais + s.agendamentosTotais,
+    agendamentosAteData: acc.agendamentosAteData + s.agendamentosAteData,
     fechouVenda: acc.fechouVenda + s.fechouVenda,
     faturamentoGerado: acc.faturamentoGerado + s.faturamentoGerado,
     reunioesRealizadas: acc.reunioesRealizadas + s.reunioesRealizadas,
     noShow: acc.noShow + s.noShow,
+    comparecimento: acc.comparecimento + s.comparecimento,
     mql: acc.mql + s.mql,
     totalLeads: acc.totalLeads + s.totalLeads,
-  }), { agendamentos: 0, fechouVenda: 0, faturamentoGerado: 0, reunioesRealizadas: 0, noShow: 0, mql: 0, totalLeads: 0 });
+  }), { agendamentosTotais: 0, agendamentosAteData: 0, fechouVenda: 0, faturamentoGerado: 0, reunioesRealizadas: 0, noShow: 0, comparecimento: 0, mql: 0, totalLeads: 0 });
+
+  const headers = ['SDR', 'Agend. Totais', 'Agend. até Hoje', 'Vendas', 'Faturamento', 'Reuniões', 'No-Show', 'No-Show %', 'Comparec.', 'MQL', 'Leads', 'Lead→MQL', 'Status'];
 
   return (
     <div className="bg-card rounded-xl p-6 shadow-sm border border-border/50">
       <div className="mb-6">
         <h3 className="text-xl font-display font-semibold text-foreground">Performance SDRs — Quem fez o agendamento</h3>
-        <p className="text-sm text-muted-foreground mt-1">Todos os indicadores calculados pelo campo "Quem fez o agendamento?"</p>
+        <p className="text-sm text-muted-foreground mt-1">Indicadores calculados pelo campo "Quem fez o agendamento?"</p>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              {['SDR', 'Agendamentos', 'Fechou Venda', 'Faturamento', 'Reuniões', 'No-Show', 'No-Show %', 'Comp. %', 'MQL', 'Leads', 'Lead→MQL', 'Status'].map(h => (
+              {headers.map(h => (
                 <th key={h} className={cn(
                   "py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
                   h === 'SDR' ? 'text-left' : 'text-right',
@@ -111,13 +121,14 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
                     <span className="font-medium text-foreground">{s.nome}</span>
                     {index === 0 && <span className="ml-2 text-xs bg-success/20 text-success px-2 py-0.5 rounded-full">Top</span>}
                   </td>
-                  <td className="py-3 px-3 text-right font-semibold text-primary">{formatNumber(s.agendamentos)}</td>
+                  <td className="py-3 px-3 text-right font-semibold text-primary">{formatNumber(s.agendamentosTotais)}</td>
+                  <td className="py-3 px-3 text-right font-semibold">{formatNumber(s.agendamentosAteData)}</td>
                   <td className="py-3 px-3 text-right font-semibold">{formatNumber(s.fechouVenda)}</td>
                   <td className="py-3 px-3 text-right font-semibold text-success">{formatCurrency(s.faturamentoGerado)}</td>
                   <td className="py-3 px-3 text-right">{formatNumber(s.reunioesRealizadas)}</td>
                   <td className="py-3 px-3 text-right">{formatNumber(s.noShow)}</td>
                   <td className={cn("py-3 px-3 text-right font-medium", s.noShowPercent > 20 ? 'text-destructive' : 'text-success')}>{formatPercent(s.noShowPercent)}</td>
-                  <td className={cn("py-3 px-3 text-right font-medium", s.comparecimento >= 80 ? 'text-success' : 'text-warning')}>{formatPercent(s.comparecimento)}</td>
+                  <td className="py-3 px-3 text-right">{formatNumber(s.comparecimento)}</td>
                   <td className="py-3 px-3 text-right">{formatNumber(s.mql)}</td>
                   <td className="py-3 px-3 text-right">{formatNumber(s.totalLeads)}</td>
                   <td className="py-3 px-3 text-right">{formatPercent(s.leadMql)}</td>
@@ -134,13 +145,14 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
           <tfoot>
             <tr className="bg-muted/50 font-semibold">
               <td className="py-3 px-3">TOTAL</td>
-              <td className="py-3 px-3 text-right text-primary">{formatNumber(totais.agendamentos)}</td>
+              <td className="py-3 px-3 text-right text-primary">{formatNumber(totais.agendamentosTotais)}</td>
+              <td className="py-3 px-3 text-right">{formatNumber(totais.agendamentosAteData)}</td>
               <td className="py-3 px-3 text-right">{formatNumber(totais.fechouVenda)}</td>
               <td className="py-3 px-3 text-right text-success">{formatCurrency(totais.faturamentoGerado)}</td>
               <td className="py-3 px-3 text-right">{formatNumber(totais.reunioesRealizadas)}</td>
               <td className="py-3 px-3 text-right">{formatNumber(totais.noShow)}</td>
-              <td className="py-3 px-3 text-right">{formatPercent(totais.agendamentos > 0 ? (totais.noShow / totais.agendamentos) * 100 : 0)}</td>
-              <td className="py-3 px-3 text-right">{formatPercent(totais.agendamentos > 0 ? (totais.reunioesRealizadas / totais.agendamentos) * 100 : 0)}</td>
+              <td className="py-3 px-3 text-right">{formatPercent(totais.agendamentosTotais > 0 ? (totais.noShow / totais.agendamentosTotais) * 100 : 0)}</td>
+              <td className="py-3 px-3 text-right">{formatNumber(totais.comparecimento)}</td>
               <td className="py-3 px-3 text-right">{formatNumber(totais.mql)}</td>
               <td className="py-3 px-3 text-right">{formatNumber(totais.totalLeads)}</td>
               <td className="py-3 px-3 text-right">{formatPercent(totais.totalLeads > 0 ? (totais.mql / totais.totalLeads) * 100 : 0)}</td>
