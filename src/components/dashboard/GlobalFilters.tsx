@@ -8,10 +8,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, ChevronDown, User, Users, UserCheck, Megaphone } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { X, ChevronDown, User, Users, UserCheck, Megaphone, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
 import { NavLink, useLocation } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface GlobalFiltersProps {
   filters: NegocioFilters;
@@ -87,9 +90,12 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
     { path: '/marketing', label: 'Marketing', icon: Megaphone },
   ];
 
+  const fromDate = filters.dataInicioFrom ? parseISO(filters.dataInicioFrom) : undefined;
+  const toDate = filters.dataInicioTo ? parseISO(filters.dataInicioTo) : undefined;
+
   return (
     <div className="flex flex-wrap items-center gap-2 p-3 bg-card/50 backdrop-blur-sm rounded-lg border border-border/50">
-      {/* Navigation Links - Before date filters */}
+      {/* Navigation Links */}
       <div className="flex items-center gap-1 mr-2 border-r border-border/50 pr-3">
         {navLinks.map((link) => {
           const isActive = location.pathname === link.path;
@@ -110,6 +116,73 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
           );
         })}
       </div>
+
+      {/* Date Range Filter - Data de Início */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              'h-8 justify-start text-left font-normal min-w-[180px]',
+              (fromDate || toDate) && 'border-primary/50'
+            )}
+          >
+            <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+            <span className="text-xs">
+              {fromDate && toDate
+                ? `${format(fromDate, 'dd/MM/yy')} - ${format(toDate, 'dd/MM/yy')}`
+                : fromDate
+                  ? `A partir de ${format(fromDate, 'dd/MM/yy')}`
+                  : toDate
+                    ? `Até ${format(toDate, 'dd/MM/yy')}`
+                    : 'Data de início'}
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 bg-popover border-border z-50" align="start">
+          <div className="flex flex-col gap-2 p-3">
+            <div className="text-xs font-medium text-muted-foreground">De:</div>
+            <Calendar
+              mode="single"
+              selected={fromDate}
+              onSelect={(date) => {
+                onFiltersChange({
+                  ...filters,
+                  dataInicioFrom: date ? format(date, 'yyyy-MM-dd') : undefined,
+                });
+              }}
+              locale={ptBR}
+              className={cn("p-1 pointer-events-auto")}
+            />
+            <div className="text-xs font-medium text-muted-foreground">Até:</div>
+            <Calendar
+              mode="single"
+              selected={toDate}
+              onSelect={(date) => {
+                onFiltersChange({
+                  ...filters,
+                  dataInicioTo: date ? format(date, 'yyyy-MM-dd') : undefined,
+                });
+              }}
+              locale={ptBR}
+              disabled={(date) => fromDate ? date < fromDate : false}
+              className={cn("p-1 pointer-events-auto")}
+            />
+            {(fromDate || toDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onFiltersChange({ ...filters, dataInicioFrom: undefined, dataInicioTo: undefined })}
+                className="text-muted-foreground hover:text-destructive text-xs h-7"
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                Limpar datas
+              </Button>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       {/* Vendedor Multi-Select */}
       {options.vendedores.length > 0 && (
