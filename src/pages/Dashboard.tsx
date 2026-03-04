@@ -8,6 +8,7 @@ import { OrigemPerformance } from '@/components/dashboard/OrigemPerformance';
 import { MetaProgress } from '@/components/dashboard/MetaProgress';
 import { MetaProgressCompact } from '@/components/dashboard/MetaProgressCompact';
 import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart';
+import { YearOverYearChart } from '@/components/dashboard/YearOverYearChart';
 import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegocios';
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle, Filter } from 'lucide-react';
@@ -539,6 +540,11 @@ export default function Dashboard() {
             {/* Daily Revenue Chart */}
             <div className="mt-4">
               <DailyRevenueChart data={allNegocios || []} month={currentMonth} year={currentYear} metaExcelente={metaGlobal?.meta_faturamento_excelente} />
+            </div>
+
+            {/* Year over Year Comparison */}
+            <div className="mt-4">
+              <YearOverYearChart />
             </div>
           </>}
       </div>
