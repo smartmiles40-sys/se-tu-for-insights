@@ -86,6 +86,12 @@ export default function Dashboard() {
     const reunioesAgendadas = negocios.filter(n => n.data_agendamento !== null).length;
 
     // ========================================
+    // REUNIÕES ATÉ HOJE = COUNT(data_agendamento <= hoje)
+    // ========================================
+    const today = getTodayBrazil();
+    const reunioesAteData = negocios.filter(n => n.data_agendamento && n.data_agendamento <= today).length;
+
+    // ========================================
     // % AGENDAMENTO = Agendamentos / Total Leads
     // Meta: ≥15%
     // ========================================
@@ -111,19 +117,19 @@ export default function Dashboard() {
     }).length;
 
     // ========================================
-    // % NO-SHOW = COUNT(data_noshow) / COUNT(data_agendamento)
+    // % NO-SHOW = COUNT(data_noshow) / Reuniões até Hoje
     // Meta: ≤20%
     // ========================================
-    const taxaNoShow = reunioesAgendadas > 0 ? noShows / reunioesAgendadas * 100 : 0;
+    const taxaNoShow = reunioesAteData > 0 ? noShows / reunioesAteData * 100 : 0;
 
     // ========================================
-    // % SHOW-UP = COUNT(data_reuniao_realizada) / COUNT(data_agendamento)
+    // % SHOW-UP = COUNT(data_reuniao_realizada) / Reuniões até Hoje
     // Meta: ≥80%
     // ========================================
-    const taxaShowUp = reunioesAgendadas > 0 ? reunioesRealizadas / reunioesAgendadas * 100 : 0;
+    const taxaShowUp = reunioesAteData > 0 ? reunioesRealizadas / reunioesAteData * 100 : 0;
 
-    // Base com resultado para exibição nos cards
-    const baseComResultado = reunioesAgendadas;
+    // Base com resultado para exibição nos cards (reuniões até hoje)
+    const baseComResultado = reunioesAteData;
 
     // ========================================
     // VENDAS E FATURAMENTO

@@ -21,18 +21,18 @@ export function CriticalRatesPanel({ negocios }: CriticalRatesPanelProps) {
     const mql = negocios.filter(n => n.mql).length;
     const sql = negocios.filter(n => n.sql_qualificado || n.reuniao_agendada).length;
     const reunioesAgendadas = negocios.filter(n => n.reuniao_agendada).length;
+    const today = getTodayBrazil();
+    const reunioesAteHoje = negocios.filter(n => n.data_agendamento && n.data_agendamento <= today).length;
     const reunioesRealizadas = negocios.filter(n => n.reuniao_realizada).length;
     const vendas = negocios.filter(n => n.venda_aprovada).length;
-    // No-show: COUNT(data_noshow IS NOT NULL) - presença de data indica no-show
-    // No-show: agendamento passado sem reunião realizada
-    const noShows = negocios.filter(n => n.data_agendamento && n.data_agendamento < getTodayBrazil() && !n.data_reuniao_realizada).length;
+    const noShows = negocios.filter(n => n.data_noshow !== null).length;
 
     return {
       agendamento: totalLeads > 0 ? (reunioesAgendadas / totalLeads) * 100 : 0,
       mqlToSql: mql > 0 ? (sql / mql) * 100 : 0,
       sqlToVenda: sql > 0 ? (vendas / sql) * 100 : 0,
-      noShow: reunioesAgendadas > 0 ? (noShows / reunioesAgendadas) * 100 : 0,
-      showUp: reunioesAgendadas > 0 ? (reunioesRealizadas / reunioesAgendadas) * 100 : 0,
+      noShow: reunioesAteHoje > 0 ? (noShows / reunioesAteHoje) * 100 : 0,
+      showUp: reunioesAteHoje > 0 ? (reunioesRealizadas / reunioesAteHoje) * 100 : 0,
     };
   }, [negocios]);
 
