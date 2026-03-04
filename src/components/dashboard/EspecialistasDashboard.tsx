@@ -91,6 +91,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
                 <TableHead className="text-right">Reun. até Hoje</TableHead>
                 <TableHead className="text-right">Realizadas</TableHead>
                 <TableHead className="text-right">No-Show</TableHead>
+                <TableHead className="text-right">MQL</TableHead>
                 <TableHead className="text-right">% Conv.</TableHead>
                 <TableHead className="text-right">MQL→Venda</TableHead>
                 <TableHead className="text-right">Ticket Médio</TableHead>
@@ -108,6 +109,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
                   <TableCell className="text-right font-semibold">{new Intl.NumberFormat('pt-BR').format(esp.reunioesAteData)}</TableCell>
                   <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.reunioesRealizadas)}</TableCell>
                   <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.noShow)}</TableCell>
+                  <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.mql)}</TableCell>
                   <TableCell className="text-right font-medium">{esp.taxaConversao.toFixed(1)}%</TableCell>
                   <TableCell className="text-right">{esp.mqlVenda.toFixed(1)}%</TableCell>
                   <TableCell className="text-right">{formatCurrency(esp.ticketMedio)}</TableCell>
