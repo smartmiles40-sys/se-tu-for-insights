@@ -5,6 +5,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { getTodayBrazil } from '@/lib/dateUtils';
 
 interface EspecialistasDashboardProps {
   negocios: Negocio[];
@@ -15,6 +16,7 @@ interface EspecialistaStats {
   faturamento: number;
   vendas: number;
   reunioesMarcadas: number;
+  reunioesAteData: number;
   reunioesRealizadas: number;
   noShow: number;
   taxaNoShow: number;
@@ -26,6 +28,8 @@ interface EspecialistaStats {
 }
 
 export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps) {
+  const today = getTodayBrazil();
+
   const especialistaStats = useMemo((): EspecialistaStats[] => {
     const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v && v.trim() !== ''))];
 
@@ -34,6 +38,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
       const vendas = vn.filter(n => n.data_venda).length;
       const faturamento = vn.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
       const reunioesMarcadas = vn.filter(n => n.data_agendamento).length;
+      const reunioesAteData = vn.filter(n => n.data_agendamento && n.data_agendamento <= today).length;
       const reunioesRealizadas = vn.filter(n => n.data_reuniao_realizada).length;
       const noShow = vn.filter(n => n.data_noshow).length;
       const mql = vn.filter(n => n.data_mql).length;
@@ -43,6 +48,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
         faturamento,
         vendas,
         reunioesMarcadas,
+        reunioesAteData,
         reunioesRealizadas,
         noShow,
         taxaNoShow: reunioesMarcadas > 0 ? (noShow / reunioesMarcadas) * 100 : 0,
@@ -53,7 +59,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
         ticketMedio: vendas > 0 ? faturamento / vendas : 0,
       };
     }).sort((a, b) => b.faturamento - a.faturamento);
-  }, [negocios]);
+  }, [negocios, today]);
 
   const maxReceita = Math.max(...especialistaStats.map(e => e.faturamento), 1);
 
@@ -82,6 +88,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
                 <TableHead className="text-right">Faturamento</TableHead>
                 <TableHead className="text-right">Vendas</TableHead>
                 <TableHead className="text-right">Reuniões Marc.</TableHead>
+                <TableHead className="text-right">Reun. até Hoje</TableHead>
                 <TableHead className="text-right">Realizadas</TableHead>
                 <TableHead className="text-right">No-Show</TableHead>
                 <TableHead className="text-right">% Conv.</TableHead>
@@ -98,6 +105,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
                   <TableCell className="text-right font-semibold text-success">{formatCurrency(esp.faturamento)}</TableCell>
                   <TableCell className="text-right font-semibold text-primary">{new Intl.NumberFormat('pt-BR').format(esp.vendas)}</TableCell>
                   <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.reunioesMarcadas)}</TableCell>
+                  <TableCell className="text-right font-semibold">{new Intl.NumberFormat('pt-BR').format(esp.reunioesAteData)}</TableCell>
                   <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.reunioesRealizadas)}</TableCell>
                   <TableCell className="text-right">{new Intl.NumberFormat('pt-BR').format(esp.noShow)}</TableCell>
                   <TableCell className="text-right font-medium">{esp.taxaConversao.toFixed(1)}%</TableCell>
