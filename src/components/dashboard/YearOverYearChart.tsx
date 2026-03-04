@@ -111,13 +111,6 @@ export function YearOverYearChart() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider">2026</p>
               <p className="text-xl font-bold text-primary">{formatCurrencyFull(total2026)}</p>
             </div>
-            <div className="h-10 w-px bg-border" />
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Crescimento</p>
-              <p className={`text-xl font-bold ${growthPercent >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {growthPercent >= 0 ? '+' : ''}{growthPercent.toFixed(1)}%
-              </p>
-            </div>
             {/* Edit button */}
             <Button
               variant={editing ? 'default' : 'outline'}
