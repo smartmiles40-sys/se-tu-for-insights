@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -11,7 +11,9 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, Pencil, Check } from 'lucide-react';
+import { TrendingUp, Pencil, Check, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const MONTHS = [
   'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
@@ -20,30 +22,76 @@ const MONTHS = [
 
 interface MonthData {
   month: string;
+  monthIndex: number;
   year2025: number;
   year2026: number;
 }
 
-const DEFAULT_DATA: MonthData[] = MONTHS.map((m) => ({
+const DEFAULT_DATA: MonthData[] = MONTHS.map((m, i) => ({
   month: m,
+  monthIndex: i + 1,
   year2025: 0,
   year2026: 0,
 }));
 
 export function YearOverYearChart() {
-  const [data, setData] = useState<MonthData[]>(() => {
-    try {
-      const saved = localStorage.getItem('yoy-chart-data');
-      return saved ? JSON.parse(saved) : DEFAULT_DATA;
-    } catch {
-      return DEFAULT_DATA;
-    }
-  });
+  const [data, setData] = useState<MonthData[]>(DEFAULT_DATA);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    localStorage.setItem('yoy-chart-data', JSON.stringify(data));
-    setEditing(false);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: rows, error } = await supabase
+      .from('yoy_data')
+      .select('mes, ano, valor')
+      .in('ano', [2025, 2026]);
+
+    if (error) {
+      console.error('Error fetching yoy_data:', error);
+      setLoading(false);
+      return;
+    }
+
+    const merged = DEFAULT_DATA.map((d) => {
+      const v2025 = rows?.find((r) => r.mes === d.monthIndex && r.ano === 2025);
+      const v2026 = rows?.find((r) => r.mes === d.monthIndex && r.ano === 2026);
+      return {
+        ...d,
+        year2025: v2025 ? Number(v2025.valor) : 0,
+        year2026: v2026 ? Number(v2026.valor) : 0,
+      };
+    });
+    setData(merged);
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const upserts: { mes: number; ano: number; valor: number }[] = [];
+    data.forEach((row) => {
+      if (row.year2025 > 0) upserts.push({ mes: row.monthIndex, ano: 2025, valor: row.year2025 });
+      else upserts.push({ mes: row.monthIndex, ano: 2025, valor: 0 });
+      if (row.year2026 > 0) upserts.push({ mes: row.monthIndex, ano: 2026, valor: row.year2026 });
+      else upserts.push({ mes: row.monthIndex, ano: 2026, valor: 0 });
+    });
+
+    const { error } = await supabase
+      .from('yoy_data')
+      .upsert(upserts, { onConflict: 'mes,ano' });
+
+    if (error) {
+      console.error('Error saving yoy_data:', error);
+      toast.error('Erro ao salvar dados');
+    } else {
+      toast.success('Dados salvos com sucesso');
+      setEditing(false);
+    }
+    setSaving(false);
   };
 
   const handleChange = (index: number, field: 'year2025' | 'year2026', value: string) => {
@@ -73,7 +121,6 @@ export function YearOverYearChart() {
 
   const total2025 = useMemo(() => data.reduce((s, d) => s + d.year2025, 0), [data]);
   const total2026 = useMemo(() => data.reduce((s, d) => s + d.year2026, 0), [data]);
-  const growthPercent = total2025 > 0 ? ((total2026 - total2025) / total2025) * 100 : 0;
 
   const renderTooltip = (props: { active?: boolean; payload?: any[]; label?: string }) => {
     const { active, payload, label } = props;
@@ -92,6 +139,16 @@ export function YearOverYearChart() {
     return null;
   };
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -101,7 +158,6 @@ export function YearOverYearChart() {
             Comparativo Anual — 2025 vs 2026
           </CardTitle>
           <div className="flex items-center gap-6">
-            {/* Totals */}
             <div className="text-right">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">2025</p>
               <p className="text-xl font-bold text-chart-2">{formatCurrencyFull(total2025)}</p>
@@ -111,14 +167,20 @@ export function YearOverYearChart() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider">2026</p>
               <p className="text-xl font-bold text-primary">{formatCurrencyFull(total2026)}</p>
             </div>
-            {/* Edit button */}
             <Button
               variant={editing ? 'default' : 'outline'}
               size="sm"
               onClick={editing ? handleSave : () => setEditing(true)}
               className="h-8"
+              disabled={saving}
             >
-              {editing ? <Check className="h-4 w-4 mr-1" /> : <Pencil className="h-4 w-4 mr-1" />}
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : editing ? (
+                <Check className="h-4 w-4 mr-1" />
+              ) : (
+                <Pencil className="h-4 w-4 mr-1" />
+              )}
               {editing ? 'Salvar' : 'Editar'}
             </Button>
           </div>
@@ -192,9 +254,7 @@ export function YearOverYearChart() {
                   tickFormatter={formatCurrency}
                 />
                 <Tooltip content={renderTooltip} />
-                <Legend
-                  wrapperStyle={{ fontSize: 12 }}
-                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar
                   dataKey="year2025"
                   name="2025"
