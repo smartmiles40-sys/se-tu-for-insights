@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
+import { useColaboradores } from '@/hooks/useColaboradores';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -29,12 +30,15 @@ interface EspecialistaStats {
 
 export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps) {
   const today = getTodayBrazil();
+  const { data: colaboradoresEsp } = useColaboradores('especialista');
 
   const especialistaStats = useMemo((): EspecialistaStats[] => {
-    const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v && v.trim() !== ''))];
+    if (!colaboradoresEsp || colaboradoresEsp.length === 0) return [];
 
-    return vendedores.map(vendedor => {
-      const vn = negocios.filter(n => n.vendedor === vendedor);
+    const espNames = colaboradoresEsp.map(c => c.nome);
+
+    return espNames.map(vendedor => {
+      const vn = negocios.filter(n => n.vendedor && n.vendedor.toLowerCase().includes(vendedor.toLowerCase()));
       const vendas = vn.filter(n => n.data_venda).length;
       const faturamento = vn.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
       const reunioesMarcadas = vn.filter(n => n.data_agendamento).length;
@@ -59,7 +63,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
         ticketMedio: vendas > 0 ? faturamento / vendas : 0,
       };
     }).sort((a, b) => b.faturamento - a.faturamento);
-  }, [negocios, today]);
+  }, [negocios, today, colaboradoresEsp]);
 
   const maxReceita = Math.max(...especialistaStats.map(e => e.faturamento), 1);
 
