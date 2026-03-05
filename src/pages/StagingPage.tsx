@@ -7,7 +7,23 @@ import { StagingFilters, SourceFilter, AdvancedFilters } from '@/components/stag
 import { StagingActions } from '@/components/staging/StagingActions';
 import { StagingPagination } from '@/components/staging/StagingPagination';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
-import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { FileSpreadsheet, Clock, CheckCircle, XCircle, Heart, Trash2, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useState as useStateAlias } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const PAGE_SIZE = 200;
 
@@ -20,6 +36,26 @@ export default function StagingPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: allData, isLoading } = useStagingNegocios();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [deletingRelacionamento, setDeletingRelacionamento] = useStateAlias(false);
+
+  const handleDeleteRelacionamento = async () => {
+    setDeletingRelacionamento(true);
+    try {
+      const { error } = await supabase
+        .from('clientes_relacionamento')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['clientes_relacionamento'] });
+      toast({ title: 'Dados excluídos', description: 'Os dados de relacionamento foram removidos com sucesso.' });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível excluir os dados de relacionamento.' });
+    } finally {
+      setDeletingRelacionamento(false);
+    }
+  };
   
   // Extract unique filter options from data
   const filterOptions = useMemo(() => {
@@ -161,14 +197,39 @@ export default function StagingPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-3">
-              <FileSpreadsheet className="h-7 w-7" />
-              Gerenciar Dados
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Revise e aprove dados importados via arquivo ou recebidos do n8n antes de entrarem no dashboard.
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-3">
+                <FileSpreadsheet className="h-7 w-7" />
+                Gerenciar Dados
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Revise e aprove dados importados via arquivo ou recebidos do n8n antes de entrarem no dashboard.
+              </p>
+            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10" disabled={deletingRelacionamento}>
+                  {deletingRelacionamento ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}
+                  Excluir Relacionamento
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir dados de relacionamento?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Todos os dados importados na tabela de relacionamento serão permanentemente removidos. Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteRelacionamento} className="bg-destructive hover:bg-destructive/90">
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
 
           {/* Stats Cards */}
