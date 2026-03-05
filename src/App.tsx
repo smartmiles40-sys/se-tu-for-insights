@@ -16,6 +16,7 @@ import MarketingPage from "./pages/MarketingPage";
 import MetasPage from "./pages/MetasPage";
 import ResumoColaboradorPage from "./pages/ResumoColaboradorPage";
 import ConfiguracoesPage from "./pages/ConfiguracoesPage";
+import RelacionamentoPage from "./pages/RelacionamentoPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/marketing" element={<ProtectedRoute><MarketingPage /></ProtectedRoute>} />
               <Route path="/metas" element={<ProtectedRoute requiredRole="gestor"><MetasPage /></ProtectedRoute>} />
               <Route path="/resumo" element={<ProtectedRoute><ResumoColaboradorPage /></ProtectedRoute>} />
+              <Route path="/relacionamento" element={<ProtectedRoute><RelacionamentoPage /></ProtectedRoute>} />
               <Route path="/configuracoes" element={<ProtectedRoute requiredRole="gestor"><ConfiguracoesPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
