@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 interface FunnelHorizontalProps {
   negocios: Negocio[];
   filters?: NegocioFilters;
+  leadsOverride?: number | null;
 }
 
 const IDEAL_RATES = {
@@ -20,14 +21,14 @@ const FUNNEL_COLORS = [
   { bg: 'bg-emerald-500', border: 'border-emerald-600', text: 'text-emerald-500' },
 ];
 
-export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
+export function FunnelHorizontal({ negocios, filters, leadsOverride }: FunnelHorizontalProps) {
   const isInPeriod = (dateStr: string | null | undefined): boolean => {
     return !!dateStr;
   };
 
   const funnelData = useMemo(() => {
-    // Leads: contagem total de registros (todos os IDs)
-    const leads = negocios.length;
+    // Leads: usa override manual se disponível, senão contagem total
+    const leads = leadsOverride ?? negocios.length;
     
     // MQL: COUNT(data_mql preenchida)
     const mql = negocios.filter(n => n.data_mql !== null).length;
@@ -48,7 +49,7 @@ export function FunnelHorizontal({ negocios, filters }: FunnelHorizontalProps) {
       { name: 'SQL', value: sql, rate: mqlToSqlRate, ideal: IDEAL_RATES.mqlToSql, width: 60 },
       { name: 'Vendas', value: vendas, rate: sqlToVendasRate, ideal: IDEAL_RATES.sqlToVendas, width: 40 },
     ];
-  }, [negocios, filters]);
+  }, [negocios, filters, leadsOverride]);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
 
