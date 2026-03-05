@@ -120,8 +120,8 @@ export default function MetasPage() {
   const upsertMeta = useUpsertMeta();
 
   const [globalMeta, setGlobalMeta] = useState<GlobalMeta>(defaultGlobalMeta);
-  const [sdrMetas, setSdrMetas] = useState<Record<string, IndividualMeta>>({});
-  const [especialistaMetas, setEspecialistaMetas] = useState<Record<string, IndividualMeta>>({});
+  const [sdrMeta, setSdrMeta] = useState<IndividualMeta>(defaultIndividualMeta);
+  const [especialistaMeta, setEspecialistaMeta] = useState<IndividualMeta>(defaultIndividualMeta);
 
   useEffect(() => {
     if (!metas) return;
@@ -151,58 +151,57 @@ export default function MetasPage() {
       setGlobalMeta(defaultGlobalMeta);
     }
 
-    const sdrMap: Record<string, IndividualMeta> = {};
-    const especialistaMap: Record<string, IndividualMeta> = {};
+    const sdrRecord = metas.find(m => m.tipo === 'sdr' && !m.responsavel);
+    if (sdrRecord) {
+      setSdrMeta({
+        meta_faturamento_minimo: sdrRecord.meta_faturamento_minimo || 0,
+        meta_faturamento_satisfatorio: sdrRecord.meta_faturamento_satisfatorio || 0,
+        meta_faturamento_excelente: sdrRecord.meta_faturamento_excelente || 0,
+        meta_reunioes_minimo: sdrRecord.meta_reunioes_minimo || 0,
+        meta_reunioes_satisfatorio: sdrRecord.meta_reunioes_satisfatorio || 0,
+        meta_reunioes_excelente: sdrRecord.meta_reunioes_excelente || 0,
+        meta_agendamentos_minimo: sdrRecord.meta_agendamentos_minimo || 0,
+        meta_agendamentos_satisfatorio: sdrRecord.meta_agendamentos_satisfatorio || 0,
+        meta_agendamentos_excelente: sdrRecord.meta_agendamentos_excelente || 0,
+        meta_conversao_minimo: sdrRecord.meta_conversao_minimo || 0,
+        meta_conversao_satisfatorio: sdrRecord.meta_conversao_satisfatorio || 0,
+        meta_conversao_excelente: sdrRecord.meta_conversao_excelente || 0,
+        meta_margem_minimo: sdrRecord.meta_margem_minimo || 0,
+        meta_margem_satisfatorio: sdrRecord.meta_margem_satisfatorio || 0,
+        meta_margem_excelente: sdrRecord.meta_margem_excelente || 0,
+        meta_media_closer_minimo: sdrRecord.meta_media_closer_minimo || 0,
+        meta_media_closer_satisfatorio: sdrRecord.meta_media_closer_satisfatorio || 0,
+        meta_media_closer_excelente: sdrRecord.meta_media_closer_excelente || 0,
+      });
+    } else {
+      setSdrMeta(defaultIndividualMeta);
+    }
 
-    metas.forEach(m => {
-      if (m.tipo === 'sdr' && m.responsavel) {
-        sdrMap[m.responsavel] = {
-          meta_faturamento_minimo: m.meta_faturamento_minimo || 0,
-          meta_faturamento_satisfatorio: m.meta_faturamento_satisfatorio || 0,
-          meta_faturamento_excelente: m.meta_faturamento_excelente || 0,
-          meta_reunioes_minimo: m.meta_reunioes_minimo || 0,
-          meta_reunioes_satisfatorio: m.meta_reunioes_satisfatorio || 0,
-          meta_reunioes_excelente: m.meta_reunioes_excelente || 0,
-          meta_agendamentos_minimo: m.meta_agendamentos_minimo || 0,
-          meta_agendamentos_satisfatorio: m.meta_agendamentos_satisfatorio || 0,
-          meta_agendamentos_excelente: m.meta_agendamentos_excelente || 0,
-          meta_conversao_minimo: m.meta_conversao_minimo || 0,
-          meta_conversao_satisfatorio: m.meta_conversao_satisfatorio || 0,
-          meta_conversao_excelente: m.meta_conversao_excelente || 0,
-          meta_margem_minimo: m.meta_margem_minimo || 0,
-          meta_margem_satisfatorio: m.meta_margem_satisfatorio || 0,
-          meta_margem_excelente: m.meta_margem_excelente || 0,
-          meta_media_closer_minimo: m.meta_media_closer_minimo || 0,
-          meta_media_closer_satisfatorio: m.meta_media_closer_satisfatorio || 0,
-          meta_media_closer_excelente: m.meta_media_closer_excelente || 0,
-        };
-      }
-      if (m.tipo === 'especialista' && m.responsavel) {
-        especialistaMap[m.responsavel] = {
-          meta_faturamento_minimo: m.meta_faturamento_minimo || 0,
-          meta_faturamento_satisfatorio: m.meta_faturamento_satisfatorio || 0,
-          meta_faturamento_excelente: m.meta_faturamento_excelente || 0,
-          meta_reunioes_minimo: m.meta_reunioes_minimo || 0,
-          meta_reunioes_satisfatorio: m.meta_reunioes_satisfatorio || 0,
-          meta_reunioes_excelente: m.meta_reunioes_excelente || 0,
-          meta_agendamentos_minimo: m.meta_agendamentos_minimo || 0,
-          meta_agendamentos_satisfatorio: m.meta_agendamentos_satisfatorio || 0,
-          meta_agendamentos_excelente: m.meta_agendamentos_excelente || 0,
-          meta_conversao_minimo: m.meta_conversao_minimo || 0,
-          meta_conversao_satisfatorio: m.meta_conversao_satisfatorio || 0,
-          meta_conversao_excelente: m.meta_conversao_excelente || 0,
-          meta_margem_minimo: m.meta_margem_minimo || 0,
-          meta_margem_satisfatorio: m.meta_margem_satisfatorio || 0,
-          meta_margem_excelente: m.meta_margem_excelente || 0,
-          meta_media_closer_minimo: m.meta_media_closer_minimo || 0,
-          meta_media_closer_satisfatorio: m.meta_media_closer_satisfatorio || 0,
-          meta_media_closer_excelente: m.meta_media_closer_excelente || 0,
-        };
-      }
-    });
-
-    setSdrMetas(sdrMap);
-    setEspecialistaMetas(especialistaMap);
+    const espRecord = metas.find(m => m.tipo === 'especialista' && !m.responsavel);
+    if (espRecord) {
+      setEspecialistaMeta({
+        meta_faturamento_minimo: espRecord.meta_faturamento_minimo || 0,
+        meta_faturamento_satisfatorio: espRecord.meta_faturamento_satisfatorio || 0,
+        meta_faturamento_excelente: espRecord.meta_faturamento_excelente || 0,
+        meta_reunioes_minimo: espRecord.meta_reunioes_minimo || 0,
+        meta_reunioes_satisfatorio: espRecord.meta_reunioes_satisfatorio || 0,
+        meta_reunioes_excelente: espRecord.meta_reunioes_excelente || 0,
+        meta_agendamentos_minimo: espRecord.meta_agendamentos_minimo || 0,
+        meta_agendamentos_satisfatorio: espRecord.meta_agendamentos_satisfatorio || 0,
+        meta_agendamentos_excelente: espRecord.meta_agendamentos_excelente || 0,
+        meta_conversao_minimo: espRecord.meta_conversao_minimo || 0,
+        meta_conversao_satisfatorio: espRecord.meta_conversao_satisfatorio || 0,
+        meta_conversao_excelente: espRecord.meta_conversao_excelente || 0,
+        meta_margem_minimo: espRecord.meta_margem_minimo || 0,
+        meta_margem_satisfatorio: espRecord.meta_margem_satisfatorio || 0,
+        meta_margem_excelente: espRecord.meta_margem_excelente || 0,
+        meta_media_closer_minimo: espRecord.meta_media_closer_minimo || 0,
+        meta_media_closer_satisfatorio: espRecord.meta_media_closer_satisfatorio || 0,
+        meta_media_closer_excelente: espRecord.meta_media_closer_excelente || 0,
+      });
+    } else {
+      setEspecialistaMeta(defaultIndividualMeta);
+    }
   }, [metas]);
 
   const handleSaveGlobal = async () => {
@@ -214,32 +213,32 @@ export default function MetasPage() {
     });
   };
 
-  const handleSaveIndividual = async (tipo: 'sdr' | 'especialista', nome: string) => {
-    const metaMap = tipo === 'sdr' ? sdrMetas : especialistaMetas;
-    const meta = metaMap[nome] || defaultIndividualMeta;
+  const handleSaveSDR = async () => {
     await upsertMeta.mutateAsync({
-      tipo,
-      responsavel: nome,
+      tipo: 'sdr',
+      responsavel: null,
       mes: selectedMes,
       ano: selectedAno,
-      ...meta,
+      ...sdrMeta,
     });
   };
 
-  const updateIndividualMeta = (
-    tipo: 'sdr' | 'especialista',
-    nome: string,
-    field: keyof IndividualMeta,
-    value: number
-  ) => {
-    const setter = tipo === 'sdr' ? setSdrMetas : setEspecialistaMetas;
-    setter(prev => ({
-      ...prev,
-      [nome]: {
-        ...(prev[nome] || defaultIndividualMeta),
-        [field]: value,
-      },
-    }));
+  const handleSaveEspecialista = async () => {
+    await upsertMeta.mutateAsync({
+      tipo: 'especialista',
+      responsavel: null,
+      mes: selectedMes,
+      ano: selectedAno,
+      ...especialistaMeta,
+    });
+  };
+
+  const updateSdrMeta = (field: keyof IndividualMeta, value: number) => {
+    setSdrMeta(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateEspecialistaMeta = (field: keyof IndividualMeta, value: number) => {
+    setEspecialistaMeta(prev => ({ ...prev, [field]: value }));
   };
 
   if (loadingMetas || loadingSDRs || loadingEspecialistas) {
@@ -533,194 +532,152 @@ export default function MetasPage() {
 
           {/* SDRs Tab */}
           <TabsContent value="sdrs" className="mt-6">
-            <div className="space-y-4">
-              {!sdrs || sdrs.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      Nenhum SDR cadastrado. Cadastre SDRs nas Configurações.
-                    </p>
-                    <Button asChild variant="outline">
-                      <Link to="/configuracoes">Ir para Configurações</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                sdrs.map((sdr) => {
-                  const meta = sdrMetas[sdr.nome] || defaultIndividualMeta;
-                  return (
-                    <Card key={sdr.id}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Users className="h-4 w-4 text-blue-400" />
-                          {sdr.nome}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <ThreeLevelInput
-                          label="Receita Originada (R$)"
-                          icon={DollarSign}
-                          iconColor="text-cyan-400"
-                          values={{
-                            minimo: meta.meta_faturamento_minimo,
-                            satisfatorio: meta.meta_faturamento_satisfatorio,
-                            excelente: meta.meta_faturamento_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_faturamento_${level}` as keyof IndividualMeta, value)}
-                          isCurrency
-                        />
-                        <ThreeLevelInput
-                          label="Reuniões Marcadas → Lead"
-                          icon={Calendar}
-                          iconColor="text-purple-400"
-                          values={{
-                            minimo: meta.meta_reunioes_minimo,
-                            satisfatorio: meta.meta_reunioes_satisfatorio,
-                            excelente: meta.meta_reunioes_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_reunioes_${level}` as keyof IndividualMeta, value)}
-                        />
-                        <ThreeLevelInput
-                          label="Comparecimento (%)"
-                          icon={TrendingUp}
-                          iconColor="text-green-400"
-                          values={{
-                            minimo: meta.meta_conversao_minimo,
-                            satisfatorio: meta.meta_conversao_satisfatorio,
-                            excelente: meta.meta_conversao_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_conversao_${level}` as keyof IndividualMeta, value)}
-                          isPercent
-                        />
-                        <ThreeLevelInput
-                          label="Qualificação Lead → MQL (%)"
-                          icon={TrendingUp}
-                          iconColor="text-orange-400"
-                          values={{
-                            minimo: meta.meta_margem_minimo,
-                            satisfatorio: meta.meta_margem_satisfatorio,
-                            excelente: meta.meta_margem_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_margem_${level}` as keyof IndividualMeta, value)}
-                          isPercent
-                        />
-                        <Button
-                          onClick={() => handleSaveIndividual('sdr', sdr.nome)}
-                          disabled={upsertMeta.isPending}
-                          className="w-full"
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          Salvar Metas de {sdr.nome}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-400" />
+                  Meta SDRs - {meses.find(m => m.value === selectedMes)?.label} {selectedAno}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ThreeLevelInput
+                  label="Receita Originada (R$)"
+                  icon={DollarSign}
+                  iconColor="text-cyan-400"
+                  values={{
+                    minimo: sdrMeta.meta_faturamento_minimo,
+                    satisfatorio: sdrMeta.meta_faturamento_satisfatorio,
+                    excelente: sdrMeta.meta_faturamento_excelente,
+                  }}
+                  onChange={(level, value) => updateSdrMeta(`meta_faturamento_${level}` as keyof IndividualMeta, value)}
+                  isCurrency
+                />
+                <ThreeLevelInput
+                  label="Reuniões Marcadas → Lead"
+                  icon={Calendar}
+                  iconColor="text-purple-400"
+                  values={{
+                    minimo: sdrMeta.meta_reunioes_minimo,
+                    satisfatorio: sdrMeta.meta_reunioes_satisfatorio,
+                    excelente: sdrMeta.meta_reunioes_excelente,
+                  }}
+                  onChange={(level, value) => updateSdrMeta(`meta_reunioes_${level}` as keyof IndividualMeta, value)}
+                />
+                <ThreeLevelInput
+                  label="Comparecimento (%)"
+                  icon={TrendingUp}
+                  iconColor="text-green-400"
+                  values={{
+                    minimo: sdrMeta.meta_conversao_minimo,
+                    satisfatorio: sdrMeta.meta_conversao_satisfatorio,
+                    excelente: sdrMeta.meta_conversao_excelente,
+                  }}
+                  onChange={(level, value) => updateSdrMeta(`meta_conversao_${level}` as keyof IndividualMeta, value)}
+                  isPercent
+                />
+                <ThreeLevelInput
+                  label="Qualificação Lead → MQL (%)"
+                  icon={TrendingUp}
+                  iconColor="text-orange-400"
+                  values={{
+                    minimo: sdrMeta.meta_margem_minimo,
+                    satisfatorio: sdrMeta.meta_margem_satisfatorio,
+                    excelente: sdrMeta.meta_margem_excelente,
+                  }}
+                  onChange={(level, value) => updateSdrMeta(`meta_margem_${level}` as keyof IndividualMeta, value)}
+                  isPercent
+                />
+                <Button
+                  onClick={handleSaveSDR}
+                  disabled={upsertMeta.isPending}
+                  className="w-full"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Metas SDRs
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Especialistas Tab */}
           <TabsContent value="especialistas" className="mt-6">
-            <div className="space-y-4">
-              {!especialistas || especialistas.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <UserCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground mb-4">
-                      Nenhum especialista cadastrado. Cadastre especialistas nas Configurações.
-                    </p>
-                    <Button asChild variant="outline">
-                      <Link to="/configuracoes">Ir para Configurações</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                especialistas.map((especialista) => {
-                  const meta = especialistaMetas[especialista.nome] || defaultIndividualMeta;
-                  return (
-                    <Card key={especialista.id}>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <UserCheck className="h-4 w-4 text-green-400" />
-                          {especialista.nome}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <ThreeLevelInput
-                          label="Faturamento Global (R$)"
-                          icon={DollarSign}
-                          iconColor="text-cyan-400"
-                          values={{
-                            minimo: meta.meta_faturamento_minimo,
-                            satisfatorio: meta.meta_faturamento_satisfatorio,
-                            excelente: meta.meta_faturamento_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_faturamento_${level}` as keyof IndividualMeta, value)}
-                          isCurrency
-                        />
-                        <ThreeLevelInput
-                          label="Média por Especialista (R$)"
-                          icon={DollarSign}
-                          iconColor="text-pink-400"
-                          values={{
-                            minimo: meta.meta_media_closer_minimo,
-                            satisfatorio: meta.meta_media_closer_satisfatorio,
-                            excelente: meta.meta_media_closer_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_media_closer_${level}` as keyof IndividualMeta, value)}
-                          isCurrency
-                        />
-                        <ThreeLevelInput
-                          label="Margem Global (%)"
-                          icon={TrendingUp}
-                          iconColor="text-orange-400"
-                          values={{
-                            minimo: meta.meta_margem_minimo,
-                            satisfatorio: meta.meta_margem_satisfatorio,
-                            excelente: meta.meta_margem_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_margem_${level}` as keyof IndividualMeta, value)}
-                          isPercent
-                        />
-                        <ThreeLevelInput
-                          label="Conversão MQL → Venda (%)"
-                          icon={TrendingUp}
-                          iconColor="text-green-400"
-                          values={{
-                            minimo: meta.meta_conversao_minimo,
-                            satisfatorio: meta.meta_conversao_satisfatorio,
-                            excelente: meta.meta_conversao_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_conversao_${level}` as keyof IndividualMeta, value)}
-                          isPercent
-                        />
-                        <ThreeLevelInput
-                          label="Reuniões Realizadas"
-                          icon={Calendar}
-                          iconColor="text-purple-400"
-                          values={{
-                            minimo: meta.meta_reunioes_minimo,
-                            satisfatorio: meta.meta_reunioes_satisfatorio,
-                            excelente: meta.meta_reunioes_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_reunioes_${level}` as keyof IndividualMeta, value)}
-                        />
-                        <Button
-                          onClick={() => handleSaveIndividual('especialista', especialista.nome)}
-                          disabled={upsertMeta.isPending}
-                          className="w-full"
-                        >
-                          <Save className="h-4 w-4 mr-2" />
-                          Salvar Metas de {especialista.nome}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-green-400" />
+                  Meta Especialistas - {meses.find(m => m.value === selectedMes)?.label} {selectedAno}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ThreeLevelInput
+                  label="Faturamento Global (R$)"
+                  icon={DollarSign}
+                  iconColor="text-cyan-400"
+                  values={{
+                    minimo: especialistaMeta.meta_faturamento_minimo,
+                    satisfatorio: especialistaMeta.meta_faturamento_satisfatorio,
+                    excelente: especialistaMeta.meta_faturamento_excelente,
+                  }}
+                  onChange={(level, value) => updateEspecialistaMeta(`meta_faturamento_${level}` as keyof IndividualMeta, value)}
+                  isCurrency
+                />
+                <ThreeLevelInput
+                  label="Média por Especialista (R$)"
+                  icon={DollarSign}
+                  iconColor="text-pink-400"
+                  values={{
+                    minimo: especialistaMeta.meta_media_closer_minimo,
+                    satisfatorio: especialistaMeta.meta_media_closer_satisfatorio,
+                    excelente: especialistaMeta.meta_media_closer_excelente,
+                  }}
+                  onChange={(level, value) => updateEspecialistaMeta(`meta_media_closer_${level}` as keyof IndividualMeta, value)}
+                  isCurrency
+                />
+                <ThreeLevelInput
+                  label="Margem Global (%)"
+                  icon={TrendingUp}
+                  iconColor="text-orange-400"
+                  values={{
+                    minimo: especialistaMeta.meta_margem_minimo,
+                    satisfatorio: especialistaMeta.meta_margem_satisfatorio,
+                    excelente: especialistaMeta.meta_margem_excelente,
+                  }}
+                  onChange={(level, value) => updateEspecialistaMeta(`meta_margem_${level}` as keyof IndividualMeta, value)}
+                  isPercent
+                />
+                <ThreeLevelInput
+                  label="Conversão MQL → Venda (%)"
+                  icon={TrendingUp}
+                  iconColor="text-green-400"
+                  values={{
+                    minimo: especialistaMeta.meta_conversao_minimo,
+                    satisfatorio: especialistaMeta.meta_conversao_satisfatorio,
+                    excelente: especialistaMeta.meta_conversao_excelente,
+                  }}
+                  onChange={(level, value) => updateEspecialistaMeta(`meta_conversao_${level}` as keyof IndividualMeta, value)}
+                  isPercent
+                />
+                <ThreeLevelInput
+                  label="Reuniões Realizadas"
+                  icon={Calendar}
+                  iconColor="text-purple-400"
+                  values={{
+                    minimo: especialistaMeta.meta_reunioes_minimo,
+                    satisfatorio: especialistaMeta.meta_reunioes_satisfatorio,
+                    excelente: especialistaMeta.meta_reunioes_excelente,
+                  }}
+                  onChange={(level, value) => updateEspecialistaMeta(`meta_reunioes_${level}` as keyof IndividualMeta, value)}
+                />
+                <Button
+                  onClick={handleSaveEspecialista}
+                  disabled={upsertMeta.isPending}
+                  className="w-full"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Metas Especialistas
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
