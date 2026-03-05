@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
-import { X, ChevronDown, User, Users, UserCheck, Megaphone, CalendarIcon } from 'lucide-react';
+import { X, ChevronDown, User, Users, UserCheck, Megaphone, CalendarIcon, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NegocioFilters } from '@/hooks/useNegocios';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -88,6 +88,7 @@ export function GlobalFilters({ filters, onFiltersChange, options }: GlobalFilte
     { path: '/sdr', label: 'SDRs', icon: Users },
     { path: '/especialistas', label: 'Especialistas', icon: UserCheck },
     { path: '/marketing', label: 'Marketing', icon: Megaphone },
+    { path: '/relacionamento', label: 'Relacionamento', icon: Heart },
   ];
 
   const fromDate = filters.dataInicioFrom ? parseISO(filters.dataInicioFrom) : undefined;

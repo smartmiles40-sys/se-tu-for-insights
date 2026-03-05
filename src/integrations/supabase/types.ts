@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      clientes_relacionamento: {
+        Row: {
+          created_at: string
+          data_primeira_viagem: string | null
+          data_ultima_viagem: string | null
+          id: string
+          imported_by: string | null
+          nome_cliente: string
+          quantidade_viagens: number
+          segmento: string | null
+          status: string
+          updated_at: string
+          valor_total_cliente: number
+        }
+        Insert: {
+          created_at?: string
+          data_primeira_viagem?: string | null
+          data_ultima_viagem?: string | null
+          id?: string
+          imported_by?: string | null
+          nome_cliente: string
+          quantidade_viagens?: number
+          segmento?: string | null
+          status?: string
+          updated_at?: string
+          valor_total_cliente?: number
+        }
+        Update: {
+          created_at?: string
+          data_primeira_viagem?: string | null
+          data_ultima_viagem?: string | null
+          id?: string
+          imported_by?: string | null
+          nome_cliente?: string
+          quantidade_viagens?: number
+          segmento?: string | null
+          status?: string
+          updated_at?: string
+          valor_total_cliente?: number
+        }
+        Relationships: []
+      }
       colaboradores: {
         Row: {
           ativo: boolean | null
