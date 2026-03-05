@@ -33,21 +33,7 @@ export function ClienteDistributionChart({ clientes, stats }: ClienteDistributio
   const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 }).format(v);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Receita por Cliente */}
-      <div className="bi-card lg:col-span-1">
-        <h3 className="bi-card-title mb-3">Receita por Cliente (Top 10)</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={topClientes} layout="vertical" margin={{ left: 0, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-            <YAxis type="category" dataKey="nome" tick={{ fill: '#94a3b8', fontSize: 10 }} width={100} />
-            <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} />
-            <Bar dataKey="valor" fill="#06b6d4" radius={[0, 4, 4, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Distribuição Novos vs Recorrentes */}
       <div className="bi-card">
         <h3 className="bi-card-title mb-3">Distribuição de Clientes</h3>
