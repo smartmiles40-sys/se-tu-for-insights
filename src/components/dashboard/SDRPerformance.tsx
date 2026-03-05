@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
+import { useColaboradores } from '@/hooks/useColaboradores';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { getTodayBrazil } from '@/lib/dateUtils';
@@ -25,12 +26,15 @@ interface SDRStats {
 
 export function SDRPerformance({ negocios }: SDRPerformanceProps) {
   const today = getTodayBrazil();
+  const { data: colaboradoresSDR } = useColaboradores('sdr');
 
   const sdrStats = useMemo((): SDRStats[] => {
-    const sdrs = [...new Set(negocios.map(n => n.sdr).filter((s): s is string => !!s && s.trim() !== ''))];
+    if (!colaboradoresSDR || colaboradoresSDR.length === 0) return [];
 
-    return sdrs.map(sdr => {
-      const sdrNegocios = negocios.filter(n => n.sdr === sdr);
+    const sdrNames = colaboradoresSDR.map(c => c.nome);
+
+    return sdrNames.map(sdr => {
+      const sdrNegocios = negocios.filter(n => n.sdr && n.sdr.toLowerCase().includes(sdr.toLowerCase()));
       const totalLeads = sdrNegocios.length;
       const agendamentosTotais = sdrNegocios.filter(n => n.data_agendamento).length;
       const agendamentosAteData = sdrNegocios.filter(n => n.data_agendamento && n.data_agendamento <= today).length;
@@ -55,7 +59,7 @@ export function SDRPerformance({ negocios }: SDRPerformanceProps) {
         leadMql: totalLeads > 0 ? (mql / totalLeads) * 100 : 0,
       };
     }).sort((a, b) => b.faturamentoGerado - a.faturamentoGerado);
-  }, [negocios, today]);
+  }, [negocios, today, colaboradoresSDR]);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
   const formatCurrency = (value: number) =>
