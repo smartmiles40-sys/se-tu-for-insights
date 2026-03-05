@@ -23,6 +23,9 @@ export default function Dashboard() {
   const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string[]>([]);
   const [investimentoTotal, setInvestimentoTotal] = useState(0);
   const [leadsManual, setLeadsManual] = useState<number | null>(null);
+  const [cplManual, setCplManual] = useState<number | null>(null);
+  const [custoMqlManual, setCustoMqlManual] = useState<number | null>(null);
+  const [custoReuniaoManual, setCustoReuniaoManual] = useState<number | null>(null);
 
   const currentMonth = getCurrentMonthBrazil();
   const currentYear = getCurrentYearBrazil();
@@ -467,23 +470,50 @@ export default function Dashboard() {
                     {/* CPL = Investimento / Total Leads */}
                     <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                       <div className="text-xs text-slate-400 uppercase">CPL</div>
-                      <div className="text-base font-bold text-cyan-400">
-                        {formatCurrencyDecimal((leadsManual ?? executiveStats.totalLeads) > 0 ? investimentoTotal / (leadsManual ?? executiveStats.totalLeads) : 0)}
-                      </div>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="bg-transparent border-none text-right text-base font-bold text-cyan-400 w-28 focus:outline-none focus:ring-1 focus:ring-primary/50 rounded px-1"
+                        defaultValue={cplManual ?? ((leadsManual ?? executiveStats.totalLeads) > 0 ? (investimentoTotal / (leadsManual ?? executiveStats.totalLeads)).toFixed(2) : '0.00')}
+                        key={`cpl-${cplManual}-${investimentoTotal}-${leadsManual}`}
+                        onBlur={(e) => {
+                          const parsed = parseFloat(e.target.value.replace(',', '.')) || 0;
+                          setCplManual(parsed);
+                          e.target.value = String(parsed.toFixed(2));
+                        }}
+                      />
                     </div>
                     {/* Custo MQL = Investimento / COUNT(MQL) */}
                     <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                       <div className="text-xs text-slate-400 uppercase">Custo MQL</div>
-                      <div className="text-base font-bold text-purple-400">
-                        {formatCurrencyDecimal(executiveStats.mqlCount > 0 ? investimentoTotal / executiveStats.mqlCount : 0)}
-                      </div>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="bg-transparent border-none text-right text-base font-bold text-purple-400 w-28 focus:outline-none focus:ring-1 focus:ring-primary/50 rounded px-1"
+                        defaultValue={custoMqlManual ?? (executiveStats.mqlCount > 0 ? (investimentoTotal / executiveStats.mqlCount).toFixed(2) : '0.00')}
+                        key={`cmql-${custoMqlManual}-${investimentoTotal}`}
+                        onBlur={(e) => {
+                          const parsed = parseFloat(e.target.value.replace(',', '.')) || 0;
+                          setCustoMqlManual(parsed);
+                          e.target.value = String(parsed.toFixed(2));
+                        }}
+                      />
                     </div>
                     {/* Custo Reunião = Investimento / COUNT(reuniões realizadas) */}
                     <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                       <div className="text-xs text-slate-400 uppercase">Custo Reunião</div>
-                      <div className="text-base font-bold text-blue-400">
-                        {formatCurrencyDecimal(executiveStats.reunioesRealizadas > 0 ? investimentoTotal / executiveStats.reunioesRealizadas : 0)}
-                      </div>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="bg-transparent border-none text-right text-base font-bold text-blue-400 w-28 focus:outline-none focus:ring-1 focus:ring-primary/50 rounded px-1"
+                        defaultValue={custoReuniaoManual ?? (executiveStats.reunioesRealizadas > 0 ? (investimentoTotal / executiveStats.reunioesRealizadas).toFixed(2) : '0.00')}
+                        key={`creun-${custoReuniaoManual}-${investimentoTotal}`}
+                        onBlur={(e) => {
+                          const parsed = parseFloat(e.target.value.replace(',', '.')) || 0;
+                          setCustoReuniaoManual(parsed);
+                          e.target.value = String(parsed.toFixed(2));
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
