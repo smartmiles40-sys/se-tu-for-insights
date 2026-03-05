@@ -9,6 +9,7 @@ import { StagingPagination } from '@/components/staging/StagingPagination';
 import { RelacionamentoManager } from '@/components/staging/RelacionamentoManager';
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
 import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PAGE_SIZE = 200;
 
@@ -19,7 +20,7 @@ export default function StagingPage() {
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({});
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [activeTab, setActiveTab] = useState<'comercial' | 'relacionamento'>('comercial');
   const { data: allData, isLoading } = useStagingNegocios();
   
   // Extract unique filter options from data
@@ -216,66 +217,74 @@ export default function StagingPage() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div>
-                <CardTitle>Registros</CardTitle>
-                <CardDescription>
-                  Clique em uma célula para editar. Selecione registros pendentes para aprovar, rejeitar ou excluir.
-                </CardDescription>
-              </div>
-              <StagingActions
-                selectedIds={selectedIds}
-                onClearSelection={() => setSelectedIds([])}
-                showApproveReject={selectedArePending}
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <StagingFilters
-              search={search}
-              onSearchChange={setSearch}
-              statusFilter={statusFilter}
-              onStatusChange={setStatusFilter}
-              sourceFilter={sourceFilter}
-              onSourceChange={setSourceFilter}
-              advancedFilters={advancedFilters}
-              onAdvancedFiltersChange={setAdvancedFilters}
-              filterOptions={filterOptions}
-              counts={counts}
-            />
+        {/* Tab Switcher */}
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as 'comercial' | 'relacionamento'); setSelectedIds([]); }}>
+          <TabsList>
+            <TabsTrigger value="comercial">Comercial</TabsTrigger>
+            <TabsTrigger value="relacionamento">Relacionamento</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <StagingTable
-                    data={paginatedData}
-                    selectedIds={selectedIds}
-                    onSelectionChange={setSelectedIds}
-                  />
+        {activeTab === 'comercial' ? (
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Registros</CardTitle>
+                  <CardDescription>
+                    Clique em uma célula para editar. Selecione registros pendentes para aprovar, rejeitar ou excluir.
+                  </CardDescription>
                 </div>
-                <StagingPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredData.length}
-                  pageSize={PAGE_SIZE}
-                  onPageChange={handlePageChange}
+                <StagingActions
+                  selectedIds={selectedIds}
+                  onClearSelection={() => setSelectedIds([])}
+                  showApproveReject={selectedArePending}
                 />
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <StagingFilters
+                search={search}
+                onSearchChange={setSearch}
+                statusFilter={statusFilter}
+                onStatusChange={setStatusFilter}
+                sourceFilter={sourceFilter}
+                onSourceChange={setSourceFilter}
+                advancedFilters={advancedFilters}
+                onAdvancedFiltersChange={setAdvancedFilters}
+                filterOptions={filterOptions}
+                counts={counts}
+              />
 
-        {/* Relacionamento Manager */}
-        <RelacionamentoManager />
+              {isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <StagingTable
+                      data={paginatedData}
+                      selectedIds={selectedIds}
+                      onSelectionChange={setSelectedIds}
+                    />
+                  </div>
+                  <StagingPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredData.length}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={handlePageChange}
+                  />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <RelacionamentoManager />
+        )}
       </div>
     </DashboardLayout>
   );
