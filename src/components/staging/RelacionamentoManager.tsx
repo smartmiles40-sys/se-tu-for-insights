@@ -122,7 +122,8 @@ export function RelacionamentoManager() {
   // CSV/Excel import logic
   const columnMapping: Record<string, string> = {
     'nome_cliente': 'nome_cliente', 'nome do cliente': 'nome_cliente', 'nome cliente': 'nome_cliente',
-    'cliente': 'nome_cliente', 'nome': 'nome_cliente',
+    'cliente': 'nome_cliente', 'nome': 'nome_cliente', 'contato: primeiro nome': 'nome_cliente',
+    'contato primeiro nome': 'nome_cliente', 'primeiro nome': 'nome_cliente',
     'valor_total_cliente': 'valor_total_cliente', 'valor total cliente': 'valor_total_cliente',
     'valor total': 'valor_total_cliente', 'valor': 'valor_total_cliente', 'total': 'valor_total_cliente',
     'receita': 'valor_total_cliente', 'faturamento': 'valor_total_cliente',
