@@ -27,7 +27,7 @@ export function RelacionamentoDashboard() {
         <AlertTriangle className="h-16 w-16 text-slate-500 mx-auto mb-6" />
         <h3 className="text-2xl font-semibold mb-3 text-slate-200">Nenhum dado de relacionamento</h3>
         <p className="text-slate-400 max-w-md mx-auto">
-          Importe o CSV de relacionamento através da opção "Importar Dados" no menu lateral.
+          Os dados de relacionamento são derivados automaticamente das vendas realizadas (registros com "Data da venda realizada" preenchida).
         </p>
       </div>
     );
@@ -38,10 +38,10 @@ export function RelacionamentoDashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <KPICardWithSparkline title="LTV Médio" value={formatCurrency(stats.ltvMedio)} icon={DollarSign} color="cyan" sparklineData={[]} />
-        <KPICardWithSparkline title="Receita Ativos" value={formatCurrency(stats.receitaAtivos)} icon={TrendingUp} color="green" sparklineData={[]} />
+        <KPICardWithSparkline title="Receita Total" value={formatCurrency(stats.receitaTotal)} icon={TrendingUp} color="green" sparklineData={[]} />
         <KPICardWithSparkline title="Ticket Médio" value={formatCurrency(stats.ticketMedio)} icon={DollarSign} color="yellow" sparklineData={[]} />
         <KPICardWithSparkline title="Taxa Recompra" value={`${stats.taxaRecompra.toFixed(1)}%`} icon={Repeat} color="magenta" sparklineData={[]} />
-        <KPICardWithSparkline title="Clientes Ativos" value={formatNumber(stats.clientesAtivos)} icon={UserCheck} color="orange" sparklineData={[]} />
+        <KPICardWithSparkline title="Total Clientes" value={formatNumber(stats.totalClientes)} icon={UserCheck} color="orange" sparklineData={[]} />
         <KPICardWithSparkline title="Recorrentes" value={formatNumber(stats.clientesRecorrentes)} icon={Heart} color="cyan" sparklineData={[]} />
       </div>
 
@@ -73,7 +73,7 @@ export function RelacionamentoDashboard() {
         </div>
 
         {/* Loyalty Metrics */}
-        <LoyaltyMetrics stats={stats} clientes={clientes} />
+        <LoyaltyMetrics stats={stats} />
       </div>
 
       {/* Charts */}
