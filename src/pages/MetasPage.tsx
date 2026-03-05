@@ -57,6 +57,15 @@ interface IndividualMeta {
   meta_agendamentos_minimo: number;
   meta_agendamentos_satisfatorio: number;
   meta_agendamentos_excelente: number;
+  meta_conversao_minimo: number;
+  meta_conversao_satisfatorio: number;
+  meta_conversao_excelente: number;
+  meta_margem_minimo: number;
+  meta_margem_satisfatorio: number;
+  meta_margem_excelente: number;
+  meta_media_closer_minimo: number;
+  meta_media_closer_satisfatorio: number;
+  meta_media_closer_excelente: number;
 }
 
 const defaultGlobalMeta: GlobalMeta = {
@@ -89,6 +98,15 @@ const defaultIndividualMeta: IndividualMeta = {
   meta_agendamentos_minimo: 0,
   meta_agendamentos_satisfatorio: 0,
   meta_agendamentos_excelente: 0,
+  meta_conversao_minimo: 0,
+  meta_conversao_satisfatorio: 0,
+  meta_conversao_excelente: 0,
+  meta_margem_minimo: 0,
+  meta_margem_satisfatorio: 0,
+  meta_margem_excelente: 0,
+  meta_media_closer_minimo: 0,
+  meta_media_closer_satisfatorio: 0,
+  meta_media_closer_excelente: 0,
 };
 
 export default function MetasPage() {
@@ -148,6 +166,15 @@ export default function MetasPage() {
           meta_agendamentos_minimo: m.meta_agendamentos_minimo || 0,
           meta_agendamentos_satisfatorio: m.meta_agendamentos_satisfatorio || 0,
           meta_agendamentos_excelente: m.meta_agendamentos_excelente || 0,
+          meta_conversao_minimo: m.meta_conversao_minimo || 0,
+          meta_conversao_satisfatorio: m.meta_conversao_satisfatorio || 0,
+          meta_conversao_excelente: m.meta_conversao_excelente || 0,
+          meta_margem_minimo: m.meta_margem_minimo || 0,
+          meta_margem_satisfatorio: m.meta_margem_satisfatorio || 0,
+          meta_margem_excelente: m.meta_margem_excelente || 0,
+          meta_media_closer_minimo: m.meta_media_closer_minimo || 0,
+          meta_media_closer_satisfatorio: m.meta_media_closer_satisfatorio || 0,
+          meta_media_closer_excelente: m.meta_media_closer_excelente || 0,
         };
       }
       if (m.tipo === 'especialista' && m.responsavel) {
@@ -161,6 +188,15 @@ export default function MetasPage() {
           meta_agendamentos_minimo: m.meta_agendamentos_minimo || 0,
           meta_agendamentos_satisfatorio: m.meta_agendamentos_satisfatorio || 0,
           meta_agendamentos_excelente: m.meta_agendamentos_excelente || 0,
+          meta_conversao_minimo: m.meta_conversao_minimo || 0,
+          meta_conversao_satisfatorio: m.meta_conversao_satisfatorio || 0,
+          meta_conversao_excelente: m.meta_conversao_excelente || 0,
+          meta_margem_minimo: m.meta_margem_minimo || 0,
+          meta_margem_satisfatorio: m.meta_margem_satisfatorio || 0,
+          meta_margem_excelente: m.meta_margem_excelente || 0,
+          meta_media_closer_minimo: m.meta_media_closer_minimo || 0,
+          meta_media_closer_satisfatorio: m.meta_media_closer_satisfatorio || 0,
+          meta_media_closer_excelente: m.meta_media_closer_excelente || 0,
         };
       }
     });
@@ -600,7 +636,7 @@ export default function MetasPage() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <ThreeLevelInput
-                          label="Faturamento (R$)"
+                          label="Faturamento Global (R$)"
                           icon={DollarSign}
                           iconColor="text-cyan-400"
                           values={{
@@ -612,7 +648,43 @@ export default function MetasPage() {
                           isCurrency
                         />
                         <ThreeLevelInput
-                          label="Reuniões"
+                          label="Média por Especialista (R$)"
+                          icon={DollarSign}
+                          iconColor="text-pink-400"
+                          values={{
+                            minimo: meta.meta_media_closer_minimo,
+                            satisfatorio: meta.meta_media_closer_satisfatorio,
+                            excelente: meta.meta_media_closer_excelente,
+                          }}
+                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_media_closer_${level}` as keyof IndividualMeta, value)}
+                          isCurrency
+                        />
+                        <ThreeLevelInput
+                          label="Margem Global (%)"
+                          icon={TrendingUp}
+                          iconColor="text-orange-400"
+                          values={{
+                            minimo: meta.meta_margem_minimo,
+                            satisfatorio: meta.meta_margem_satisfatorio,
+                            excelente: meta.meta_margem_excelente,
+                          }}
+                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_margem_${level}` as keyof IndividualMeta, value)}
+                          isPercent
+                        />
+                        <ThreeLevelInput
+                          label="Conversão MQL → Venda (%)"
+                          icon={TrendingUp}
+                          iconColor="text-green-400"
+                          values={{
+                            minimo: meta.meta_conversao_minimo,
+                            satisfatorio: meta.meta_conversao_satisfatorio,
+                            excelente: meta.meta_conversao_excelente,
+                          }}
+                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_conversao_${level}` as keyof IndividualMeta, value)}
+                          isPercent
+                        />
+                        <ThreeLevelInput
+                          label="Reuniões Realizadas"
                           icon={Calendar}
                           iconColor="text-purple-400"
                           values={{
@@ -621,17 +693,6 @@ export default function MetasPage() {
                             excelente: meta.meta_reunioes_excelente,
                           }}
                           onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_reunioes_${level}` as keyof IndividualMeta, value)}
-                        />
-                        <ThreeLevelInput
-                          label="Agendamentos"
-                          icon={Target}
-                          iconColor="text-yellow-400"
-                          values={{
-                            minimo: meta.meta_agendamentos_minimo,
-                            satisfatorio: meta.meta_agendamentos_satisfatorio,
-                            excelente: meta.meta_agendamentos_excelente,
-                          }}
-                          onChange={(level, value) => updateIndividualMeta('especialista', especialista.nome, `meta_agendamentos_${level}` as keyof IndividualMeta, value)}
                         />
                         <Button
                           onClick={() => handleSaveIndividual('especialista', especialista.nome)}
