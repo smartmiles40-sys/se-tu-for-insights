@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
+import { useColaboradores } from '@/hooks/useColaboradores';
 import { cn } from '@/lib/utils';
 import { Award, AlertTriangle, CheckCircle } from 'lucide-react';
 
@@ -23,11 +24,15 @@ interface CloserStats {
 }
 
 export function EspecialistasPerformance({ negocios }: EspecialistasPerformanceProps) {
-  const closerStats = useMemo((): CloserStats[] => {
-    const vendedores = [...new Set(negocios.map(n => n.vendedor).filter((v): v is string => !!v && v.trim() !== ''))];
+  const { data: colaboradoresEsp } = useColaboradores('especialista');
 
-    return vendedores.map(vendedor => {
-      const vNegocios = negocios.filter(n => n.vendedor === vendedor);
+  const closerStats = useMemo((): CloserStats[] => {
+    if (!colaboradoresEsp || colaboradoresEsp.length === 0) return [];
+
+    const espNames = colaboradoresEsp.map(c => c.nome);
+
+    return espNames.map(vendedor => {
+      const vNegocios = negocios.filter(n => n.vendedor && n.vendedor.toLowerCase().includes(vendedor.toLowerCase()));
 
       const faturamento = vNegocios.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
       const vendas = vNegocios.filter(n => n.data_venda).length;
@@ -51,7 +56,7 @@ export function EspecialistasPerformance({ negocios }: EspecialistasPerformanceP
         ticketMedio: vendas > 0 ? faturamento / vendas : 0,
       };
     }).sort((a, b) => b.faturamento - a.faturamento);
-  }, [negocios]);
+  }, [negocios, colaboradoresEsp]);
 
   const formatNumber = (value: number) => new Intl.NumberFormat('pt-BR').format(value);
   const formatCurrency = (value: number) =>
