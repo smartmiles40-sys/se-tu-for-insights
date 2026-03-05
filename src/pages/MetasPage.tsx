@@ -559,7 +559,7 @@ export default function MetasPage() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <ThreeLevelInput
-                          label="Faturamento Originado (R$)"
+                          label="Receita Originada (R$)"
                           icon={DollarSign}
                           iconColor="text-cyan-400"
                           values={{
@@ -571,7 +571,7 @@ export default function MetasPage() {
                           isCurrency
                         />
                         <ThreeLevelInput
-                          label="Reuniões"
+                          label="Reuniões Marcadas → Lead"
                           icon={Calendar}
                           iconColor="text-purple-400"
                           values={{
@@ -582,15 +582,28 @@ export default function MetasPage() {
                           onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_reunioes_${level}` as keyof IndividualMeta, value)}
                         />
                         <ThreeLevelInput
-                          label="Agendamentos"
-                          icon={Target}
-                          iconColor="text-yellow-400"
+                          label="Comparecimento (%)"
+                          icon={TrendingUp}
+                          iconColor="text-green-400"
                           values={{
-                            minimo: meta.meta_agendamentos_minimo,
-                            satisfatorio: meta.meta_agendamentos_satisfatorio,
-                            excelente: meta.meta_agendamentos_excelente,
+                            minimo: meta.meta_conversao_minimo,
+                            satisfatorio: meta.meta_conversao_satisfatorio,
+                            excelente: meta.meta_conversao_excelente,
                           }}
-                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_agendamentos_${level}` as keyof IndividualMeta, value)}
+                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_conversao_${level}` as keyof IndividualMeta, value)}
+                          isPercent
+                        />
+                        <ThreeLevelInput
+                          label="Qualificação Lead → MQL (%)"
+                          icon={TrendingUp}
+                          iconColor="text-orange-400"
+                          values={{
+                            minimo: meta.meta_margem_minimo,
+                            satisfatorio: meta.meta_margem_satisfatorio,
+                            excelente: meta.meta_margem_excelente,
+                          }}
+                          onChange={(level, value) => updateIndividualMeta('sdr', sdr.nome, `meta_margem_${level}` as keyof IndividualMeta, value)}
+                          isPercent
                         />
                         <Button
                           onClick={() => handleSaveIndividual('sdr', sdr.nome)}
