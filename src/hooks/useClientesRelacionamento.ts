@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useNegocios } from '@/hooks/useNegocios';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ClienteRelacionamento {
   nome_cliente: string;
@@ -8,7 +8,7 @@ export interface ClienteRelacionamento {
   data_primeira_compra: string | null;
   data_ultima_compra: string | null;
   ticket_medio: number;
-  tempo_entre_compras: number | null; // days
+  tempo_entre_compras: number | null;
 }
 
 export interface ClientesStats {
@@ -27,53 +27,43 @@ export interface ClientesStats {
 }
 
 export function useClientesRelacionamento() {
-  const { data: negocios, isLoading } = useNegocios();
+  const { data, isLoading } = useQuery({
+    queryKey: ['clientes_relacionamento'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clientes_relacionamento')
+        .select('*')
+        .order('valor_total_cliente', { ascending: false });
+      if (error) throw error;
+      return (data || []) as unknown as Array<{
+        nome_cliente: string;
+        valor_total_cliente: number;
+        quantidade_viagens: number;
+        data_primeira_viagem: string | null;
+        data_ultima_viagem: string | null;
+        status: string;
+        segmento: string | null;
+      }>;
+    },
+  });
 
-  const clientes = useMemo((): ClienteRelacionamento[] => {
-    if (!negocios || negocios.length === 0) return [];
-
-    // Only consider records with data_venda (confirmed sales)
-    const vendas = negocios.filter(n => n.data_venda && n.nome);
-
-    // Group by client name (nome field = "Contato: Primeiro nome")
-    const grouped: Record<string, { total: number; count: number; dates: string[] }> = {};
-
-    for (const v of vendas) {
-      const name = (v.nome || '').trim();
-      if (!name) continue;
-
-      if (!grouped[name]) {
-        grouped[name] = { total: 0, count: 0, dates: [] };
-      }
-      grouped[name].total += v.total || 0;
-      grouped[name].count += 1;
-      grouped[name].dates.push(v.data_venda!);
+  // Map DB fields to component interface
+  const clientes: ClienteRelacionamento[] = (data || []).map(c => {
+    let tempoEntreCompras: number | null = null;
+    if (c.quantidade_viagens > 1 && c.data_primeira_viagem && c.data_ultima_viagem) {
+      const diffMs = new Date(c.data_ultima_viagem).getTime() - new Date(c.data_primeira_viagem).getTime();
+      tempoEntreCompras = Math.round(diffMs / (1000 * 60 * 60 * 24));
     }
-
-    return Object.entries(grouped)
-      .map(([nome, data]) => {
-        const sortedDates = data.dates.sort();
-        const primeira = sortedDates[0];
-        const ultima = sortedDates[sortedDates.length - 1];
-
-        let tempoEntreCompras: number | null = null;
-        if (data.count > 1 && primeira && ultima) {
-          const diffMs = new Date(ultima).getTime() - new Date(primeira).getTime();
-          tempoEntreCompras = Math.round(diffMs / (1000 * 60 * 60 * 24));
-        }
-
-        return {
-          nome_cliente: nome,
-          valor_total_cliente: data.total,
-          quantidade_compras: data.count,
-          data_primeira_compra: primeira,
-          data_ultima_compra: ultima,
-          ticket_medio: data.count > 0 ? data.total / data.count : 0,
-          tempo_entre_compras: tempoEntreCompras,
-        };
-      })
-      .sort((a, b) => b.valor_total_cliente - a.valor_total_cliente);
-  }, [negocios]);
+    return {
+      nome_cliente: c.nome_cliente,
+      valor_total_cliente: c.valor_total_cliente,
+      quantidade_compras: c.quantidade_viagens,
+      data_primeira_compra: c.data_primeira_viagem,
+      data_ultima_compra: c.data_ultima_viagem,
+      ticket_medio: c.quantidade_viagens > 0 ? c.valor_total_cliente / c.quantidade_viagens : 0,
+      tempo_entre_compras: tempoEntreCompras,
+    };
+  });
 
   return { data: clientes, isLoading };
 }
@@ -98,7 +88,6 @@ export function useClientesStats(clientes: ClienteRelacionamento[] | undefined):
   const receitaRecorrentes = recorrentes.reduce((s, c) => s + c.valor_total_cliente, 0);
   const receitaNovos = novos.reduce((s, c) => s + c.valor_total_cliente, 0);
 
-  // Tempo médio entre compras (only clients with 2+ purchases)
   const comTempo = clientes.filter(c => c.tempo_entre_compras !== null && c.tempo_entre_compras > 0);
   const tempoMedio = comTempo.length > 0
     ? Math.round(comTempo.reduce((s, c) => s + c.tempo_entre_compras!, 0) / comTempo.length)
@@ -109,7 +98,7 @@ export function useClientesStats(clientes: ClienteRelacionamento[] | undefined):
     receitaTotal: somaValor,
     ticketMedio: somaCompras > 0 ? somaValor / somaCompras : 0,
     taxaRecompra: total > 0 ? (recorrentes.length / total) * 100 : 0,
-    clientesAtivos: total, // all clients with purchases are "active"
+    clientesAtivos: total,
     clientesRecorrentes: recorrentes.length,
     totalClientes: total,
     clientesMais2Compras: mais2.length,
