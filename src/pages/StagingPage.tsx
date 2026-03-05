@@ -10,6 +10,7 @@ import { RelacionamentoManager } from '@/components/staging/RelacionamentoManage
 import { useStagingNegocios, StagingStatus } from '@/hooks/useStagingNegocios';
 import { FileSpreadsheet, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DataImport } from '@/components/DataImport';
 
 const PAGE_SIZE = 200;
 
@@ -243,6 +244,9 @@ export default function StagingPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Import dropzone */}
+              <DataImport />
+
               <StagingFilters
                 search={search}
                 onSearchChange={setSearch}
