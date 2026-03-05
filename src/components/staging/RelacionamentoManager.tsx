@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -6,13 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Trash2, Search, Loader2, Users } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Heart, Trash2, Search, Loader2, Users, Upload, FileSpreadsheet } from 'lucide-react';
+import { useDropzone } from 'react-dropzone';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 interface ClienteRow {
   id: string;
@@ -29,7 +34,10 @@ interface ClienteRow {
 export function RelacionamentoManager() {
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [importStatus, setImportStatus] = useState<'idle' | 'parsing' | 'importing' | 'success'>('idle');
+  const [importProgress, setImportProgress] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: clientes, isLoading } = useQuery({
@@ -111,6 +119,113 @@ export function RelacionamentoManager() {
   const totalRegistros = clientes?.length || 0;
   const isDeleting = deleteMutation.isPending || deleteAllMutation.isPending;
 
+  // CSV/Excel import logic
+  const columnMapping: Record<string, string> = {
+    'nome_cliente': 'nome_cliente', 'nome do cliente': 'nome_cliente', 'nome cliente': 'nome_cliente',
+    'cliente': 'nome_cliente', 'nome': 'nome_cliente',
+    'valor_total_cliente': 'valor_total_cliente', 'valor total cliente': 'valor_total_cliente',
+    'valor total': 'valor_total_cliente', 'valor': 'valor_total_cliente', 'total': 'valor_total_cliente',
+    'receita': 'valor_total_cliente', 'faturamento': 'valor_total_cliente',
+    'quantidade_viagens': 'quantidade_viagens', 'quantidade viagens': 'quantidade_viagens',
+    'qtd viagens': 'quantidade_viagens', 'viagens': 'quantidade_viagens', 'quantidade': 'quantidade_viagens',
+    'data_primeira_viagem': 'data_primeira_viagem', 'data primeira viagem': 'data_primeira_viagem', 'primeira viagem': 'data_primeira_viagem',
+    'data_ultima_viagem': 'data_ultima_viagem', 'data ultima viagem': 'data_ultima_viagem', 'ultima viagem': 'data_ultima_viagem', 'última viagem': 'data_ultima_viagem',
+    'status': 'status', 'segmento': 'segmento',
+  };
+
+  const parseNumber = (v: string | null | undefined): number => {
+    if (!v) return 0;
+    const cleaned = v.toString().replace(/[R$\s]/g, '').replace(/\./g, '').replace(',', '.');
+    return parseFloat(cleaned) || 0;
+  };
+
+  const parseDate = (v: string | number | null | undefined): string | null => {
+    if (!v) return null;
+    if (typeof v === 'number') {
+      if (v < 1 || v > 60000) return null;
+      const d = new Date(new Date(1899, 11, 30).getTime() + v * 86400000);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    const s = String(v).trim();
+    const slash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slash) {
+      const [, a, b, y] = slash;
+      const day = parseInt(a) > 12 ? a : b;
+      const month = parseInt(a) > 12 ? b : a;
+      return `${y}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    if (s.match(/^\d{4}-\d{2}-\d{2}/)) return s.substring(0, 10);
+    return null;
+  };
+
+  const mapRow = (row: Record<string, string>) => {
+    const mapped: Record<string, any> = { nome_cliente: '' };
+    for (const [col, val] of Object.entries(row)) {
+      const key = columnMapping[col.toLowerCase().trim()];
+      if (!key) continue;
+      if (key === 'valor_total_cliente') mapped[key] = parseNumber(val);
+      else if (key === 'quantidade_viagens') mapped[key] = parseInt(val) || 0;
+      else if (key.startsWith('data_')) mapped[key] = parseDate(val);
+      else mapped[key] = String(val || '').trim() || null;
+    }
+    if (!mapped.nome_cliente) mapped.nome_cliente = 'Sem nome';
+    if (!mapped.status) mapped.status = 'ativo';
+    return mapped;
+  };
+
+  const handleImportFile = useCallback(async (file: File) => {
+    if (!user) return;
+    setImportStatus('parsing');
+    setImportProgress(10);
+    try {
+      let data: Record<string, string>[] = [];
+      if (file.name.endsWith('.csv')) {
+        const text = await file.text();
+        data = Papa.parse(text, { header: true, skipEmptyLines: true }).data as Record<string, string>[];
+      } else {
+        const buffer = await file.arrayBuffer();
+        const wb = XLSX.read(buffer, { type: 'array', raw: true, cellDates: false });
+        data = XLSX.utils.sheet_to_json<Record<string, string>>(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+      }
+      setImportProgress(30);
+      setImportStatus('importing');
+
+      // Delete existing
+      await supabase.from('clientes_relacionamento').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      setImportProgress(50);
+
+      const records = data.map(row => ({ ...mapRow(row), imported_by: user.id }));
+      const batchSize = 500;
+      for (let i = 0; i < records.length; i += batchSize) {
+        const batch = records.slice(i, i + batchSize);
+        const { error } = await supabase.from('clientes_relacionamento').insert(batch as any);
+        if (error) throw error;
+        setImportProgress(50 + Math.round((i / records.length) * 50));
+      }
+
+      setImportProgress(100);
+      setImportStatus('success');
+      queryClient.invalidateQueries({ queryKey: ['clientes_relacionamento_manager'] });
+      queryClient.invalidateQueries({ queryKey: ['clientes_relacionamento'] });
+      toast({ title: 'Importação concluída', description: `${records.length} clientes importados.` });
+      setTimeout(() => setImportStatus('idle'), 2000);
+    } catch (error) {
+      setImportStatus('idle');
+      toast({ variant: 'destructive', title: 'Erro na importação', description: error instanceof Error ? error.message : 'Verifique o arquivo.' });
+    }
+  }, [user, queryClient, toast]);
+
+  const onDrop = useCallback((files: File[]) => {
+    if (files.length > 0) handleImportFile(files[0]);
+  }, [handleImportFile]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'text/csv': ['.csv'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'], 'application/vnd.ms-excel': ['.xls'] },
+    maxFiles: 1,
+    noClick: importStatus !== 'idle',
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -173,6 +288,33 @@ export function RelacionamentoManager() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Import dropzone */}
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+            isDragActive ? 'border-pink-500 bg-pink-500/10' : 'border-border hover:border-primary/50 hover:bg-muted/50'
+          } ${importStatus !== 'idle' ? 'pointer-events-none opacity-60' : ''}`}
+        >
+          <input {...getInputProps()} />
+          {importStatus === 'importing' || importStatus === 'parsing' ? (
+            <div className="space-y-2">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+              <p className="text-sm text-muted-foreground">{importStatus === 'parsing' ? 'Processando arquivo...' : 'Importando...'}</p>
+              <Progress value={importProgress} className="h-1.5 max-w-xs mx-auto" />
+            </div>
+          ) : importStatus === 'success' ? (
+            <p className="text-sm text-emerald-500 font-medium">✓ Importação concluída!</p>
+          ) : (
+            <div className="flex items-center justify-center gap-3">
+              <Upload className="h-5 w-5 text-muted-foreground" />
+              <div className="text-left">
+                <p className="text-sm font-medium text-foreground">Arraste um CSV/Excel ou clique para importar</p>
+                <p className="text-xs text-muted-foreground">Colunas: Nome Cliente, Valor Total, Qtd Viagens, Datas, Status, Segmento</p>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
