@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [filters, setFilters] = useState<NegocioFilters>({});
   const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string[]>([]);
   const [investimentoTotal, setInvestimentoTotal] = useState(0);
-  const [vendasManual, setVendasManual] = useState<number | null>(null);
+  const [leadsManual, setLeadsManual] = useState<number | null>(null);
 
   const currentMonth = getCurrentMonthBrazil();
   const currentYear = getCurrentYearBrazil();
@@ -339,8 +339,8 @@ export default function Dashboard() {
             {/* KPIs Row 1 - Main metrics with sparklines */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <KPICardWithSparkline title="Faturamento" value={formatCurrency(executiveStats.receitaTotal)} icon={DollarSign} color="cyan" sparklineData={sparklineReceita} />
-              <KPICardWithSparkline title="Vendas" value={formatNumber(vendasManual ?? executiveStats.vendasRealizadas)} icon={Target} color="yellow" sparklineData={sparklineVendas} editable onValueChange={(v) => setVendasManual(v)} editableRawValue={vendasManual ?? executiveStats.vendasRealizadas} />
-              <KPICardWithSparkline title="Total Leads" value={formatNumber(executiveStats.totalLeads)} icon={Users} color="orange" sparklineData={sparklineLeads} />
+              <KPICardWithSparkline title="Vendas" value={formatNumber(executiveStats.vendasRealizadas)} icon={Target} color="yellow" sparklineData={sparklineVendas} />
+              <KPICardWithSparkline title="Total Leads" value={formatNumber(leadsManual ?? executiveStats.totalLeads)} icon={Users} color="orange" sparklineData={sparklineLeads} editable onValueChange={(v) => setLeadsManual(v)} editableRawValue={leadsManual ?? executiveStats.totalLeads} />
               <KPICardWithSparkline title="Reuniões realizadas / Propostas enviadas" value={formatNumber(executiveStats.reunioesRealizadas)} icon={Calendar} color="magenta" sparklineData={sparklineReunioes} />
               <KPICardWithSparkline title="Ticket Médio" value={formatCurrency(executiveStats.vendasRealizadas > 0 ? executiveStats.receitaTotal / executiveStats.vendasRealizadas : 0)} icon={TrendingUp} color="green" sparklineData={sparklineVendas} />
             </div>
@@ -468,7 +468,7 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center bg-slate-800/50 rounded p-2.5 border border-slate-700/50">
                       <div className="text-xs text-slate-400 uppercase">CPL</div>
                       <div className="text-base font-bold text-cyan-400">
-                        {formatCurrencyDecimal(executiveStats.totalLeads > 0 ? investimentoTotal / executiveStats.totalLeads : 0)}
+                        {formatCurrencyDecimal((leadsManual ?? executiveStats.totalLeads) > 0 ? investimentoTotal / (leadsManual ?? executiveStats.totalLeads) : 0)}
                       </div>
                     </div>
                     {/* Custo MQL = Investimento / COUNT(MQL) */}
