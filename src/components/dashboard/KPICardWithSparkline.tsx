@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
@@ -12,6 +12,9 @@ interface KPICardWithSparklineProps {
   color?: 'cyan' | 'yellow' | 'magenta' | 'green' | 'red' | 'orange';
   sparklineData?: number[];
   className?: string;
+  editable?: boolean;
+  onValueChange?: (value: number) => void;
+  editableRawValue?: number;
 }
 
 const colorClasses = {
@@ -68,6 +71,9 @@ export function KPICardWithSparkline({
   color = 'cyan',
   sparklineData,
   className,
+  editable = false,
+  onValueChange,
+  editableRawValue,
 }: KPICardWithSparklineProps) {
   const colors = colorClasses[color];
   
@@ -96,9 +102,31 @@ export function KPICardWithSparkline({
       
       <div className="flex items-end justify-between">
         <div>
-          <div className={cn('text-2xl font-bold tracking-tight', colors.text)}>
-            {value}
-          </div>
+          {editable ? (
+            <input
+              type="text"
+              inputMode="numeric"
+              className={cn(
+                'bg-transparent border-none text-2xl font-bold tracking-tight w-full focus:outline-none focus:ring-1 focus:ring-primary/50 rounded px-1',
+                colors.text
+              )}
+              defaultValue={editableRawValue ?? ''}
+              onBlur={(e) => {
+                const parsed = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
+                onValueChange?.(parsed);
+                e.target.value = String(parsed);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+            />
+          ) : (
+            <div className={cn('text-2xl font-bold tracking-tight', colors.text)}>
+              {value}
+            </div>
+          )}
           {previousValue && (
             <div className="flex items-center gap-1 mt-1">
               <span className="text-xs text-slate-500">PY {previousValue}</span>
