@@ -14,15 +14,15 @@ export function ClienteDistributionChart({ clientes, stats }: ClienteDistributio
     { name: 'Novos', value: novos, color: '#f59e0b' },
   ];
 
-  // Histograma de frequência de viagens
+  // Histograma de frequência de compras
   const freqMap: Record<number, number> = {};
   clientes.forEach(c => {
-    const v = c.quantidade_viagens;
+    const v = c.quantidade_compras;
     freqMap[v] = (freqMap[v] || 0) + 1;
   });
   const histData = Object.entries(freqMap)
-    .map(([k, v]) => ({ viagens: `${k}x`, count: v }))
-    .sort((a, b) => parseInt(a.viagens) - parseInt(b.viagens));
+    .map(([k, v]) => ({ compras: `${k}x`, count: v }))
+    .sort((a, b) => parseInt(a.compras) - parseInt(b.compras));
 
   // Top clientes receita (barras horizontais)
   const topClientes = [...clientes]
@@ -69,13 +69,13 @@ export function ClienteDistributionChart({ clientes, stats }: ClienteDistributio
         </div>
       </div>
 
-      {/* Frequência de Viagem */}
+      {/* Frequência de Compras */}
       <div className="bi-card">
-        <h3 className="bi-card-title mb-3">Frequência de Viagem</h3>
+        <h3 className="bi-card-title mb-3">Frequência de Compras</h3>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={histData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="viagens" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+            <XAxis dataKey="compras" tick={{ fill: '#94a3b8', fontSize: 10 }} />
             <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
             <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} />
             <Bar dataKey="count" fill="#a855f7" radius={[4, 4, 0, 0]} name="Clientes" />
