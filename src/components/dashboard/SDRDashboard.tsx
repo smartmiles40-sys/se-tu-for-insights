@@ -238,6 +238,9 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Metas SDR */}
+      <MetasTargetBar tipo="sdr" items={sdrMetaItems} mes={currentMes} ano={currentAno} />
+
       {/* SDR Performance Table */}
       <SDRPerformance negocios={negocios} />
 
