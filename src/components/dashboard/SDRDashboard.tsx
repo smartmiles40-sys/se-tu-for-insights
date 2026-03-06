@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { Negocio, NegocioFilters } from "@/hooks/useNegocios";
 import { SDRPerformance } from "./SDRPerformance";
+import { MetasTargetBar, useSDRMetaItems } from "./MetasTargetBar";
+import { useMetas } from "@/hooks/useMetas";
+import { useColaboradores } from "@/hooks/useColaboradores";
+import { getCurrentMonthBrazil, getCurrentYearBrazil, getTodayBrazil } from "@/lib/dateUtils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
