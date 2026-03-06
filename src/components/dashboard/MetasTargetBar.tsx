@@ -68,21 +68,19 @@ export function MetasTargetBar({ tipo, items, mes, ano }: MetasTargetBarProps) {
           return (
             <div key={item.label} className="p-3 bg-muted/30 rounded-lg border border-border/30 space-y-2">
               <div className="text-xs text-muted-foreground font-medium truncate">{item.label}</div>
-              <div className="flex items-center gap-2">
-                <span className={cn('text-sm font-bold', style.text)}>{item.format(item.realizado)}</span>
-                <span className={cn('w-2 h-2 rounded-full', style.dot)} />
-                <span className={cn('text-[10px] font-medium', style.text)}>{style.label}</span>
-              </div>
-              <div className="flex gap-1 h-1.5">
-                <div className={cn('flex-1 rounded-l-full', level === 'abaixo' ? 'bg-red-500' : 'bg-muted')} />
-                <div className={cn('flex-1', ['minimo', 'satisfatorio', 'excelente'].includes(level) ? 'bg-orange-500' : 'bg-muted')} />
-                <div className={cn('flex-1', ['satisfatorio', 'excelente'].includes(level) ? 'bg-yellow-500' : 'bg-muted')} />
-                <div className={cn('flex-1 rounded-r-full', level === 'excelente' ? 'bg-emerald-500' : 'bg-muted')} />
-              </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span className="text-red-400">{item.format(item.minimo)}</span>
-                <span className="text-yellow-400">{item.format(item.satisfatorio)}</span>
-                <span className="text-emerald-400">{item.format(item.excelente)}</span>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                <div className="text-center">
+                  <span className="text-[10px] text-red-400 block">Mínimo</span>
+                  <span className="text-xs font-semibold text-red-400">{item.format(item.minimo)}</span>
+                </div>
+                <div className="text-center">
+                  <span className="text-[10px] text-yellow-400 block">Satisfatório</span>
+                  <span className="text-xs font-semibold text-yellow-400">{item.format(item.satisfatorio)}</span>
+                </div>
+                <div className="text-center">
+                  <span className="text-[10px] text-emerald-400 block">Excelente</span>
+                  <span className="text-xs font-semibold text-emerald-400">{item.format(item.excelente)}</span>
+                </div>
               </div>
             </div>
           );
