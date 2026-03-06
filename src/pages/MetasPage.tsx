@@ -553,17 +553,6 @@ export default function MetasPage() {
                   isCurrency
                 />
                 <ThreeLevelInput
-                  label="Reuniões Marcadas → Lead"
-                  icon={Calendar}
-                  iconColor="text-purple-400"
-                  values={{
-                    minimo: sdrMeta.meta_reunioes_minimo,
-                    satisfatorio: sdrMeta.meta_reunioes_satisfatorio,
-                    excelente: sdrMeta.meta_reunioes_excelente,
-                  }}
-                  onChange={(level, value) => updateSdrMeta(`meta_reunioes_${level}` as keyof IndividualMeta, value)}
-                />
-                <ThreeLevelInput
                   label="Comparecimento (%)"
                   icon={TrendingUp}
                   iconColor="text-green-400"
