@@ -587,6 +587,17 @@ export default function MetasPage() {
                   onChange={(level, value) => updateSdrMeta(`meta_margem_${level}` as keyof IndividualMeta, value)}
                   isPercent
                 />
+                <ThreeLevelInput
+                  label="Reuniões Realizadas"
+                  icon={Calendar}
+                  iconColor="text-emerald-400"
+                  values={{
+                    minimo: sdrMeta.meta_agendamentos_minimo,
+                    satisfatorio: sdrMeta.meta_agendamentos_satisfatorio,
+                    excelente: sdrMeta.meta_agendamentos_excelente,
+                  }}
+                  onChange={(level, value) => updateSdrMeta(`meta_agendamentos_${level}` as keyof IndividualMeta, value)}
+                />
                 <Button
                   onClick={handleSaveSDR}
                   disabled={upsertMeta.isPending}
