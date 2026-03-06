@@ -401,8 +401,12 @@ export default function MetasPage() {
           </Card>
         )}
 
-        <Tabs defaultValue="sdrs" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <Tabs defaultValue="global" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsTrigger value="global" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Global
+            </TabsTrigger>
             <TabsTrigger value="sdrs" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               SDRs
@@ -412,6 +416,36 @@ export default function MetasPage() {
               Especialistas
             </TabsTrigger>
           </TabsList>
+
+          {/* Global Tab */}
+          <TabsContent value="global" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Meta Global - {meses.find(m => m.value === selectedMes)?.label} {selectedAno}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <ThreeLevelInput
+                  label="Faturamento Global (R$)"
+                  icon={DollarSign}
+                  iconColor="text-cyan-400"
+                  values={{
+                    minimo: globalMeta.meta_faturamento_minimo,
+                    satisfatorio: globalMeta.meta_faturamento_satisfatorio,
+                    excelente: globalMeta.meta_faturamento_excelente,
+                  }}
+                  onChange={(level, value) => setGlobalMeta(prev => ({ ...prev, [`meta_faturamento_${level}`]: value }))}
+                  isCurrency
+                />
+                <Button onClick={handleSaveGlobal} disabled={upsertMeta.isPending}>
+                  {upsertMeta.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                  Salvar Meta Global
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* SDRs Tab */}
           <TabsContent value="sdrs" className="mt-6">
@@ -493,18 +527,6 @@ export default function MetasPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <ThreeLevelInput
-                  label="Faturamento Global (R$)"
-                  icon={DollarSign}
-                  iconColor="text-cyan-400"
-                  values={{
-                    minimo: especialistaMeta.meta_faturamento_minimo,
-                    satisfatorio: especialistaMeta.meta_faturamento_satisfatorio,
-                    excelente: especialistaMeta.meta_faturamento_excelente,
-                  }}
-                  onChange={(level, value) => updateEspecialistaMeta(`meta_faturamento_${level}` as keyof IndividualMeta, value)}
-                  isCurrency
-                />
-                <ThreeLevelInput
                   label="Média por Especialista (R$)"
                   icon={DollarSign}
                   iconColor="text-pink-400"
@@ -539,17 +561,6 @@ export default function MetasPage() {
                   }}
                   onChange={(level, value) => updateEspecialistaMeta(`meta_conversao_${level}` as keyof IndividualMeta, value)}
                   isPercent
-                />
-                <ThreeLevelInput
-                  label="Reuniões Realizadas"
-                  icon={Calendar}
-                  iconColor="text-purple-400"
-                  values={{
-                    minimo: especialistaMeta.meta_reunioes_minimo,
-                    satisfatorio: especialistaMeta.meta_reunioes_satisfatorio,
-                    excelente: especialistaMeta.meta_reunioes_excelente,
-                  }}
-                  onChange={(level, value) => updateEspecialistaMeta(`meta_reunioes_${level}` as keyof IndividualMeta, value)}
                 />
                 <Button
                   onClick={handleSaveEspecialista}
