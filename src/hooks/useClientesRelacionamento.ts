@@ -29,21 +29,18 @@ export interface ClientesStats {
 
 export function useClientesRelacionamento() {
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ['clientes_relacionamento_from_negocios'],
+    queryKey: ['clientes_relacionamento'],
     queryFn: async () => {
-      // Fetch all deals with a completed sale date (data_venda) and a client name (nome)
       const { data, error } = await supabase
-        .from('negocios')
-        .select('nome, data_venda, total')
-        .not('data_venda', 'is', null)
-        .not('nome', 'is', null);
+        .from('clientes_relacionamento')
+        .select('nome_cliente, valor_total_cliente, quantidade_viagens, data_primeira_viagem, data_ultima_viagem');
       if (error) throw error;
       return data || [];
     },
-    staleTime: 5 * 60 * 1000, // cache 5 min to avoid recalculating on every render
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Pre-calculate aggregations with useMemo
+  // Aggregate by nome_cliente to handle duplicates
   const clientes = useMemo<ClienteRelacionamento[]>(() => {
     if (!rawData || rawData.length === 0) return [];
 
@@ -55,28 +52,29 @@ export function useClientesRelacionamento() {
     }>();
 
     rawData.forEach(row => {
-      const nome = (row.nome || '').trim();
+      const nome = (row.nome_cliente || '').trim();
       if (!nome) return;
 
-      const valor = Number(row.total) || 0;
-      const dataVenda = row.data_venda;
+      const valor = Number(row.valor_total_cliente) || 0;
+      const dataPrimeira = row.data_primeira_viagem;
+      const dataUltima = row.data_ultima_viagem;
 
       const existing = aggregated.get(nome);
       if (existing) {
         existing.valor_total += valor;
         existing.count += 1;
-        if (dataVenda && (!existing.data_primeira || dataVenda < existing.data_primeira)) {
-          existing.data_primeira = dataVenda;
+        if (dataPrimeira && (!existing.data_primeira || dataPrimeira < existing.data_primeira)) {
+          existing.data_primeira = dataPrimeira;
         }
-        if (dataVenda && (!existing.data_ultima || dataVenda > existing.data_ultima)) {
-          existing.data_ultima = dataVenda;
+        if (dataUltima && (!existing.data_ultima || dataUltima > existing.data_ultima)) {
+          existing.data_ultima = dataUltima;
         }
       } else {
         aggregated.set(nome, {
           valor_total: valor,
           count: 1,
-          data_primeira: dataVenda,
-          data_ultima: dataVenda,
+          data_primeira: dataPrimeira,
+          data_ultima: dataUltima,
         });
       }
     });
