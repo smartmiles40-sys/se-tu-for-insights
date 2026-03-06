@@ -158,14 +158,6 @@ export function useEspecialistaMetaItems(meta: Meta | null | undefined, totais: 
 
     return [
       {
-        label: 'Faturamento Global',
-        realizado: totais.faturamento,
-        minimo: meta.meta_faturamento_minimo || 0,
-        satisfatorio: meta.meta_faturamento_satisfatorio || 0,
-        excelente: meta.meta_faturamento_excelente || 0,
-        format: formatCurrency,
-      },
-      {
         label: 'Média por Especialista',
         realizado: mediaPorEsp,
         minimo: meta.meta_media_closer_minimo || 0,
@@ -180,14 +172,6 @@ export function useEspecialistaMetaItems(meta: Meta | null | undefined, totais: 
         satisfatorio: meta.meta_conversao_satisfatorio || 0,
         excelente: meta.meta_conversao_excelente || 0,
         format: formatPercent,
-      },
-      {
-        label: 'Reuniões Realizadas',
-        realizado: totais.reunioesRealizadas,
-        minimo: meta.meta_reunioes_minimo || 0,
-        satisfatorio: meta.meta_reunioes_satisfatorio || 0,
-        excelente: meta.meta_reunioes_excelente || 0,
-        format: formatNumber,
       },
     ];
   }, [meta, totais]);
