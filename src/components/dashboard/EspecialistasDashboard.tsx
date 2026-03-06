@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import { useColaboradores } from '@/hooks/useColaboradores';
+import { useMetas } from '@/hooks/useMetas';
+import { MetasTargetBar, useEspecialistaMetaItems } from './MetasTargetBar';
+import { getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -10,6 +13,7 @@ import { getTodayBrazil } from '@/lib/dateUtils';
 
 interface EspecialistasDashboardProps {
   negocios: Negocio[];
+  dataInicioFrom?: string;
 }
 
 interface EspecialistaStats {
@@ -28,9 +32,22 @@ interface EspecialistaStats {
   ticketMedio: number;
 }
 
-export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps) {
+export function EspecialistasDashboard({ negocios, dataInicioFrom }: EspecialistasDashboardProps) {
   const today = getTodayBrazil();
   const { data: colaboradoresEsp } = useColaboradores('especialista');
+
+  const currentMes = useMemo(() => {
+    if (dataInicioFrom) return new Date(dataInicioFrom + 'T12:00:00').getMonth() + 1;
+    return getCurrentMonthBrazil();
+  }, [dataInicioFrom]);
+
+  const currentAno = useMemo(() => {
+    if (dataInicioFrom) return new Date(dataInicioFrom + 'T12:00:00').getFullYear();
+    return getCurrentYearBrazil();
+  }, [dataInicioFrom]);
+
+  const { data: metas } = useMetas(currentMes, currentAno);
+  const espMeta = useMemo(() => metas?.find(m => m.tipo === 'especialista' && !m.responsavel) || null, [metas]);
 
   const especialistaStats = useMemo((): EspecialistaStats[] => {
     if (!colaboradoresEsp || colaboradoresEsp.length === 0) return [];
@@ -65,6 +82,18 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
     }).sort((a, b) => b.faturamento - a.faturamento);
   }, [negocios, today, colaboradoresEsp]);
 
+  const espTotais = useMemo(() => {
+    const t = especialistaStats.reduce((acc, c) => ({
+      faturamento: acc.faturamento + c.faturamento,
+      vendas: acc.vendas + c.vendas,
+      reunioesRealizadas: acc.reunioesRealizadas + c.reunioesRealizadas,
+      mql: acc.mql + c.mql,
+    }), { faturamento: 0, vendas: 0, reunioesRealizadas: 0, mql: 0 });
+    return { ...t, numEspecialistas: especialistaStats.length };
+  }, [especialistaStats]);
+
+  const espMetaItems = useEspecialistaMetaItems(espMeta, espTotais);
+
   const maxReceita = Math.max(...especialistaStats.map(e => e.faturamento), 1);
 
   const formatCurrency = (value: number) =>
@@ -78,8 +107,10 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
   };
 
   return (
-    <div className="dashboard-section">
-      <h3 className="section-title">Performance Especialistas (Closers)</h3>
+    <div className="space-y-4">
+      <MetasTargetBar tipo="especialista" items={espMetaItems} mes={currentMes} ano={currentAno} />
+      <div className="dashboard-section">
+        <h3 className="section-title">Performance Especialistas (Closers)</h3>
 
       {especialistaStats.length === 0 ? (
         <p className="text-muted-foreground text-center py-8">Nenhum dado disponível</p>
@@ -132,6 +163,7 @@ export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps
           </Table>
         </div>
       )}
+      </div>
     </div>
   );
 }

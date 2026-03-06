@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { Negocio, NegocioFilters } from "@/hooks/useNegocios";
 import { SDRPerformance } from "./SDRPerformance";
+import { MetasTargetBar, useSDRMetaItems } from "./MetasTargetBar";
+import { useMetas } from "@/hooks/useMetas";
+import { useColaboradores } from "@/hooks/useColaboradores";
+import { getCurrentMonthBrazil, getCurrentYearBrazil, getTodayBrazil } from "@/lib/dateUtils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +51,46 @@ const COLORS = [
 export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
   const [tablePage, setTablePage] = useState(1);
   const tablePageSize = 15;
+
+  // Determine month/year from filters or current date
+  const currentMes = useMemo(() => {
+    if (filters?.dataInicioFrom) {
+      return new Date(filters.dataInicioFrom + 'T12:00:00').getMonth() + 1;
+    }
+    return getCurrentMonthBrazil();
+  }, [filters?.dataInicioFrom]);
+
+  const currentAno = useMemo(() => {
+    if (filters?.dataInicioFrom) {
+      return new Date(filters.dataInicioFrom + 'T12:00:00').getFullYear();
+    }
+    return getCurrentYearBrazil();
+  }, [filters?.dataInicioFrom]);
+
+  const { data: metas } = useMetas(currentMes, currentAno);
+  const sdrMeta = useMemo(() => metas?.find(m => m.tipo === 'sdr' && !m.responsavel) || null, [metas]);
+
+  const { data: colaboradoresSDR } = useColaboradores('sdr');
+  const today = getTodayBrazil();
+
+  // Compute SDR totals for metas
+  const sdrTotais = useMemo(() => {
+    if (!colaboradoresSDR || colaboradoresSDR.length === 0) return { faturamentoGerado: 0, comparecimento: 0, agendamentosTotais: 0, mql: 0, totalLeads: 0, reunioesRealizadas: 0 };
+    const sdrNames = colaboradoresSDR.map(c => c.nome);
+    let faturamentoGerado = 0, comparecimento = 0, agendamentosTotais = 0, mql = 0, totalLeads = 0, reunioesRealizadas = 0;
+    sdrNames.forEach(sdr => {
+      const sdrNegocios = negocios.filter(n => n.sdr && n.sdr.toLowerCase().includes(sdr.toLowerCase()));
+      totalLeads += sdrNegocios.length;
+      agendamentosTotais += sdrNegocios.filter(n => n.data_agendamento).length;
+      reunioesRealizadas += sdrNegocios.filter(n => n.data_reuniao_realizada).length;
+      comparecimento += sdrNegocios.filter(n => n.data_reuniao_realizada).length;
+      faturamentoGerado += sdrNegocios.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
+      mql += sdrNegocios.filter(n => n.data_mql).length;
+    });
+    return { faturamentoGerado, comparecimento, agendamentosTotais, mql, totalLeads, reunioesRealizadas };
+  }, [negocios, colaboradoresSDR]);
+
+  const sdrMetaItems = useSDRMetaItems(sdrMeta, sdrTotais);
 
   const isInPeriod = (dateStr: string | null): boolean => {
     return !!dateStr;
@@ -194,6 +238,9 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Metas SDR */}
+      <MetasTargetBar tipo="sdr" items={sdrMetaItems} mes={currentMes} ano={currentAno} />
+
       {/* SDR Performance Table */}
       <SDRPerformance negocios={negocios} />
 

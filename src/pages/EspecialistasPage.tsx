@@ -37,7 +37,7 @@ export default function EspecialistasPage() {
         />
         
         {negocios && negocios.length > 0 ? (
-          <EspecialistasDashboard negocios={negocios} />
+          <EspecialistasDashboard negocios={negocios} dataInicioFrom={filters.dataInicioFrom} />
         ) : (
           <div className="dashboard-section text-center py-16">
             <p className="text-muted-foreground">Nenhum dado encontrado</p>
