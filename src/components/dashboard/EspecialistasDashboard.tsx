@@ -82,6 +82,18 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
     }).sort((a, b) => b.faturamento - a.faturamento);
   }, [negocios, today, colaboradoresEsp]);
 
+  const espTotais = useMemo(() => {
+    const t = especialistaStats.reduce((acc, c) => ({
+      faturamento: acc.faturamento + c.faturamento,
+      vendas: acc.vendas + c.vendas,
+      reunioesRealizadas: acc.reunioesRealizadas + c.reunioesRealizadas,
+      mql: acc.mql + c.mql,
+    }), { faturamento: 0, vendas: 0, reunioesRealizadas: 0, mql: 0 });
+    return { ...t, numEspecialistas: especialistaStats.length };
+  }, [especialistaStats]);
+
+  const espMetaItems = useEspecialistaMetaItems(espMeta, espTotais);
+
   const maxReceita = Math.max(...especialistaStats.map(e => e.faturamento), 1);
 
   const formatCurrency = (value: number) =>
@@ -95,8 +107,10 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
   };
 
   return (
-    <div className="dashboard-section">
-      <h3 className="section-title">Performance Especialistas (Closers)</h3>
+    <div className="space-y-4">
+      <MetasTargetBar tipo="especialista" items={espMetaItems} mes={currentMes} ano={currentAno} />
+      <div className="dashboard-section">
+        <h3 className="section-title">Performance Especialistas (Closers)</h3>
 
       {especialistaStats.length === 0 ? (
         <p className="text-muted-foreground text-center py-8">Nenhum dado disponível</p>
