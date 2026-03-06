@@ -401,12 +401,8 @@ export default function MetasPage() {
           </Card>
         )}
 
-        <Tabs defaultValue="global" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
-            <TabsTrigger value="global" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Global
-            </TabsTrigger>
+        <Tabs defaultValue="sdrs" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="sdrs" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               SDRs
