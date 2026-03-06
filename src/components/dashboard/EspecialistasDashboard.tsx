@@ -163,6 +163,7 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
           </Table>
         </div>
       )}
+      </div>
     </div>
   );
 }
