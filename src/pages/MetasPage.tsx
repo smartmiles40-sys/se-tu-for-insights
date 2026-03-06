@@ -527,18 +527,6 @@ export default function MetasPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <ThreeLevelInput
-                  label="Faturamento Global (R$)"
-                  icon={DollarSign}
-                  iconColor="text-cyan-400"
-                  values={{
-                    minimo: especialistaMeta.meta_faturamento_minimo,
-                    satisfatorio: especialistaMeta.meta_faturamento_satisfatorio,
-                    excelente: especialistaMeta.meta_faturamento_excelente,
-                  }}
-                  onChange={(level, value) => updateEspecialistaMeta(`meta_faturamento_${level}` as keyof IndividualMeta, value)}
-                  isCurrency
-                />
-                <ThreeLevelInput
                   label="Média por Especialista (R$)"
                   icon={DollarSign}
                   iconColor="text-pink-400"
@@ -573,17 +561,6 @@ export default function MetasPage() {
                   }}
                   onChange={(level, value) => updateEspecialistaMeta(`meta_conversao_${level}` as keyof IndividualMeta, value)}
                   isPercent
-                />
-                <ThreeLevelInput
-                  label="Reuniões Realizadas"
-                  icon={Calendar}
-                  iconColor="text-purple-400"
-                  values={{
-                    minimo: especialistaMeta.meta_reunioes_minimo,
-                    satisfatorio: especialistaMeta.meta_reunioes_satisfatorio,
-                    excelente: especialistaMeta.meta_reunioes_excelente,
-                  }}
-                  onChange={(level, value) => updateEspecialistaMeta(`meta_reunioes_${level}` as keyof IndividualMeta, value)}
                 />
                 <Button
                   onClick={handleSaveEspecialista}
