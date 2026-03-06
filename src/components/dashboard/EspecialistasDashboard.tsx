@@ -13,6 +13,7 @@ import { getTodayBrazil } from '@/lib/dateUtils';
 
 interface EspecialistasDashboardProps {
   negocios: Negocio[];
+  dataInicioFrom?: string;
 }
 
 interface EspecialistaStats {
