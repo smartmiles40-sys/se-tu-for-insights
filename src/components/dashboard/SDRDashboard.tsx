@@ -52,6 +52,46 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
   const [tablePage, setTablePage] = useState(1);
   const tablePageSize = 15;
 
+  // Determine month/year from filters or current date
+  const currentMes = useMemo(() => {
+    if (filters?.dataInicioFrom) {
+      return new Date(filters.dataInicioFrom + 'T12:00:00').getMonth() + 1;
+    }
+    return getCurrentMonthBrazil();
+  }, [filters?.dataInicioFrom]);
+
+  const currentAno = useMemo(() => {
+    if (filters?.dataInicioFrom) {
+      return new Date(filters.dataInicioFrom + 'T12:00:00').getFullYear();
+    }
+    return getCurrentYearBrazil();
+  }, [filters?.dataInicioFrom]);
+
+  const { data: metas } = useMetas(currentMes, currentAno);
+  const sdrMeta = useMemo(() => metas?.find(m => m.tipo === 'sdr' && !m.responsavel) || null, [metas]);
+
+  const { data: colaboradoresSDR } = useColaboradores('sdr');
+  const today = getTodayBrazil();
+
+  // Compute SDR totals for metas
+  const sdrTotais = useMemo(() => {
+    if (!colaboradoresSDR || colaboradoresSDR.length === 0) return { faturamentoGerado: 0, comparecimento: 0, agendamentosTotais: 0, mql: 0, totalLeads: 0, reunioesRealizadas: 0 };
+    const sdrNames = colaboradoresSDR.map(c => c.nome);
+    let faturamentoGerado = 0, comparecimento = 0, agendamentosTotais = 0, mql = 0, totalLeads = 0, reunioesRealizadas = 0;
+    sdrNames.forEach(sdr => {
+      const sdrNegocios = negocios.filter(n => n.sdr && n.sdr.toLowerCase().includes(sdr.toLowerCase()));
+      totalLeads += sdrNegocios.length;
+      agendamentosTotais += sdrNegocios.filter(n => n.data_agendamento).length;
+      reunioesRealizadas += sdrNegocios.filter(n => n.data_reuniao_realizada).length;
+      comparecimento += sdrNegocios.filter(n => n.data_reuniao_realizada).length;
+      faturamentoGerado += sdrNegocios.filter(n => n.data_venda).reduce((sum, n) => sum + (n.total || 0), 0);
+      mql += sdrNegocios.filter(n => n.data_mql).length;
+    });
+    return { faturamentoGerado, comparecimento, agendamentosTotais, mql, totalLeads, reunioesRealizadas };
+  }, [negocios, colaboradoresSDR]);
+
+  const sdrMetaItems = useSDRMetaItems(sdrMeta, sdrTotais);
+
   const isInPeriod = (dateStr: string | null): boolean => {
     return !!dateStr;
   };
