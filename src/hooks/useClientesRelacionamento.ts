@@ -47,20 +47,48 @@ export function useClientesRelacionamento() {
     },
   });
 
-  // Map DB fields to component interface
-  const clientes: ClienteRelacionamento[] = (data || []).map(c => {
+  // Aggregate by nome_cliente: sum valor, count rows, derive ticket médio
+  const aggregated = new Map<string, {
+    valor_total: number;
+    count: number;
+    data_primeira: string | null;
+    data_ultima: string | null;
+  }>();
+
+  (data || []).forEach(c => {
+    const existing = aggregated.get(c.nome_cliente);
+    if (existing) {
+      existing.valor_total += c.valor_total_cliente;
+      existing.count += 1;
+      if (c.data_primeira_viagem && (!existing.data_primeira || c.data_primeira_viagem < existing.data_primeira)) {
+        existing.data_primeira = c.data_primeira_viagem;
+      }
+      if (c.data_ultima_viagem && (!existing.data_ultima || c.data_ultima_viagem > existing.data_ultima)) {
+        existing.data_ultima = c.data_ultima_viagem;
+      }
+    } else {
+      aggregated.set(c.nome_cliente, {
+        valor_total: c.valor_total_cliente,
+        count: 1,
+        data_primeira: c.data_primeira_viagem,
+        data_ultima: c.data_ultima_viagem,
+      });
+    }
+  });
+
+  const clientes: ClienteRelacionamento[] = Array.from(aggregated.entries()).map(([nome, agg]) => {
     let tempoEntreCompras: number | null = null;
-    if (c.quantidade_viagens > 1 && c.data_primeira_viagem && c.data_ultima_viagem) {
-      const diffMs = new Date(c.data_ultima_viagem).getTime() - new Date(c.data_primeira_viagem).getTime();
+    if (agg.count > 1 && agg.data_primeira && agg.data_ultima) {
+      const diffMs = new Date(agg.data_ultima).getTime() - new Date(agg.data_primeira).getTime();
       tempoEntreCompras = Math.round(diffMs / (1000 * 60 * 60 * 24));
     }
     return {
-      nome_cliente: c.nome_cliente,
-      valor_total_cliente: c.valor_total_cliente,
-      quantidade_compras: c.quantidade_viagens,
-      data_primeira_compra: c.data_primeira_viagem,
-      data_ultima_compra: c.data_ultima_viagem,
-      ticket_medio: c.quantidade_viagens > 0 ? c.valor_total_cliente / c.quantidade_viagens : 0,
+      nome_cliente: nome,
+      valor_total_cliente: agg.valor_total,
+      quantidade_compras: agg.count,
+      data_primeira_compra: agg.data_primeira,
+      data_ultima_compra: agg.data_ultima,
+      ticket_medio: agg.count > 0 ? agg.valor_total / agg.count : 0,
       tempo_entre_compras: tempoEntreCompras,
     };
   });
