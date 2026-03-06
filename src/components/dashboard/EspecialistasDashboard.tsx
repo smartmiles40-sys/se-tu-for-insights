@@ -32,9 +32,22 @@ interface EspecialistaStats {
   ticketMedio: number;
 }
 
-export function EspecialistasDashboard({ negocios }: EspecialistasDashboardProps) {
+export function EspecialistasDashboard({ negocios, dataInicioFrom }: EspecialistasDashboardProps) {
   const today = getTodayBrazil();
   const { data: colaboradoresEsp } = useColaboradores('especialista');
+
+  const currentMes = useMemo(() => {
+    if (dataInicioFrom) return new Date(dataInicioFrom + 'T12:00:00').getMonth() + 1;
+    return getCurrentMonthBrazil();
+  }, [dataInicioFrom]);
+
+  const currentAno = useMemo(() => {
+    if (dataInicioFrom) return new Date(dataInicioFrom + 'T12:00:00').getFullYear();
+    return getCurrentYearBrazil();
+  }, [dataInicioFrom]);
+
+  const { data: metas } = useMetas(currentMes, currentAno);
+  const espMeta = useMemo(() => metas?.find(m => m.tipo === 'especialista' && !m.responsavel) || null, [metas]);
 
   const especialistaStats = useMemo((): EspecialistaStats[] => {
     if (!colaboradoresEsp || colaboradoresEsp.length === 0) return [];
