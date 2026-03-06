@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { Negocio } from '@/hooks/useNegocios';
 import { useColaboradores } from '@/hooks/useColaboradores';
+import { useMetas } from '@/hooks/useMetas';
+import { MetasTargetBar, useEspecialistaMetaItems } from './MetasTargetBar';
+import { getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
