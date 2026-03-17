@@ -420,7 +420,16 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
       </div>
 
       {/* Panorama Diário SDRs */}
-      <PanoramaDiarioSDR negocios={negocios} colaboradoresSDR={colaboradoresSDR} mes={currentMes} ano={currentAno} />
+      {colaboradoresSDR && colaboradoresSDR.length > 0 && (
+        <PanoramaDiarioNegocios
+          titulo="PANORAMA DIÁRIO — SDRs"
+          negocios={negocios}
+          colaboradores={colaboradoresSDR.map(c => c.nome)}
+          mes={currentMes}
+          ano={currentAno}
+          metricas={sdrPanoramaMetricas}
+        />
+      )}
 
     </div>
   );
