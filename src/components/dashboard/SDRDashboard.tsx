@@ -232,10 +232,6 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
 
   const sdrPanoramaMetricas: PanoramaMetricaDef[] = useMemo(() => [
     {
-      key: 'atividades_gs', label: 'Atividades GS', metaDiaria: 180,
-      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_agendamento === dateStr).length,
-    },
-    {
       key: 'agendamentos', label: 'Agendamentos Realizados', metaDiaria: 5,
       compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.reuniao_agendada && n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_agendamento === dateStr).length,
     },
