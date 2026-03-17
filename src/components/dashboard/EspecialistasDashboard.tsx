@@ -194,7 +194,16 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
       </div>
 
       {/* Panorama Diário Especialistas */}
-      <PanoramaDiarioEspecialistas negocios={negocios} colaboradoresEsp={colaboradoresEsp} mes={currentMes} ano={currentAno} />
+      {colaboradoresEsp && colaboradoresEsp.length > 0 && (
+        <PanoramaDiarioNegocios
+          titulo="PANORAMA DIÁRIO — Especialistas"
+          negocios={negocios}
+          colaboradores={colaboradoresEsp.map(c => c.nome)}
+          mes={currentMes}
+          ano={currentAno}
+          metricas={espPanoramaMetricas}
+        />
+      )}
     </div>
   );
 }
