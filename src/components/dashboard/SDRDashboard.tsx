@@ -230,6 +230,29 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
 
   const formatNumber = (n: number) => new Intl.NumberFormat("pt-BR").format(n);
 
+  const sdrPanoramaMetricas: PanoramaMetricaDef[] = useMemo(() => [
+    {
+      key: 'atividades_gs', label: 'Atividades GS', metaDiaria: 180,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_agendamento === dateStr).length,
+    },
+    {
+      key: 'agendamentos', label: 'Agendamentos Realizados', metaDiaria: 5,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.reuniao_agendada && n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_agendamento === dateStr).length,
+    },
+    {
+      key: 'receita', label: 'Receita Originada (R$)', metaDiaria: 17000, format: 'currency',
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_mql === dateStr).reduce((s, n) => s + (n.total || 0), 0),
+    },
+    {
+      key: 'reunioes', label: 'Reuniões Realizadas', metaDiaria: 3,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.reuniao_realizada && n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_reuniao_realizada === dateStr).length,
+    },
+    {
+      key: 'noshow', label: 'No-show', metaDiaria: 1, invertColor: true,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.no_show && n.sdr?.toLowerCase().includes(nome.toLowerCase()) && n.data_noshow === dateStr).length,
+    },
+  ], []);
+
   if (validNegocios.length === 0) {
     return (
       <div className="dashboard-section text-center py-16">
