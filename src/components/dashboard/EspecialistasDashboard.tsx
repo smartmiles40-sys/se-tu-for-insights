@@ -167,17 +167,7 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
       </div>
 
       {/* Panorama Diário Especialistas */}
-      <PanoramaDiario
-        titulo="Panorama Diário — Especialistas"
-        colaboradorField="especialista"
-        metricas={[
-          { key: 'reunioes', label: 'Reuniões Realizadas', metaDiaria: 3 },
-          { key: 'vendas_qtd', label: 'Vendas qtd', metaDiaria: 1 },
-          { key: 'vendas_rs', label: 'Vendas R$', metaDiaria: 15218, format: 'currency' },
-          { key: 'taxa_conversao', label: 'Taxa de Conversão', metaDiaria: 25, format: 'percent' },
-          { key: 'noshow', label: 'No-show', metaDiaria: 1 },
-        ]}
-      />
+      <PanoramaDiarioEspecialistas negocios={negocios} colaboradoresEsp={colaboradoresEsp} mes={currentMes} ano={currentAno} />
     </div>
   );
 }
