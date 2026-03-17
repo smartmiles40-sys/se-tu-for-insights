@@ -26,6 +26,7 @@ import {
   Legend,
 } from "recharts";
 import { format, parseISO, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
+import { PanoramaDiario } from "./PanoramaDiario";
 import { ptBR } from "date-fns/locale";
 
 interface SDRDashboardProps {
