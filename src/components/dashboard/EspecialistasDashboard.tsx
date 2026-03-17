@@ -10,7 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { getTodayBrazil } from '@/lib/dateUtils';
-import { PanoramaDiario } from './PanoramaDiario';
+import { PanoramaDiarioNegocios, PanoramaMetricaDef } from './PanoramaDiarioNegocios';
 
 interface EspecialistasDashboardProps {
   negocios: Negocio[];
@@ -107,6 +107,33 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
     return <Badge variant="outline" className="bg-destructive/20 text-destructive-foreground">Baixo</Badge>;
   };
 
+  const espPanoramaMetricas: PanoramaMetricaDef[] = useMemo(() => [
+    {
+      key: 'reunioes', label: 'Reuniões Realizadas', metaDiaria: 3,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.responsavel_reuniao?.toLowerCase().includes(nome.toLowerCase()) && n.data_reuniao_realizada === dateStr).length,
+    },
+    {
+      key: 'vendas_qtd', label: 'Vendas Realizadas (qtd)', metaDiaria: 1,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.quem_vendeu?.toLowerCase().includes(nome.toLowerCase()) && n.venda_aprovada && n.data_venda === dateStr).length,
+    },
+    {
+      key: 'vendas_rs', label: 'Vendas Realizadas (R$)', metaDiaria: 15218, format: 'currency' as const,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.quem_vendeu?.toLowerCase().includes(nome.toLowerCase()) && n.venda_aprovada && n.data_venda === dateStr).reduce((s, n) => s + (n.total || 0), 0),
+    },
+    {
+      key: 'taxa_conversao', label: 'Taxa de Conversão', metaDiaria: 25, format: 'percent' as const,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => {
+        const reunioes = neg.filter(n => n.responsavel_reuniao?.toLowerCase().includes(nome.toLowerCase()) && n.data_reuniao_realizada === dateStr).length;
+        const vendas = neg.filter(n => n.quem_vendeu?.toLowerCase().includes(nome.toLowerCase()) && n.venda_aprovada && n.data_venda === dateStr).length;
+        return reunioes > 0 ? (vendas / reunioes) * 100 : 0;
+      },
+    },
+    {
+      key: 'noshow', label: 'No-show', metaDiaria: 1, invertColor: true,
+      compute: (neg: Negocio[], nome: string, dateStr: string) => neg.filter(n => n.responsavel_reuniao?.toLowerCase().includes(nome.toLowerCase()) && n.no_show && n.data_noshow === dateStr).length,
+    },
+  ], []);
+
   return (
     <div className="space-y-4">
       <MetasTargetBar tipo="especialista" items={espMetaItems} mes={currentMes} ano={currentAno} />
@@ -167,17 +194,16 @@ export function EspecialistasDashboard({ negocios, dataInicioFrom }: Especialist
       </div>
 
       {/* Panorama Diário Especialistas */}
-      <PanoramaDiario
-        titulo="Panorama Diário — Especialistas"
-        colaboradorField="especialista"
-        metricas={[
-          { key: 'reunioes', label: 'Reuniões Realizadas', metaDiaria: 3 },
-          { key: 'vendas_qtd', label: 'Vendas qtd', metaDiaria: 1 },
-          { key: 'vendas_rs', label: 'Vendas R$', metaDiaria: 15218, format: 'currency' },
-          { key: 'taxa_conversao', label: 'Taxa de Conversão', metaDiaria: 25, format: 'percent' },
-          { key: 'noshow', label: 'No-show', metaDiaria: 1 },
-        ]}
-      />
+      {colaboradoresEsp && colaboradoresEsp.length > 0 && (
+        <PanoramaDiarioNegocios
+          titulo="PANORAMA DIÁRIO — Especialistas"
+          negocios={negocios}
+          colaboradores={colaboradoresEsp.map(c => c.nome)}
+          mes={currentMes}
+          ano={currentAno}
+          metricas={espPanoramaMetricas}
+        />
+      )}
     </div>
   );
 }
