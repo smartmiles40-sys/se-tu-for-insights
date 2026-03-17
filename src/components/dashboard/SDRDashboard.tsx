@@ -26,6 +26,7 @@ import {
   Legend,
 } from "recharts";
 import { format, parseISO, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
+import { PanoramaDiario } from "./PanoramaDiario";
 import { ptBR } from "date-fns/locale";
 
 interface SDRDashboardProps {
@@ -416,6 +417,19 @@ export function SDRDashboard({ negocios, filters }: SDRDashboardProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Panorama Diário SDRs */}
+      <PanoramaDiario
+        titulo="Panorama Diário — SDRs"
+        colaboradorField="sdr"
+        metricas={[
+          { key: 'atividades_gs', label: 'Atividades GS', metaDiaria: 180 },
+          { key: 'agendamentos', label: 'Agendamentos Realizados', metaDiaria: 5 },
+          { key: 'receita', label: 'Receita Originada (R$)', metaDiaria: 0, format: 'currency' },
+          { key: 'reunioes', label: 'Reuniões Realizadas', metaDiaria: 3 },
+          { key: 'noshow', label: 'No-show', metaDiaria: 0 },
+        ]}
+      />
 
     </div>
   );
