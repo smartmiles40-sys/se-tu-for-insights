@@ -13,6 +13,7 @@ import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegoci
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle, Filter, Play, Pause, ArrowLeftRight } from 'lucide-react';
 import { RelacionamentoDashboard } from '@/components/dashboard/RelacionamentoDashboard';
+import { BuzinaButton } from '@/components/dashboard/BuzinaButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
