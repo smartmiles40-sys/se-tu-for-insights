@@ -343,6 +343,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
           <div className="flex items-center gap-2 ml-3">
+            <BuzinaButton />
             <button
               onClick={() => setActiveView(prev => prev === 'comercial' ? 'relacionamento' : 'comercial')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
