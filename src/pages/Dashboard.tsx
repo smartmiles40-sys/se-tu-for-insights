@@ -13,6 +13,7 @@ import { useNegocios, useFilterOptions, NegocioFilters } from '@/hooks/useNegoci
 import { useMetaGlobal } from '@/hooks/useMetas';
 import { Loader2, AlertTriangle, DollarSign, Target, Calendar, TrendingUp, Users, XCircle, Filter, Play, Pause, ArrowLeftRight } from 'lucide-react';
 import { RelacionamentoDashboard } from '@/components/dashboard/RelacionamentoDashboard';
+import { BuzinaButton } from '@/components/dashboard/BuzinaButton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -342,6 +343,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <GlobalFilters filters={filters} onFiltersChange={setFilters} options={filterOptions} />
           <div className="flex items-center gap-2 ml-3">
+            <BuzinaButton />
             <button
               onClick={() => setActiveView(prev => prev === 'comercial' ? 'relacionamento' : 'comercial')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
