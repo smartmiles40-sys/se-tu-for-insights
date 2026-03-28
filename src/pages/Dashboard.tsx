@@ -20,7 +20,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { format, parseISO, startOfMonth, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { getTodayBrazil, getFirstDayOfMonthBrazil, getBrazilDateParts, getCurrentMonthBrazil, getCurrentYearBrazil } from '@/lib/dateUtils';
+import { useRealtimeNegocios } from '@/hooks/useRealtimeNegocios';
 export default function Dashboard() {
+  useRealtimeNegocios();
   const [filters, setFilters] = useState<NegocioFilters>({});
   const [tipoVendaConversaoFilter, setTipoVendaConversaoFilter] = useState<string[]>([]);
   const [investimentoTotal, setInvestimentoTotal] = useState(0);
