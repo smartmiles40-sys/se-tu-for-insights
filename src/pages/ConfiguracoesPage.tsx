@@ -1,105 +1,63 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { 
-  useAllColaboradores, 
-  useCreateColaborador, 
-  useUpdateColaborador, 
-  useDeleteColaborador,
-  Colaborador 
-} from '@/hooks/useColaboradores';
-import { useMetas, useDeleteMeta, Meta } from '@/hooks/useMetas';
-import { Loader2, Users, UserCheck, Plus, Pencil, Trash2, Settings, Target } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { useSettings } from '@/hooks/useSettings';
+import { Building2, Palette, Globe, Loader2, Save } from 'lucide-react';
+
+const TIMEZONES = [
+  { value: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' },
+  { value: 'America/Manaus', label: 'Manaus (GMT-4)' },
+  { value: 'America/Belem', label: 'Belém (GMT-3)' },
+  { value: 'America/Fortaleza', label: 'Fortaleza (GMT-3)' },
+  { value: 'America/Recife', label: 'Recife (GMT-3)' },
+  { value: 'America/Cuiaba', label: 'Cuiabá (GMT-4)' },
+  { value: 'America/Porto_Velho', label: 'Porto Velho (GMT-4)' },
+  { value: 'America/Rio_Branco', label: 'Rio Branco (GMT-5)' },
+  { value: 'America/Noronha', label: 'Fernando de Noronha (GMT-2)' },
+];
+
+const LANGUAGES = [
+  { value: 'pt-BR', label: 'Português (Brasil)' },
+  { value: 'en-US', label: 'English (US)' },
+  { value: 'es-ES', label: 'Español' },
+];
 
 export default function ConfiguracoesPage() {
-  const { data: colaboradores, isLoading: loadingColaboradores } = useAllColaboradores();
-  const { data: metas, isLoading: loadingMetas } = useMetas();
-  const createColaborador = useCreateColaborador();
-  const updateColaborador = useUpdateColaborador();
-  const deleteColaborador = useDeleteColaborador();
-  const deleteMeta = useDeleteMeta();
+  const { settings, isLoading, saveIdentity, saveAppearance, saveRegionalization } = useSettings();
 
-  // Form states
-  const [newNome, setNewNome] = useState('');
-  const [newTipo, setNewTipo] = useState<'sdr' | 'especialista'>('especialista');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingColaborador, setEditingColaborador] = useState<Colaborador | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [agencyName, setAgencyName] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState('#c8f135');
+  const [secondaryColor, setSecondaryColor] = useState('#0d2b22');
+  const [timezone, setTimezone] = useState('America/Sao_Paulo');
+  const [language, setLanguage] = useState('pt-BR');
 
-  const handleAddColaborador = async () => {
-    if (!newNome.trim()) return;
-    
-    await createColaborador.mutateAsync({
-      nome: newNome.trim(),
-      tipo: newTipo,
-    });
-    
-    setNewNome('');
-    setDialogOpen(false);
-  };
+  useEffect(() => {
+    if (!isLoading && settings) {
+      setAgencyName(settings.agency_identity.name);
+      setLogoUrl(settings.agency_identity.logo_url);
+      setDarkMode(settings.appearance.dark_mode);
+      setPrimaryColor(settings.appearance.primary_color);
+      setSecondaryColor(settings.appearance.secondary_color);
+      setTimezone(settings.regionalization.timezone);
+      setLanguage(settings.regionalization.language);
+    }
+  }, [isLoading, settings]);
 
-  const handleUpdateColaborador = async () => {
-    if (!editingColaborador || !editingColaborador.nome.trim()) return;
-    
-    await updateColaborador.mutateAsync({
-      id: editingColaborador.id,
-      nome: editingColaborador.nome.trim(),
-      tipo: editingColaborador.tipo,
-      ativo: editingColaborador.ativo,
-    });
-    
-    setEditingColaborador(null);
-    setEditDialogOpen(false);
-  };
-
-  const handleDeleteColaborador = async (id: string) => {
-    await deleteColaborador.mutateAsync(id);
-  };
-
-  const handleDeleteMeta = async (id: string) => {
-    await deleteMeta.mutateAsync(id);
-  };
-
-  const sdrs = colaboradores?.filter(c => c.tipo === 'sdr') || [];
-  const especialistas = colaboradores?.filter(c => c.tipo === 'especialista') || [];
-
-  const meses = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-
-  if (loadingColaboradores || loadingMetas) {
+  if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center h-64 gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Carregando configurações...</span>
         </div>
       </DashboardLayout>
     );
@@ -107,346 +65,239 @@ export default function ConfiguracoesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Settings className="h-6 w-6" />
-              Configurações
-            </h1>
-            <p className="text-muted-foreground">Gerencie colaboradores e metas</p>
-          </div>
+      <div className="p-6 max-w-3xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Configurações</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Gerencie as preferências do painel da agência.
+          </p>
         </div>
 
-        <Tabs defaultValue="colaboradores" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="colaboradores" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Colaboradores
+        <Tabs defaultValue="identity">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="identity" className="gap-2">
+              <Building2 className="h-4 w-4" /> Identidade
             </TabsTrigger>
-            <TabsTrigger value="metas" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Metas Cadastradas
+            <TabsTrigger value="appearance" className="gap-2">
+              <Palette className="h-4 w-4" /> Aparência
+            </TabsTrigger>
+            <TabsTrigger value="regionalization" className="gap-2">
+              <Globe className="h-4 w-4" /> Regionalização
             </TabsTrigger>
           </TabsList>
 
-          {/* Colaboradores Tab */}
-          <TabsContent value="colaboradores" className="mt-6 space-y-6">
-            {/* Add Colaborador Button */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Colaborador
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Novo Colaborador</DialogTitle>
-                  <DialogDescription>
-                    Adicione um novo SDR ou Especialista à equipe.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Nome</Label>
-                    <Input
-                      value={newNome}
-                      onChange={(e) => setNewNome(e.target.value)}
-                      placeholder="Nome do colaborador"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <Select value={newTipo} onValueChange={(v: 'sdr' | 'especialista') => setNewTipo(v)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="especialista">Especialista</SelectItem>
-                        <SelectItem value="sdr">SDR</SelectItem>
-                      </SelectContent>
-                    </Select>
+          {/* ABA: IDENTIDADE */}
+          <TabsContent value="identity">
+            <Card>
+              <CardHeader>
+                <CardTitle>Identidade da Agência</CardTitle>
+                <CardDescription>Nome e logotipo exibidos no painel.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                  <Label>Logo da Agência</Label>
+                  <div className="flex items-center gap-4">
+                    {logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt="Logo"
+                        className="h-16 w-16 rounded-lg object-contain border bg-muted"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted">
+                        <Building2 className="h-6 w-6 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        placeholder="Cole a URL da imagem (https://...)"
+                        value={logoUrl ?? ''}
+                        onChange={(e) => setLogoUrl(e.target.value || null)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Cole a URL pública da imagem. Recomendado: PNG com fundo transparente.
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleAddColaborador} disabled={createColaborador.isPending || !newNome.trim()}>
-                    {createColaborador.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Adicionar
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
 
-            {/* SDRs List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-400" />
-                  SDRs ({sdrs.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {sdrs.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    Nenhum SDR cadastrado. Clique em "Adicionar Colaborador" para começar.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {sdrs.map((sdr) => (
-                      <div 
-                        key={sdr.id} 
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium">{sdr.nome}</span>
-                          {!sdr.ativo && (
-                            <Badge variant="secondary">Inativo</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => {
-                              setEditingColaborador(sdr);
-                              setEditDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir colaborador?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta ação não pode ser desfeita. O colaborador "{sdr.nome}" será removido permanentemente.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteColaborador(sdr.id)}>
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                <Separator />
 
-            {/* Especialistas List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="h-5 w-5 text-green-400" />
-                  Especialistas ({especialistas.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {especialistas.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    Nenhum especialista cadastrado. Clique em "Adicionar Colaborador" para começar.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {especialistas.map((esp) => (
-                      <div 
-                        key={esp.id} 
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium">{esp.nome}</span>
-                          {!esp.ativo && (
-                            <Badge variant="secondary">Inativo</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => {
-                              setEditingColaborador(esp);
-                              setEditDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir colaborador?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta ação não pode ser desfeita. O colaborador "{esp.nome}" será removido permanentemente.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteColaborador(esp.id)}>
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Metas Tab */}
-          <TabsContent value="metas" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  Metas Cadastradas ({metas?.length || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!metas || metas.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    Nenhuma meta cadastrada. Acesse a página de Metas para configurar.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {metas.map((meta) => (
-                      <div 
-                        key={meta.id} 
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant={meta.tipo === 'global' ? 'default' : meta.tipo === 'sdr' ? 'secondary' : 'outline'}>
-                              {meta.tipo === 'global' ? 'Global' : meta.tipo === 'sdr' ? 'SDR' : 'Especialista'}
-                            </Badge>
-                            {meta.responsavel && (
-                              <span className="font-medium">{meta.responsavel}</span>
-                            )}
-                            <span className="text-muted-foreground">
-                              - {meses[meta.mes - 1]} {meta.ano}
-                            </span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mt-1 flex gap-4">
-                            {meta.meta_faturamento > 0 && (
-                              <span>Faturamento: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(meta.meta_faturamento)}</span>
-                            )}
-                            {meta.meta_vendas > 0 && (
-                              <span>Vendas: {meta.meta_vendas}</span>
-                            )}
-                            {meta.meta_reunioes > 0 && (
-                              <span>Reuniões: {meta.meta_reunioes}</span>
-                            )}
-                            {meta.meta_agendamentos > 0 && (
-                              <span>Agendamentos: {meta.meta_agendamentos}</span>
-                            )}
-                          </div>
-                        </div>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Excluir meta?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não pode ser desfeita. A meta será removida permanentemente.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteMeta(meta.id)}>
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Editar Colaborador</DialogTitle>
-              <DialogDescription>
-                Altere as informações do colaborador.
-              </DialogDescription>
-            </DialogHeader>
-            {editingColaborador && (
-              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Nome</Label>
+                  <Label htmlFor="agency-name">Nome da Agência</Label>
                   <Input
-                    value={editingColaborador.nome}
-                    onChange={(e) => setEditingColaborador({...editingColaborador, nome: e.target.value})}
-                    placeholder="Nome do colaborador"
+                    id="agency-name"
+                    placeholder="Ex: Se Tu For! Eu Vou Viagens"
+                    value={agencyName}
+                    onChange={(e) => setAgencyName(e.target.value)}
                   />
                 </div>
+
+                <Button
+                  onClick={() => saveIdentity.mutate({ name: agencyName, logo_url: logoUrl })}
+                  disabled={saveIdentity.isPending}
+                  className="w-full gap-2"
+                >
+                  {saveIdentity.isPending
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Save className="h-4 w-4" />}
+                  Salvar Identidade
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ABA: APARÊNCIA */}
+          <TabsContent value="appearance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Aparência</CardTitle>
+                <CardDescription>Modo escuro e cores do painel.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Modo Escuro</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Ativa o tema escuro em todo o painel.
+                    </p>
+                  </div>
+                  <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+                </div>
+
+                <Separator />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Cor Primária</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={primaryColor}
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        className="h-10 w-12 rounded cursor-pointer border bg-transparent p-1"
+                      />
+                      <Input
+                        value={primaryColor}
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cor Secundária</Label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={secondaryColor}
+                        onChange={(e) => setSecondaryColor(e.target.value)}
+                        className="h-10 w-12 rounded cursor-pointer border bg-transparent p-1"
+                      />
+                      <Input
+                        value={secondaryColor}
+                        onChange={(e) => setSecondaryColor(e.target.value)}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border p-4 space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">PREVIEW</p>
+                  <div className="flex gap-3">
+                    <div
+                      className="h-10 flex-1 rounded-md flex items-center justify-center text-sm font-medium"
+                      style={{ backgroundColor: primaryColor, color: secondaryColor }}
+                    >
+                      Primária
+                    </div>
+                    <div
+                      className="h-10 flex-1 rounded-md flex items-center justify-center text-sm font-medium"
+                      style={{ backgroundColor: secondaryColor, color: primaryColor }}
+                    >
+                      Secundária
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => saveAppearance.mutate({
+                    dark_mode: darkMode,
+                    primary_color: primaryColor,
+                    secondary_color: secondaryColor,
+                  })}
+                  disabled={saveAppearance.isPending}
+                  className="w-full gap-2"
+                >
+                  {saveAppearance.isPending
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Save className="h-4 w-4" />}
+                  Salvar Aparência
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ABA: REGIONALIZAÇÃO */}
+          <TabsContent value="regionalization">
+            <Card>
+              <CardHeader>
+                <CardTitle>Regionalização</CardTitle>
+                <CardDescription>Fuso horário e idioma do painel.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <Select 
-                    value={editingColaborador.tipo} 
-                    onValueChange={(v: 'sdr' | 'especialista') => setEditingColaborador({...editingColaborador, tipo: v})}
-                  >
+                  <Label>Fuso Horário</Label>
+                  <Select value={timezone} onValueChange={setTimezone}>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione o fuso horário" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="especialista">Especialista</SelectItem>
-                      <SelectItem value="sdr">SDR</SelectItem>
+                      {TIMEZONES.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Afeta exibição de datas e horários no painel.
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label>Idioma</Label>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o idioma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LANGUAGES.map((lang) => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label>Ativo</Label>
-                  <Switch
-                    checked={editingColaborador.ativo}
-                    onCheckedChange={(checked) => setEditingColaborador({...editingColaborador, ativo: checked})}
-                  />
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleUpdateColaborador} disabled={updateColaborador.isPending}>
-                {updateColaborador.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Salvar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+
+                <Button
+                  onClick={() => saveRegionalization.mutate({ timezone, language })}
+                  disabled={saveRegionalization.isPending}
+                  className="w-full gap-2"
+                >
+                  {saveRegionalization.isPending
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Save className="h-4 w-4" />}
+                  Salvar Regionalização
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+        </Tabs>
       </div>
     </DashboardLayout>
   );
