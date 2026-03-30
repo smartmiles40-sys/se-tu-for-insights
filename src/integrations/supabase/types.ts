@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      settings: {
-        Row: {
-          key: string
-          value: Json
-          updated_at: string
-        }
-        Insert: {
-          key: string
-          value: Json
-          updated_at?: string
-        }
-        Update: {
-          key?: string
-          value?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
       clientes_relacionamento: {
         Row: {
           created_at: string
