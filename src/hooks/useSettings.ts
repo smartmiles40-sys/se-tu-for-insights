@@ -45,7 +45,7 @@ async function fetchSettings(): Promise<AppSettings> {
 }
 
 async function upsertSetting(key: string, value: unknown) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('settings')
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) throw error;
