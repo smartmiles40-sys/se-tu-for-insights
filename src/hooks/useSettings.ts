@@ -36,7 +36,7 @@ async function fetchSettings(): Promise<AppSettings> {
   if (error) throw error;
 
   const result = { ...DEFAULT_SETTINGS };
-  data?.forEach((row) => {
+  data?.forEach((row: any) => {
     if (row.key === 'agency_identity') result.agency_identity = { ...DEFAULT_SETTINGS.agency_identity, ...(row.value as AgencyIdentity) };
     if (row.key === 'appearance') result.appearance = { ...DEFAULT_SETTINGS.appearance, ...(row.value as Appearance) };
     if (row.key === 'regionalization') result.regionalization = { ...DEFAULT_SETTINGS.regionalization, ...(row.value as Regionalization) };
