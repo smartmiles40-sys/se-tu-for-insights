@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 async function fetchSettings(): Promise<AppSettings> {
-  const { data, error } = await supabase.from('settings').select('key, value');
+  const { data, error } = await (supabase as any).from('settings').select('key, value');
   if (error) throw error;
 
   const result = { ...DEFAULT_SETTINGS };
