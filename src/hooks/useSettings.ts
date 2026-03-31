@@ -32,11 +32,11 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 async function fetchSettings(): Promise<AppSettings> {
-  const { data, error } = await supabase.from('settings').select('key, value');
+  const { data, error } = await (supabase as any).from('settings').select('key, value');
   if (error) throw error;
 
   const result = { ...DEFAULT_SETTINGS };
-  data?.forEach((row) => {
+  data?.forEach((row: any) => {
     if (row.key === 'agency_identity') result.agency_identity = { ...DEFAULT_SETTINGS.agency_identity, ...(row.value as AgencyIdentity) };
     if (row.key === 'appearance') result.appearance = { ...DEFAULT_SETTINGS.appearance, ...(row.value as Appearance) };
     if (row.key === 'regionalization') result.regionalization = { ...DEFAULT_SETTINGS.regionalization, ...(row.value as Regionalization) };
@@ -45,7 +45,7 @@ async function fetchSettings(): Promise<AppSettings> {
 }
 
 async function upsertSetting(key: string, value: unknown) {
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('settings')
     .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) throw error;
