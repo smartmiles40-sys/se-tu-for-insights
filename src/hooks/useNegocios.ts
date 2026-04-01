@@ -67,7 +67,8 @@ export function useNegocios(filters?: NegocioFilters) {
       let query = supabase
         .from('negocios')
         .select('*')
-        .order('data_inicio', { ascending: false });
+        .not('crm_id', 'is', null)
+        .order('updated_at', { ascending: false });
 
       if (filters?.sdr) {
         query = query.ilike('sdr', `${filters.sdr}%`);
