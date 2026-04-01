@@ -368,10 +368,10 @@ export default function Dashboard() {
         ) : (
           <>
             {!hasData ? <div className="bi-card p-16 text-center">
-                <AlertTriangle className="h-16 w-16 text-slate-500 mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold mb-3 text-slate-200">Nenhum dado encontrado</h3>
-                <p className="text-slate-400 max-w-md mx-auto">
-                  Importe os dados do CRM através da opção "Importar Dados" no menu lateral.
+                <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+                <h3 className="text-2xl font-semibold mb-3 text-foreground">Nenhum dado encontrado</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Os dados serão exibidos automaticamente assim que chegarem via integração com o Bitrix24.
                 </p>
               </div> : <>
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-end gap-4 mb-4">
