@@ -1,0 +1,1 @@
+CREATE POLICY "Allow external access" ON negocios FOR ALL TO anon USING (true) WITH CHECK (true);
